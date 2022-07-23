@@ -1,0 +1,53 @@
+package main
+
+import "fmt"
+
+var adj [][]int
+
+type Color int
+
+const (
+	White Color = iota
+	Gray
+	Black
+)
+
+var visit []Color
+var ret bool
+var retArr []int
+
+func dfs(at int) {
+	if visit[at] == White {
+		visit[at] = Gray
+		for _, to := range adj[at] {
+			dfs(to)
+		}
+		visit[at] = Black
+		retArr = append(retArr, at)
+
+	} else if visit[at] == Gray {
+		ret = false
+	}
+}
+func findOrder(numCourses int, prerequisites [][]int) []int {
+
+	adj = make([][]int, numCourses)
+	ret = true
+	retArr = make([]int, 0)
+
+	for _, e := range prerequisites {
+		adj[e[0]] = append(adj[e[0]], e[1])
+	}
+	visit = make([]Color, numCourses)
+	for to := 0; to < numCourses; to++ {
+		dfs(to)
+	}
+	if ret == false {
+		return []int{}
+	}
+	return retArr
+}
+
+func main() {
+	fmt.Println(findOrder(2, [][]int{{1, 0}}))
+}

@@ -1,0 +1,53 @@
+package main
+
+import "fmt"
+
+var adj [][]int
+
+type Color int
+
+const (
+	White Color = iota
+	Gray
+	Black
+)
+
+var visit []Color
+var ret bool
+
+func dfs(at int) {
+	for _, to := range adj[at] {
+		if visit[to] == White {
+			visit[to] = Gray
+			dfs(to)
+			visit[to] = Black
+
+		} else if visit[to] == Gray {
+			ret = false
+		}
+	}
+}
+
+func canFinish(numCourses int, prerequisites [][]int) bool {
+	adj = make([][]int, numCourses)
+	ret = true
+	for _, e := range prerequisites {
+		adj[e[0]] = append(adj[e[0]], e[1])
+	}
+	visit = make([]Color, numCourses)
+	for to := 0; to < numCourses; to++ {
+		if visit[to] == White {
+			visit[to] = Gray
+			dfs(to)
+			visit[to] = Black
+
+		} else if visit[to] == Gray {
+			ret = false
+		}
+	}
+	return ret
+}
+
+func main() {
+	fmt.Println(canFinish(2, [][]int{{1, 0}, {0, 1}}))
+}
