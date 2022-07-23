@@ -1,0 +1,49 @@
+package main
+
+import "fmt"
+
+var r map[int]int
+var rsize map[int]int
+
+func find(b int) (int, bool) {
+	f, ok := r[b]
+	if !ok {
+		return 0, false
+	}
+	if f == b {
+		return b, true
+	}
+	return find(f)
+}
+func union_if_exist(n, b int) {
+	if p, ok := find(b); ok {
+		np, _ := find(n)
+		r[p] = np
+		rsize[np] += rsize[p]
+	}
+}
+func longestConsecutive(nums []int) int {
+	r = map[int]int{}
+	rsize = map[int]int{}
+
+	for _, n := range nums {
+		if _, ok := find(n); !ok {
+			r[n] = n
+			rsize[n] = 1
+			union_if_exist(n, n-1)
+			union_if_exist(n, n+1)
+
+		}
+	}
+	m := 0
+	for _, v := range rsize {
+		if v > m {
+			m = v
+		}
+	}
+	return m
+}
+func main() {
+	fmt.Println(longestConsecutive([]int{1, 2, 0, 1}))
+	fmt.Println(longestConsecutive([]int{0, 3, 7, 2, 5, 8, 4, 6, 0, 1}))
+}
