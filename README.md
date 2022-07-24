@@ -8,3 +8,6 @@ https://github.com/labuladong/fucking-algorithm/blob/master/%E6%95%B0%E6%8D%AE%E
 https://leetcode.com/discuss/interview-question/352460/Google-Online-Assessment-Questions
 
 
+Patience sorting
+https://www.cs.princeton.edu/courses/archive/spring13/cos423/lectures/LongestIncreasingSubsequence.pdf
+https://en.wikipedia.org/wiki/Patience_sorting
