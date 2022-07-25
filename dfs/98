@@ -1,0 +1,35 @@
+func min(a, b int) int {
+	if a > b {
+		return b
+	}
+	return a
+}
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+func isValidBST(root *TreeNode) bool {
+
+	r, _, _ := dfs(root)
+	return r
+}
+func dfs(root *TreeNode) (bool, int, int) {
+	ret, retmin, retmax := true, root.Val, root.Val
+	if root.Left != nil {
+		l, lmin, lmax := dfs(root.Left)
+		ret = ret && l && root.Val > lmax
+		retmin = min(retmin, lmin)
+		retmax = max(retmax, lmax)
+	}
+	if root.Right != nil {
+
+		r, rmin, rmax := dfs(root.Right)
+		ret = ret && r && root.Val < rmin
+		retmin = min(retmin, rmin)
+		retmax = max(retmax, rmax)
+	}
+	return ret, retmin, retmax
+
+}

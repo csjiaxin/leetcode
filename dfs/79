@@ -1,0 +1,54 @@
+package main
+
+import "fmt"
+
+var visit [][]bool
+
+func exist(board [][]byte, word string) bool {
+
+	m := len(board)
+	n := len(board[0])
+	visit = make([][]bool, m)
+	for i := 0; i < m; i++ {
+		visit[i] = make([]bool, n)
+	}
+	for i := 0; i < m; i++ {
+		for j := 0; j < n; j++ {
+			if dfs(m, n, i, j, 0, word, board) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+var i4 []int = []int{-1, 1, 0, 0}
+var j4 []int = []int{0, 0, 1, -1}
+
+func dfs(m, n, i, j, cur int, word string, board [][]byte) bool {
+	if cur >= len(word) {
+		return true
+	}
+	if i >= 0 && i < m && j >= 0 && j < n {
+		if visit[i][j] {
+			return false
+		}
+		visit[i][j] = true
+		if board[i][j] == word[cur] {
+			for d := 0; d < len(i4); d++ {
+				ni := i + i4[d]
+				nj := j + j4[d]
+
+				if dfs(m, n, ni, nj, cur+1, word, board) {
+					return true
+				}
+			}
+		}
+		visit[i][j] = false
+	}
+	return false
+}
+
+func main() {
+	fmt.Println(exist([][]byte{{'A', 'B', 'C', 'E'}, {'S', 'F', 'C', 'S'}, {'A', 'D', 'E', 'E'}}, "ABCB"))
+}

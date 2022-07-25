@@ -1,0 +1,44 @@
+package main
+
+import "fmt"
+
+var ret [][]string
+
+func is(s string, from, end int) bool {
+	for from <= end {
+		if s[from] != s[end] {
+			return false
+		}
+		from += 1
+		end -= 1
+	}
+	return true
+}
+func DeepCopy(c []string) []string {
+	d := make([]string, len(c))
+	copy(d, c)
+	return d
+}
+func dfs(s string, at int, c []string) {
+	if at >= len(s) {
+		ret = append(ret, DeepCopy(c))
+		return
+	}
+	for end := at; end < len(s); end++ {
+		if is(s, at, end) {
+			c = append(c, s[at:end+1])
+			dfs(s, end+1, c)
+			c = c[:len(c)-1]
+		}
+	}
+
+}
+func partition(s string) [][]string {
+	ret = [][]string{}
+	dfs(s, 0, []string{})
+	return ret
+}
+
+func main() {
+	fmt.Println(partition("cbbbcc"))
+}

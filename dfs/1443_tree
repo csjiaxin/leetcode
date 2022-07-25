@@ -1,0 +1,71 @@
+package main
+
+import "fmt"
+
+type Node struct {
+	Key      int
+	Children []*Node
+}
+
+func NewNode(key int) *Node {
+	return &Node{Key: key, Children: []*Node{}}
+}
+func (n *Node) AddChild(key int) {
+	n.Children = append(n.Children, NewNode(key))
+}
+
+type Tree struct {
+	Root *Node
+}
+
+func (tree *Tree) insertEdge(pnode *Node, parent, key int) bool {
+	if pnode.Key == parent {
+		pnode.AddChild(key)
+		return true
+	}
+	for _, c := range pnode.Children {
+		if tree.insertEdge(c, parent, key) {
+			return true
+		}
+	}
+	return false
+}
+func (tree *Tree) insertEdge2(parent, key int) {
+	if tree.Root == nil {
+		tree.Root = NewNode(parent)
+		tree.Root.AddChild(key)
+	} else {
+		tree.insertEdge(tree.Root, parent, key)
+	}
+
+}
+func dfs(n *Node, hasApple []bool) (bool, int) {
+	if n == nil {
+		return false, 0
+	}
+	step := 0
+	f := hasApple[n.Key]
+	for _, c := range n.Children {
+		l, li := dfs(c, hasApple)
+		if l {
+			f = true
+			step = step + li + 2
+		}
+
+	}
+
+	return f, step
+}
+func minTime(n int, edges [][]int, hasApple []bool) int {
+	t := &Tree{}
+	for _, e := range edges {
+		t.insertEdge2(e[0], e[1])
+	}
+	_, s := dfs(t.Root, hasApple)
+	return s
+}
+
+func main() {
+	fmt.Println(minTime(7, [][]int{{0, 2}, {0, 3}, {1, 2}}, []bool{false, true, false, false}))
+	// fmt.Println(minTime(7, [][]int{{0, 1}, {0, 2}, {1, 4}, {1, 5}, {2, 3}, {2, 6}}, []bool{false, false, true, false, true, true, false}))
+}

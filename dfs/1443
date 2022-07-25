@@ -1,0 +1,40 @@
+package main
+
+import "fmt"
+
+var adj [][]int
+var visit []bool
+
+func dfs(n int, hasApple []bool) (bool, int) {
+	visit[n] = true
+	step := 0
+	f := hasApple[n]
+	for _, to := range adj[n] {
+		if !visit[to] {
+			l, li := dfs(to, hasApple)
+			if l {
+				f = true
+				step = step + li + 2
+			}
+		}
+
+	}
+
+	return f, step
+}
+func minTime(n int, edges [][]int, hasApple []bool) int {
+	adj = make([][]int, n)
+	visit = make([]bool, n)
+
+	for _, e := range edges {
+		adj[e[0]] = append(adj[e[0]], e[1])
+		adj[e[1]] = append(adj[e[1]], e[0])
+	}
+	_, s := dfs(0, hasApple)
+	return s
+}
+
+func main() {
+	fmt.Println(minTime(7, [][]int{{0, 2}, {0, 3}, {1, 2}}, []bool{false, true, false, false}))
+	// fmt.Println(minTime(7, [][]int{{0, 1}, {0, 2}, {1, 4}, {1, 5}, {2, 3}, {2, 6}}, []bool{false, false, true, false, true, true, false}))
+}

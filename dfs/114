@@ -1,0 +1,33 @@
+/**
+ * Definition for a binary tree node.
+ * type TreeNode struct {
+ *     Val int
+ *     Left *TreeNode
+ *     Right *TreeNode
+ * }
+ */
+func dfs(n *TreeNode) (*TreeNode, *TreeNode) {
+	if n == nil {
+		return nil, nil
+	}
+	ntail := n
+	nright := n.Right
+	if n.Left != nil {
+		lhead, ltail := dfs(n.Left)
+		n.Left = nil
+		ntail.Right = lhead
+		ntail = ltail
+	}
+
+	if nright != nil {
+		rhead, rtail := dfs(nright)
+		ntail.Right = rhead
+		ntail = rtail
+	}
+	return n, ntail
+}
+func flatten(root *TreeNode) {
+
+	dfs(root)
+
+}
