@@ -1,0 +1,44 @@
+package main
+
+import "fmt"
+
+func max(a, b int) int {
+	if a < b {
+		return b
+	}
+	return a
+}
+
+var presum []int
+var demo [][]int
+
+func stoneGameII(piles []int) int {
+	n := len(piles)
+	presum = make([]int, n+1)
+	demo = make([][]int, n)
+	for i := 0; i < n; i++ {
+		demo[i] = make([]int, n)
+		for j := 0; j < n; j++ {
+			demo[i][j] = -1
+		}
+	}
+	for i := 1; i <= n; i++ {
+		presum[i] = piles[i-1] + presum[i-1]
+	}
+	dfs(piles, 1, 0)
+}
+func dfs(p []int, m, at int) int {
+	if demo[at][m] >= 0 {
+		return demo[at][m]
+	}
+	ret := 0
+	for x := 1; x <= 2*m && at+x <= n; x++ {
+		ret = max(ret, presum[at+x]-presum[at]-dfs(p, max(m, x), at+x))
+	}
+	demo[at][m] = ret
+	return ret
+}
+
+func main() {
+	fmt.Println(stoneGameII([]int{5, 3, 4, 5}))
+}
