@@ -47,3 +47,7 @@ Dijstra
 Bridge/ Cut edges 
 Articulation point/ Cut vertex
 
+MST(Mininum Spanning Tree)
+1 Prim (From Vertex)https://www.youtube.com/watch?v=jsmMtJpPnhU O(E*lgE) -> O(E*lgV)
+2 Kruskals (From Edge) Use Union-Find as connectivity judging.
+
