@@ -1,0 +1,41 @@
+package main
+
+import "fmt"
+
+var result [][]int
+
+func dfs(nums, path []int, at int, visit []bool) {
+	if at >= len(nums) {
+		return
+	}
+	visit[at] = true
+	path = append(path, nums[at])
+	if len(path) >= len(nums) {
+		c := make([]int, len(path))
+		copy(c, path)
+		result = append(result, c)
+	} else {
+		for i := 0; i < len(nums); i++ {
+			if !visit[i] {
+				dfs(nums, path, i, visit)
+			}
+		}
+	}
+	visit[at] = false
+	// path = path[:len(path)-1]
+
+}
+
+func permute(nums []int) [][]int {
+	result = make([][]int, 0)
+	visit := make([]bool, len(nums))
+	for i := 0; i < len(nums); i++ {
+		if !visit[i] {
+			dfs(nums, []int{}, i, visit)
+		}
+	}
+	return result
+}
+func main() {
+	fmt.Println(permute([]int{1, 2, 1}))
+}
