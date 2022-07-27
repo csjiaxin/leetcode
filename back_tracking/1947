@@ -1,0 +1,47 @@
+package main
+
+import "fmt"
+
+var ret int
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+func get_score(i []int, j []int) int {
+	s := 0
+	for k := 0; k < len(i); k++ {
+		if i[k] == j[k] {
+			s += 1
+
+		}
+	}
+	return s
+}
+func dfs(i int, mentorChoosen []bool, students, mentors [][]int, score int) {
+	if i >= len(students) {
+		ret = max(ret, score)
+		return
+	}
+	for j := 0; j < len(mentors); j++ {
+		if !mentorChoosen[j] {
+			mentorChoosen[j] = true
+			dfs(i+1, mentorChoosen, students, mentors, score+get_score(students[i], mentors[j]))
+			mentorChoosen[j] = false
+		}
+
+	}
+}
+func maxCompatibilitySum(students [][]int, mentors [][]int) int {
+	ret = 0
+	n := len(students)
+	choosen := make([]bool, n)
+	dfs(0, choosen, students, mentors, 0)
+	return ret
+
+}
+func main() {
+	fmt.Println(maxCompatibilitySum([][]int{{1, 1, 0}, {1, 0, 1}, {0, 0, 1}}, [][]int{{1, 0, 0}, {0, 0, 1}, {1, 1, 0}}))
+}

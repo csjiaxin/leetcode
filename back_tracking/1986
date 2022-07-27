@@ -1,0 +1,13 @@
+package main
+
+import (
+	"container/heap"
+	"fmt"
+)
+
+func minSessions(tasks []int, sessionTime int) int {
+	
+}
+func main(){
+	fmt.Println(minSessions([]int{1,2,3},3))
+}

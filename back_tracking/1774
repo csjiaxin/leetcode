@@ -1,0 +1,54 @@
+package main
+
+import (
+	"fmt"
+	"math"
+)
+
+var result int
+var resultdiff int
+
+func min(a, b int) int {
+	if a > b {
+		return b
+	}
+	return a
+}
+func dfs(c, target int, t int, toppingCosts []int) {
+
+	_ret := c
+	_retdiff := int(math.Abs(float64(_ret - target)))
+	if _retdiff == resultdiff {
+		result = min(result, _ret)
+	} else if _retdiff < resultdiff {
+		resultdiff = _retdiff
+		result = _ret
+	}
+	if t >= len(toppingCosts) {
+		return
+	}
+	if _ret > target {
+		return
+	}
+
+	// for j := t; j < len(toppingCosts); j++ {
+	dfs(c, target, t+1, toppingCosts)
+	dfs(c+toppingCosts[t], target, t+1, toppingCosts)
+	dfs(c+2*toppingCosts[t], target, t+1, toppingCosts)
+	// }
+}
+
+func closestCost(baseCosts []int, toppingCosts []int, target int) int {
+	result = math.MaxInt
+	resultdiff = math.MaxInt
+	n := len(baseCosts)
+	for i := 0; i < n; i++ {
+		dfs(baseCosts[i], target, 0, toppingCosts)
+	}
+	return result
+}
+
+func main() {
+	// fmt.Println(closestCost([]int{2, 3}, []int{4, 5, 100}, 18))
+	fmt.Println(closestCost([]int{3, 10}, []int{2, 5}, 9))
+}
