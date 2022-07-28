@@ -1,0 +1,58 @@
+package main
+
+import "fmt"
+
+var dp [][]int
+
+func dfs(s, p string, i, j int) bool {
+	if dp[i][j] != 0 {
+		return dp[i][j] == 1
+	}
+	if j >= len(p) {
+		return i >= len(s)
+	}
+
+	b := false
+	if j < len(p)-1 && p[j+1] == '*' {
+		b = b || dfs(s, p, i, j+2)
+	}
+
+	c := p[j]
+	switch c {
+	case '*':
+		b = b || dfs(s, p, i, j+1) //0
+		if i < len(s) {
+			if s[i-1] == s[i] || p[j-1] == '.' {
+				b = b || dfs(s, p, i+1, j) // 1 or more
+			}
+		}
+
+	default:
+		if i < len(s) {
+			if s[i] == c || c == '.' {
+				b = b || dfs(s, p, i+1, j+1)
+			}
+		}
+	}
+	if b {
+		dp[i][j] = 1
+	} else {
+		dp[i][j] = -1
+	}
+	return b
+}
+func isMatch(s string, p string) bool {
+	dp = make([][]int, len(s)+1)
+	for i := 0; i < len(dp); i++ {
+		dp[i] = make([]int, len(p)+1)
+	}
+	return dfs(s, p, 0, 0)
+}
+
+func main() {
+	fmt.Println(isMatch("aa", "a*")) //true
+	// fmt.Println(isMatch("ab", ".*..")) //true
+	// fmt.Println(isMatch("a", "ab*"))     //true
+	// fmt.Println(isMatch("aab", "c*a*b")) //true
+	// fmt.Println(isMatch("abc", ".*"))
+}
