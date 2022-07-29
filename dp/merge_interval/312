@@ -1,0 +1,44 @@
+package main
+
+import "fmt"
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+func burst(b []int, memo [][]int, left, right int) int {
+	if left+1 >= right {
+		return 0
+	}
+	if memo[left][right] >= 0 {
+		return memo[left][right]
+	}
+	ans := 0
+	for i := left + 1; i < right; i++ {
+		ans = max(ans, burst(b, memo, left, i)+burst(b, memo, i, right)+b[left]*b[right]*b[i])
+	}
+	memo[left][right] = ans
+	return ans
+}
+func maxCoins(nums []int) int {
+	n := len(nums)
+	N := n + 2
+	b := make([]int, N)
+	memo := make([][]int, N)
+	for i := 0; i < len(memo); i++ {
+		memo[i] = make([]int, N)
+		for j := 0; j < len(memo[i]); j++ {
+			memo[i][j] = -1
+		}
+	}
+	b[0] = 1
+	copy(b[1:], nums)
+	b[N-1] = 1
+	return burst(b, memo, 0, N-1)
+}
+
+func main() {
+	fmt.Println(maxCoins([]int{3, 1, 5, 8}))
+}

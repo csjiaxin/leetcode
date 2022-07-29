@@ -1,0 +1,63 @@
+package main
+
+import (
+	"fmt"
+)
+
+var cost int
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+func mergeStones(stones []int, K int) int {
+	n := len(stones)
+	dp := make([][][]int, n+1)
+	MAX := 99999999
+	for i := 0; i < len(dp); i++ {
+		dp[i] = make([][]int, n+1)
+		for j := 0; j < len(dp[i]); j++ {
+			dp[i][j] = make([]int, K+1)
+			for _k := 0; _k < len(dp[i][j]); _k++ {
+				dp[i][j][_k] = MAX
+			}
+		}
+	}
+	for i := 0; i < len(dp); i++ {
+		dp[i][i][1] = 0
+	}
+	prefixSum := make([]int, n+1)
+	for i := 1; i <= n; i++ {
+		_i := i - 1
+		prefixSum[i] = prefixSum[i-1] + stones[_i]
+	}
+	for l := 2; l <= n; l++ {
+		for i := 1; i <= n-l+1; i++ {
+			j := i + l - 1
+			for k := 2; k <= K; k++ {
+				for t := i; t < j; t++ {
+					if dp[i][t][k-1] < MAX && dp[t+1][j][1] < MAX {
+						v := dp[i][t][k-1] + dp[t+1][j][1]
+						dp[i][j][k] = min(dp[i][j][k], v)
+					}
+				}
+			}
+			if dp[i][j][K] < MAX {
+				dp[i][j][1] = dp[i][j][K] + prefixSum[j] - prefixSum[i-1]
+			}
+
+		}
+	}
+	if dp[1][n][1] >= MAX {
+		return -1
+	}
+	return dp[1][n][1]
+}
+
+func main() {
+	fmt.Println(mergeStones([]int{3, 2, 4, 1}, 2))
+	// fmt.Println(mergeStones([]int{3, 2, 4, 1}, 3))
+	// fmt.Println(mergeStones([]int{16, 43, 87, 30, 4, 98, 12, 30, 47, 45, 32, 4, 64, 14, 24, 84, 86, 51, 11, 22, 4}, 2))
+}
