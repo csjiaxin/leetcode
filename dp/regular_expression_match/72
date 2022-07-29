@@ -11,7 +11,7 @@ func min(a, b int) int {
 	return a
 }
 
-func minDistance(s string, p string) int {
+func minimumDeleteSum(s string, p string) int {
 	m := len(s)
 	n := len(p)
 	dp = make([][]int, len(s)+1)

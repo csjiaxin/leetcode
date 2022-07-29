@@ -1,0 +1,57 @@
+package main
+
+import (
+	"fmt"
+	"math"
+)
+
+func min(a, b int) int {
+	if a > b {
+		return b
+	}
+	return a
+}
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+func mctFromLeafValues(arr []int) int {
+	n := len(arr)
+	dp := make([][]int, n)
+	maxs := make([][]int, n)
+	for i := 0; i < n; i++ {
+		dp[i] = make([]int, n)
+		maxs[i] = make([]int, n)
+	}
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			dp[i][j] = math.MaxInt
+		}
+	}
+	dp[0][0] = 0
+	for i := 0; i < n; i++ {
+		maxs[i][i] = arr[i]
+	}
+
+	for o := 1; o < n; o++ {
+		for i := 0; i+o < n; i++ {
+			j := i + o
+			maxs[i][j] = max(arr[j], maxs[i][j-1])
+		}
+	}
+	for o := 2; o < n; o++ {
+		for i := 0; i+o < n; i++ {
+			j := i + o
+			for k := i + 1; k < j; k++ {
+				dp[i][j] = min(dp[i][j], dp[i][k-1]+dp[k+1][j]+maxs[i][k-1]*maxs[k+1][j])
+			}
+
+		}
+	}
+	return dp[0][n-1]
+}
+func main() {
+	fmt.Println(mctFromLeafValues([]int{6, 2, 4}))
+}

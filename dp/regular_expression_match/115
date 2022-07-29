@@ -1,0 +1,35 @@
+package main
+
+import "fmt"
+
+var dp [][]int
+
+func numDistinct(s string, p string) int {
+	m := len(s)
+	n := len(p)
+	dp = make([][]int, m+1)
+
+	for i := 0; i < len(dp); i++ {
+		dp[i] = make([]int, n+1)
+	}
+	for i := 0; i <= m; i++ {
+		dp[i][0] = 1
+	}
+	for i := 1; i <= m; i++ {
+		for j := 1; j <= n; j++ {
+			ci := i - 1
+			cj := j - 1
+			if s[ci] == p[cj] {
+				dp[i][j] += dp[i-1][j-1]
+			}
+			dp[i][j] += dp[i-1][j]
+		}
+	}
+
+	return dp[m][n]
+}
+
+func main() {
+	// fmt.Println(numDistinct("rabbbit", "rabbit")) //3
+	fmt.Println(numDistinct("babgbag", "bag")) //5
+}
