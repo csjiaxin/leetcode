@@ -19,5 +19,5 @@ func countSubstrings(s string) int {
 }
 
 func main() {
-	fmt.Println(longestPalindromeSubseq("abc"))
+	fmt.Println(longestPalindrome("abc"))
 }

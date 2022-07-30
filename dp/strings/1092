@@ -1,0 +1,73 @@
+package main
+
+import "fmt"
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+func min(a, b int) int {
+	if a > b {
+		return b
+	}
+	return a
+}
+
+func LCS(text1, text2 string) string {
+	n1 := len(text1)
+	n2 := len(text2)
+
+	dp := make([][]string, n1+1)
+	for i := 0; i < len(dp); i++ {
+		dp[i] = make([]string, n2+1)
+	}
+	for i := 1; i <= n1; i++ {
+		for j := 1; j <= n2; j++ {
+			_i := i - 1
+			_j := j - 1
+			if text1[_i] == text2[_j] {
+				dp[i][j] = dp[i-1][j-1] + text1[_i:_i+1]
+			}
+			if len(dp[i-1][j]) > len(dp[i][j]) {
+				dp[i][j] = dp[i-1][j]
+			}
+			if len(dp[i][j-1]) > len(dp[i][j]) {
+				dp[i][j] = dp[i][j-1]
+			}
+		}
+	}
+	return dp[n1][n2]
+}
+func shortestCommonSupersequence(text1 string, text2 string) string {
+	lcs := LCS(text1, text2)
+	i := 0
+	j := 0
+	ret := ""
+	for k := 0; k < len(lcs); k++ {
+		for ; text1[i] != lcs[k]; i++ {
+			ret += string(text1[i])
+		}
+		i += 1
+		for ; text2[j] != lcs[k]; j++ {
+			ret += string(text2[j])
+		}
+		j += 1
+		ret += string(lcs[k])
+	}
+	if i < len(text1) {
+
+		ret += text1[i:]
+	}
+	if j < len(text2) {
+		ret += text2[j:]
+
+	}
+	return ret
+}
+
+func main() {
+	// fmt.Println(shortestCommonSupersequence("abac", "cab"))
+	fmt.Println(shortestCommonSupersequence("aabbabaa", "aabbbbbbaa"))
+}
