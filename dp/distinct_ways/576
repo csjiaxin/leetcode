@@ -1,0 +1,48 @@
+package main
+
+import (
+	"fmt"
+	"math"
+)
+
+var dir4 = [][]int{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}
+var memo [][][]int
+
+func dfs(m, n, left, i, j int) int {
+	if i >= m || j >= n || i < 0 || j < 0 {
+		return 1
+	}
+	if left == 0 {
+		return 0
+	}
+	if memo[i][j][left] >= 0 {
+		return memo[i][j][left]
+	}
+
+	ans := 0
+	for _, d := range dir4 {
+		ans += dfs(m, n, left-1, i+d[0], j+d[1])
+		ans = int(math.Mod(float64(ans), float64(1e9+7)))
+	}
+
+	memo[i][j][left] = ans
+	return ans
+}
+func findPaths(m int, n int, maxMove int, startRow int, startColumn int) int {
+	N := 51
+	memo = make([][][]int, N)
+	for i := 0; i < N; i++ {
+		memo[i] = make([][]int, N)
+		for j := 0; j < N; j++ {
+			memo[i][j] = make([]int, N)
+			for k := range memo[i][j] {
+				memo[i][j][k] = -1
+			}
+		}
+	}
+	return dfs(m, n, maxMove, startRow, startColumn)
+}
+
+func main() {
+	fmt.Println(findPaths(2, 2, 2, 0, 0))
+}
