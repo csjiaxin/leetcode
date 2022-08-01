@@ -1,0 +1,60 @@
+package main
+
+import (
+	"fmt"
+	"math"
+)
+
+var adj [][]int
+var memo [][]int
+
+func dfs(l int, at int) int {
+	if memo[l][at] > 0 {
+		return memo[l][at]
+	}
+	if l == 0 {
+		return 1
+	}
+	ans := 0
+	for to, v := range adj[at] {
+		if v == 1 {
+			ans += dfs(l-1, to)
+			ans = int(math.Mod(float64(ans), 1e9+7))
+		}
+	}
+	memo[l][at] = ans
+	return ans
+}
+func countVowelPermutation(n int) int {
+	N := 5
+	adj = make([][]int, N)
+	for i := 0; i < N; i++ {
+		adj[i] = make([]int, N)
+	}
+	memo = make([][]int, n)
+	for i := 0; i < n; i++ {
+		memo[i] = make([]int, N)
+	}
+	adj[0][1] = 1
+	adj[1][0] = 1
+	adj[1][2] = 1
+	adj[2][0] = 1
+	adj[2][1] = 1
+	adj[2][3] = 1
+	adj[2][4] = 1
+	adj[3][2] = 1
+	adj[3][4] = 1
+	adj[4][0] = 1
+	ans := 0
+	for i := 0; i < N; i++ {
+		ans += dfs(n-1, i)
+		ans = int(math.Mod(float64(ans), 1e9+7))
+	}
+	return ans
+}
+
+func main() {
+	// fmt.Println(countVowelPermutation(1))
+	fmt.Println(countVowelPermutation(2000))
+	// fmt.Println(countVowelPermutation(5))
+}

@@ -1,0 +1,48 @@
+package main
+
+import (
+	"fmt"
+)
+
+var dir4 = [][]int{{-2, -1}, {-2, 1}, {-1, 2}, {-1, -2}, {1, 2}, {1, -2}, {2, -1}, {2, 1}}
+var memo [][][]float64
+
+func dfs(m, n, left, i, j int) float64 {
+	if i >= m || j >= n || i < 0 || j < 0 {
+		return 0
+	}
+	if left == 0 {
+		return 1
+	}
+	if memo[i][j][left] >= 0 {
+		return memo[i][j][left]
+	}
+
+	ans := float64(0)
+	for _, d := range dir4 {
+		ans += 0.125 * dfs(m, n, left-1, i+d[0], j+d[1])
+	}
+
+	memo[i][j][left] = ans
+	return ans
+}
+
+func knightProbability(n int, k int, row int, column int) float64 {
+	N := 101
+	memo = make([][][]float64, N)
+	for i := 0; i < N; i++ {
+		memo[i] = make([][]float64, N)
+		for j := 0; j < N; j++ {
+			memo[i][j] = make([]float64, N)
+			for k := range memo[i][j] {
+				memo[i][j][k] = -1
+			}
+		}
+	}
+	return dfs(n, n, k, row, column)
+}
+
+func main() {
+	fmt.Println(knightProbability(3, 2, 0, 0))
+	// fmt.Println(knightProbability(1, 0, 0, 0))
+}

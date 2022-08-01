@@ -1,0 +1,42 @@
+package main
+
+import "fmt"
+
+func findNumberOfLIS(nums []int) int {
+	n := len(nums)
+	dp := make([]int, n)
+	N := make([]int, n)
+	for i := 0; i < n; i++ {
+		dp[i] = 1
+		N[i] = 1
+	}
+	for i := 1; i < n; i++ {
+		for j := 0; j < i; j++ {
+			if nums[i] > nums[j] {
+				dpj := dp[j] + 1
+				if dpj > dp[i] {
+					dp[i] = dpj
+					N[i] = N[j]
+				} else if dpj == dp[i] {
+					N[i] += N[j]
+				}
+			}
+		}
+	}
+	maxlen := 0
+	maxN := 0
+	for i := 0; i < n; i++ {
+		if dp[i] > maxlen {
+			maxlen = dp[i]
+			maxN = N[i]
+		} else if dp[i] == maxlen {
+			maxN += N[i]
+
+		}
+	}
+	return maxN
+}
+
+func main() {
+	fmt.Println(findNumberOfLIS([]int{1, 2, 4, 3, 5, 4, 7, 2}))
+}
