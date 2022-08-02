@@ -1,0 +1,64 @@
+package main
+
+import (
+	"container/heap"
+	"fmt"
+)
+
+type E struct {
+	v int
+	i int
+}
+
+// An IntHeap is a min-heap of ints.
+type IntHeap []E
+
+func (h IntHeap) Len() int           { return len(h) }
+func (h IntHeap) Less(i, j int) bool { return h[i].v > h[j].v }
+func (h IntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *IntHeap) Push(x interface{}) {
+	// Push and Pop use pointer receivers because they modify the slice's length,
+	// not just its contents.
+	*h = append(*h, x.(E))
+}
+
+func (h *IntHeap) Pop() interface{} {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
+}
+
+func minRefuelStops(target int, startFuel int, stations [][]int) int {
+
+	num := 0
+	pos := startFuel
+	si := 0
+	sa := make(IntHeap, 0)
+	heap.Init(&sa)
+	for pos < target {
+		for ; si < len(stations) && stations[si][0] <= pos; si++ {
+			heap.Push(&sa, E{v: stations[si][1], i: stations[si][0]})
+		}
+		if sa.Len() > 0 {
+			p := heap.Pop(&sa).(E)
+			pos += p.v
+			num += 1
+		} else {
+			break
+		}
+	}
+	if pos >= target {
+		return num
+	}
+	return -1
+}
+
+func main() {
+	// fmt.Println(minRefuelStops(100, 10, [][]int{{10, 60}, {20, 30}, {30, 30}, {60, 40}}))//2
+	// fmt.Println(minRefuelStops(100, 1, [][]int{{10, 100}}))
+	//4
+	fmt.Println(minRefuelStops(1000, 299, [][]int{{13, 21}, {26, 115}, {100, 47}, {225, 99}, {299, 141}, {444, 198}, {608, 190}, {636, 157}, {647, 255}, {841, 123}}))
+}

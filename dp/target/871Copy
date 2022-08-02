@@ -1,0 +1,74 @@
+package main
+
+import "fmt"
+
+type E struct {
+	i int
+	v int
+}
+type (
+	Stack struct {
+		top    *node
+		length int
+	}
+	node struct {
+		value E
+		prev  *node
+	}
+)
+
+func New() *Stack {
+	return &Stack{nil, 0}
+}
+func (this *Stack) Len() int {
+	return this.length
+}
+func (this *Stack) Peek() E {
+	return this.top.value
+}
+func (this *Stack) Pop() E {
+
+	n := this.top
+	this.top = n.prev
+	this.length--
+	return n.value
+}
+func (this *Stack) Push(value E) {
+	n := &node{value, this.top}
+	this.top = n
+	this.length++
+}
+
+func minRefuelStops(target int, startFuel int, stations [][]int) int {
+	nextGreatEqual := make([]int, len(stations))
+	for i := range nextGreatEqual {
+		nextGreatEqual[i] = -1
+	}
+	s := New()
+	for j, v := range stations {
+		for s.Len() > 0 && s.Peek().v <= v[1] {
+			p := s.Pop()
+			nextGreatEqual[p.i] = j
+		}
+		s.Push(E{i: j, v: v[1]})
+	}
+	pos := startFuel
+	num := 0
+	for i, v := range stations {
+		if pos < target && pos >= v[0] && (nextGreatEqual[i] < 0 || pos < stations[nextGreatEqual[i]][0]) {
+			num += 1
+			pos += v[1]
+		}
+	}
+	if pos >= target {
+		return num
+	}
+	return -1
+}
+
+func main() {
+	// fmt.Println(minRefuelStops(100, 10, [][]int{{10, 60}, {20, 30}, {30, 30}, {60, 40}}))//2
+	// fmt.Println(minRefuelStops(100, 1, [][]int{{10, 100}}))
+	//4
+	fmt.Println(minRefuelStops(1000, 299, [][]int{{13, 21}, {26, 115}, {100, 47}, {225, 99}, {299, 141}, {444, 198}, {608, 190}, {636, 157}, {647, 255}, {841, 123}}))
+}

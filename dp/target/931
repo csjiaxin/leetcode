@@ -1,0 +1,46 @@
+package main
+
+import "fmt"
+
+var memo map[string]int
+
+func min(a, b int) int {
+	if a > b {
+		return b
+	}
+	return a
+}
+
+var dir = [][]int{{1, -1}, {1, 0}, {1, 1}}
+
+func dfs(matrix [][]int, i int, j int) int {
+	if i == len(matrix)-1 {
+		return matrix[i][j]
+	}
+	key := fmt.Sprintf("%d,%d", i, j)
+	if v, ok := memo[key]; ok {
+		return v
+	}
+	ans := 99999999
+	for _, d := range dir {
+		ni := i + d[0]
+		nj := j + d[1]
+		if nj >= 0 && nj < len(matrix[0]) {
+			ans = min(ans, dfs(matrix, ni, nj)+matrix[i][j])
+		}
+	}
+	memo[key] = ans
+	return ans
+}
+func minFallingPathSum(matrix [][]int) int {
+	memo = map[string]int{}
+
+	ans := 99999999
+	for i := 0; i < len(matrix[0]); i++ {
+		ans = min(ans, dfs(matrix, 0, i))
+	}
+	return ans
+}
+func main() {
+	fmt.Println(minFallingPathSum([][]int{{100, -42, -46, -41}, {31, 97, 10, -10}, {-58, -51, 82, 89}, {51, 81, 69, -51}}))
+}
