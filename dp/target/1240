@@ -1,0 +1,34 @@
+
+func min(a, b int) int {
+	if a > b {
+		return b
+	}
+	return a
+}
+
+var m map[string]int
+
+func minSteps(n int) int {
+	m = map[string]int{}
+	return dfs(1, 0, n)
+}
+func dfs(have, c, n int) int {
+	if have == n {
+		return 0
+	}
+	key := fmt.Sprintf("%d,%d", have, c)
+	if v, ok := m[key]; ok {
+		return v
+	}
+	step := 2000
+	//copy
+	if c != have {
+		step = min(step, dfs(have, have, n)+1)
+	}
+	//paste
+	if c > 0 && have+c <= n {
+		step = min(step, dfs(have+c, c, n)+1)
+	}
+	m[key] = step
+	return step
+}
