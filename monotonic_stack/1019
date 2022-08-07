@@ -1,0 +1,66 @@
+/**
+ * Definition for singly-linked list.
+ * type ListNode struct {
+ *     Val int
+ *     Next *ListNode
+ * }
+ */
+
+type Ele struct {
+	i int
+	v int
+}
+type (
+	Stack struct {
+		top    *node
+		length int
+	}
+	node struct {
+		value Ele
+		prev  *node
+	}
+)
+
+func New() *Stack {
+	return &Stack{nil, 0}
+}
+func (this *Stack) Len() int {
+	return this.length
+}
+func (this *Stack) Peek() Ele {
+	return this.top.value
+}
+func (this *Stack) Pop() Ele {
+	n := this.top
+	this.top = n.prev
+	this.length--
+	return n.value
+}
+func (this *Stack) Push(value Ele) {
+	n := &node{value, this.top}
+	this.top = n
+	this.length++
+}
+
+func nextLargerNodes(head *ListNode) []int {
+	s := New()
+	i := 0
+	p := head
+	n := 0
+	for p != nil {
+		n += 1
+		p = p.Next
+	}
+	ret := make([]int, n)
+	for head != nil {
+		for s.Len() > 0 && s.Peek().v < head.Val {
+			e := s.Pop()
+			ret[e.i] = head.Val
+		}
+		s.Push(Ele{i, head.Val})
+		i += 1
+		head = head.next
+	}
+	return ret
+
+}

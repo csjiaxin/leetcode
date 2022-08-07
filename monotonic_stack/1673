@@ -1,0 +1,26 @@
+package main
+
+import "fmt"
+
+func mostCompetitive(nums []int, k int) []int {
+	n := len(nums)
+	less := make([]int, 0)
+	ret := []int{}
+	for i := 0; i < n; i++ {
+		for len(less) > 0 && less[len(less)-1] > nums[i] {
+			less = less[:len(less)-1]
+		}
+		less = append(less, nums[i])
+		if i >= n-k {
+			ret = append(ret, less[0])
+			less = less[1:]
+		}
+	}
+	return ret
+}
+
+func main() {
+	fmt.Println(mostCompetitive([]int{2, 4, 3, 3, 5, 4, 9, 6}, 4))
+	fmt.Println(mostCompetitive([]int{3, 5, 2, 6}, 2))
+	fmt.Println(mostCompetitive([]int{71, 18, 52, 29, 55, 73, 24, 42, 66, 8, 80, 2}, 3))
+}

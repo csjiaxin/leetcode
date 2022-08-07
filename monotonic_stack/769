@@ -1,0 +1,38 @@
+package main
+
+import "fmt"
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+func maxChunksToSorted(arr []int) int {
+	n := len(arr)
+	less := make([]int, n)
+	for i := 0; i < n; i++ {
+		for j := n - 1; j >= i; j-- {
+			if arr[j] <= arr[i] {
+				less[i] = j
+				break
+			}
+		}
+	}
+	right := 0
+	num := 1
+	for i := 0; i < n; i++ {
+		if i > right {
+			right = less[i]
+			num += 1
+		}
+		right = max(right, less[i])
+
+	}
+	return num
+}
+
+func main() {
+	fmt.Println(maxChunksToSorted([]int{4, 3, 2, 1, 0})) //1
+	fmt.Println(maxChunksToSorted([]int{1, 0, 2, 3, 4})) //4
+}

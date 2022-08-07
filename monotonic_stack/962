@@ -1,0 +1,34 @@
+package main
+
+import "fmt"
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+func maxWidthRamp(nums []int) int {
+	s := make([]int, 0)
+	for i, v := range nums {
+		if len(s) == 0 || nums[s[len(s)-1]] > v {
+			s = append(s, i)
+
+		}
+	}
+	n := len(nums)
+	ret := 0
+	for i := n - 1; i >= 0; i-- {
+		for len(s) > 0 && nums[s[len(s)-1]] <= nums[i] {
+			cur := s[len(s)-1]
+			ret = max(ret, i-cur)
+			s = s[:len(s)-1]
+		}
+	}
+	return ret
+}
+
+func main() {
+	//                             0 1
+	fmt.Println(maxWidthRamp([]int{6, 0, 8, 2, 1, 5})) //4
+}

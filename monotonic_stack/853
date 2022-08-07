@@ -1,0 +1,76 @@
+package main
+
+import (
+	"fmt"
+	"sort"
+)
+
+type Ele struct {
+	i int
+	v int
+}
+type (
+	Stack struct {
+		top    *node
+		length int
+	}
+	node struct {
+		value Ele
+		prev  *node
+	}
+)
+
+func New() *Stack {
+	return &Stack{nil, 0}
+}
+func (this *Stack) Len() int {
+	return this.length
+}
+func (this *Stack) Peek() Ele {
+	return this.top.value
+}
+func (this *Stack) Pop() Ele {
+	n := this.top
+	this.top = n.prev
+	this.length--
+	return n.value
+}
+func (this *Stack) Push(value Ele) {
+	n := &node{value, this.top}
+	this.top = n
+	this.length++
+}
+
+type car struct {
+	pos      int
+	speed    int
+	lefttime int
+}
+type Cars []car
+
+func (c Cars) Len() int {
+	return len(c)
+}
+func (c Cars) Less(i, j int) bool {
+	return c[i].pos < c[j].pos
+}
+func (c Cars) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+
+func carFleet(target int, position []int, speed []int) int {
+	n := len(position)
+	cars := make(Cars, n)
+	for i := range position {
+		cars[i].pos = position[i]
+		cars[i].speed = speed[i]
+		cars[i].lefttime = (target - cars[i].pos) / speed[i]
+	}
+	sort.Sort(cars)
+	for j := n - 1; j >= 0; j-- {
+
+	}
+}
+func main() {
+	fmt.Println(carFleet(12, []int{10, 8, 0, 5, 3}, []int{2, 4, 1, 1, 3}))
+}
