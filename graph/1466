@@ -1,0 +1,38 @@
+package main
+
+import "fmt"
+
+func minReorder(n int, connections [][]int) int {
+	from := make([][]int, n)
+	to := make([][]int, n)
+	for _, c := range connections {
+		from[c[1]] = append(from[c[1]], c[0])
+		to[c[0]] = append(to[c[0]], c[1])
+	}
+	q := make([]int, 0)
+	visit := make([]bool, n)
+	q = append(q, 0)
+	visit[0] = true
+	num := 0
+	for len(q) > 0 {
+		q2 := make([]int, 0)
+		for _, v := range q {
+			visit[v] = true
+			for _, vf := range from[v] {
+				q2 = append(q2, vf)
+			}
+			for _, vt := range to[v] {
+				if visit[vt] == false {
+					num += 1
+					q2 = append(q2, vt)
+				}
+			}
+		}
+		q = q2
+	}
+	return num
+}
+
+func main() {
+	fmt.Println(minReorder(6, [][]int{{0, 1}, {1, 3}, {2, 3}, {4, 0}, {4, 5}}))
+}

@@ -1,0 +1,85 @@
+package main
+
+import (
+	"container/heap"
+	"fmt"
+	"math"
+)
+
+type E struct {
+	v int
+	i int
+}
+
+// An IntHeap is a min-heap of ints.
+type IntHeap []E
+
+func (h IntHeap) Len() int           { return len(h) }
+func (h IntHeap) Less(i, j int) bool { return h[i].v < h[j].v }
+func (h IntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *IntHeap) Push(x interface{}) {
+	*h = append(*h, x.(E))
+}
+
+func (h *IntHeap) Pop() interface{} {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func countPaths(n int, roads [][]int) int {
+
+	adj := make([][]E, n)
+	for _, c := range roads {
+		adj[c[1]] = append(adj[c[1]], E{c[2], c[0]})
+		adj[c[0]] = append(adj[c[0]], E{c[2], c[1]})
+	}
+	dist := make([]int, n)
+	way := make([]int, n)
+	for i := range dist {
+		dist[i] = math.MaxInt
+	}
+	dist[0] = 0
+	way[0] = 1
+	pq := make(IntHeap, 0)
+	heap.Init(&pq)
+	//Dijsktra
+	heap.Push(&pq, E{0, 0})
+
+	for pq.Len() > 0 {
+		t := heap.Pop(&pq).(E)
+		cur := t.i
+		if dist[cur] < t.v {
+			continue
+		}
+		for _, to := range adj[cur] {
+			to_idx := to.i
+			si := dist[cur] + to.v
+			todist := dist[to_idx]
+			if si < todist {
+				dist[to_idx] = si
+				way[to_idx] = way[cur]
+				heap.Push(&pq, E{si, to_idx})
+			} else if si == todist {
+				way[to_idx] = int(math.Mod(float64(way[to_idx]+way[cur]), 1e9+7))
+			}
+
+		}
+	}
+	return way[n-1]
+}
+
+func main() {
+	fmt.Println(countPaths(5, [][]int{{0, 1, 1}, {1, 2, 4}, {0, 4, 3}, {3, 2, 5}, {3, 4, 1}, {3, 0, 5}, {1, 3, 1}}))
+	// fmt.Println(countPaths(2, [][]int{{1, 0, 10}}))
+}

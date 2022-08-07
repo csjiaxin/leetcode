@@ -1,0 +1,102 @@
+package main
+
+import (
+	"fmt"
+	"math"
+)
+
+type E struct {
+	v int
+	i int
+}
+
+// An IntHeap is a min-heap of ints.
+type IntHeap []E
+
+func (h IntHeap) Len() int           { return len(h) }
+func (h IntHeap) Less(i, j int) bool { return h[i].v < h[j].v }
+func (h IntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *IntHeap) Push(x interface{}) {
+	*h = append(*h, x.(E))
+}
+
+func (h *IntHeap) Pop() interface{} {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+var to [][]int
+var n int
+
+func bfs(f int) []int {
+	d := make([]int, n)
+	for i := range d {
+		d[i] = -1
+	}
+	q := []int{f}
+	visit := make([]bool, n)
+	dis := 0
+	for len(q) > 0 {
+		q2 := []int{}
+		for _, i := range q {
+			visit[i] = true
+			d[i] = dis
+			for _, j := range to[i] {
+				if !visit[j] {
+					q2 = append(q2, j)
+				}
+
+			}
+		}
+		q = q2
+		dis += 1
+	}
+	return d
+}
+
+func closestMeetingNode(edges []int, node1 int, node2 int) int {
+	n = len(edges)
+	to = make([][]int, n)
+	for i, v := range edges {
+		if v != -1 {
+			to[i] = append(to[i], v)
+		}
+	}
+	dist1 := bfs(node1)
+	dist2 := bfs(node2)
+	res := -1
+	resv := math.MaxInt
+
+	for i := 0; i < n; i++ {
+		if dist1[i] == -1 || dist2[i] == -1 {
+			continue
+		}
+		iv := max(dist1[i], dist2[i])
+		if res == -1 {
+			res = i
+			resv = iv
+		} else {
+			if iv < resv {
+				resv = iv
+				res = i
+			}
+		}
+	}
+	return res
+}
+
+func main() {
+	// fmt.Println(closestMeetingNode([]int{4, 3, 0, 5, 3, -1}, 4, 0))
+	fmt.Println(closestMeetingNode([]int{2, 2, 3, -1}, 0, 1))
+}

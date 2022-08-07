@@ -11,7 +11,7 @@ Floyd-Warshall
 
 1334 https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/
 399 https://leetcode.com/problems/evaluate-division/
-787 https://leetcode.com/problems/cheapest-flights-within-k-stops/
+787 httpDijstras://leetcode.com/problems/cheapest-flights-within-k-stops/
 1462 https://leetcode.com/problems/course-schedule-iv/
 1617 https://leetcode.com/problems/count-subtrees-with-max-distance-between-cities/
 
@@ -19,7 +19,7 @@ Floyd-Warshall
 Single source Shortest Path Problem
 1 BFS(unweighted)
 weighted graph
-2 Dijstra( Directed, Single source shortest path/ Non-Negative edge O(E*lg V)) 2 Disjstra O(E+V)*lgV ( No negative edge)
+2 ( Directed, Single source shortest path/ Non-Negative edge O(E*lg V)) 2 Disjstra O(E+V)*lgV ( No negative edge)
 3 Bellman-Ford O(EV) (detect negative cycles)
 https://yunrui-li.medium.com/leetcode-graph-shortest-path-a-20df15321406
 
