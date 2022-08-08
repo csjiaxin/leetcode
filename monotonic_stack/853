@@ -44,7 +44,7 @@ func (this *Stack) Push(value Ele) {
 type car struct {
 	pos      int
 	speed    int
-	lefttime int
+	lefttime float64
 }
 type Cars []car
 
@@ -64,13 +64,35 @@ func carFleet(target int, position []int, speed []int) int {
 	for i := range position {
 		cars[i].pos = position[i]
 		cars[i].speed = speed[i]
-		cars[i].lefttime = (target - cars[i].pos) / speed[i]
+		cars[i].lefttime = float64(target-cars[i].pos) / float64(speed[i])
 	}
 	sort.Sort(cars)
+	s := New()
+	nums := 0
 	for j := n - 1; j >= 0; j-- {
+		for s.Len() > 0 && s.Peek().v > cars[j].speed {
+			s.Pop()
+		}
+		c := cars[j]
+		if s.Len() == 0 {
+			nums += 1
+			s.Push(Ele{v: cars[j].speed, i: j})
+		} else {
+			fcar := cars[s.Peek().i]
+			if c.lefttime <= fcar.lefttime {
+
+			} else {
+				s.Pop()
+				s.Push(Ele{v: cars[j].speed, i: j})
+				nums += 1
+			}
+		}
 
 	}
+	return nums
 }
+
 func main() {
-	fmt.Println(carFleet(12, []int{10, 8, 0, 5, 3}, []int{2, 4, 1, 1, 3}))
+	// fmt.Println(carFleet(12, []int{10, 8, 0, 5, 3}, []int{2, 4, 1, 1, 3})) //3
+	fmt.Println(carFleet(10, []int{6, 8}, []int{3, 2})) //2
 }

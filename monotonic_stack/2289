@@ -1,0 +1,64 @@
+package main
+
+import "fmt"
+
+type Ele struct {
+	i int
+	v int
+}
+type (
+	Stack struct {
+		top    *node
+		length int
+	}
+	node struct {
+		value Ele
+		prev  *node
+	}
+)
+
+func New() *Stack {
+	return &Stack{nil, 0}
+}
+func (this *Stack) Len() int {
+	return this.length
+}
+func (this *Stack) Peek() Ele {
+	return this.top.value
+}
+func (this *Stack) Pop() Ele {
+	n := this.top
+	this.top = n.prev
+	this.length--
+	return n.value
+}
+func (this *Stack) Push(value Ele) {
+	n := &node{value, this.top}
+	this.top = n
+	this.length++
+}
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+func totalSteps(nums []int) int {
+	s := New()
+	n := len(nums)
+	dp := make([]int, n)
+	maxdiff := 0
+	for j := n - 1; j >= 0; j-- {
+		for s.Len() > 0 && s.Peek().v < nums[j] {
+			e := s.Pop()
+			dp[j] = max(dp[j]+1, dp[e.i])
+			maxdiff = max(maxdiff, dp[j])
+		}
+		s.Push(Ele{v: nums[j], i: j})
+	}
+	return maxdiff
+}
+
+func main() {
+	fmt.Println(totalSteps([]int{5, 3, 4, 4, 7, 3, 6, 11, 8, 5, 11}))
+}

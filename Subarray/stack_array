@@ -1,0 +1,30 @@
+
+type E struct {
+	v int
+	i int
+}
+type stack []E
+
+func New() *stack {
+	s := make(stack, 0)
+	return &s
+}
+func (s *stack) Len() int {
+	return len(*s)
+}
+
+func (s *stack) Push(v E) {
+	*s = append(*s, v)
+}
+
+func (s *stack) Pop() E {
+	l := len(*s)
+	v := (*s)[l-1]
+	*s = (*s)[:l-1]
+	return v
+}
+func (s *stack) Peek() E {
+	l := len(*s)
+	v := (*s)[l-1]
+	return v
+}
