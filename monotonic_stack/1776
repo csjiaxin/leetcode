@@ -1,0 +1,93 @@
+package main
+
+import (
+	"fmt"
+	"sort"
+)
+
+type E struct {
+	v int
+	i int
+}
+type stack []E
+
+func New() *stack {
+	s := make(stack, 0)
+	return &s
+}
+func (s *stack) Len() int {
+	return len(*s)
+}
+
+func (s *stack) Push(v E) {
+	*s = append(*s, v)
+}
+
+func (s *stack) Pop() E {
+	l := len(*s)
+	v := (*s)[l-1]
+	*s = (*s)[:l-1]
+	return v
+}
+func (s *stack) Peek() E {
+	l := len(*s)
+	v := (*s)[l-1]
+	return v
+}
+
+type car struct {
+	pos      int
+	speed    int
+	lefttime float64
+}
+type Cars []car
+
+func (c Cars) Len() int {
+	return len(c)
+}
+func (c Cars) Less(i, j int) bool {
+	return c[i].pos < c[j].pos
+}
+func (c Cars) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+
+func getCollisionTimes(cars2 [][]int) []float64 {
+	n := len(cars2)
+	cars := make(Cars, n)
+	for i, v := range cars2 {
+		cars[i].pos = v[0]
+		cars[i].speed = v[1]
+	}
+	sort.Sort(cars)
+	s := New()
+	nums := make([]float64, n)
+	for i := range nums {
+		nums[i] = -1
+	}
+	for j := n - 1; j >= 0; j-- {
+		for s.Len() > 0 && s.Peek().v > cars[j].speed {
+			s.Pop()
+		}
+		c := cars[j]
+		for k := s.Len() - 1; k >= 0; k-- {
+			ke := (*s)[k]
+			kc := cars[ke.i]
+			speeddiff := c.speed - kc.speed
+			if speeddiff > 0 {
+				kd := float64(kc.pos-c.pos) / float64(speeddiff)
+				if nums[ke.i] == -1 || kd <= nums[ke.i] {
+					nums[j] = kd
+					break
+				}
+			}
+		}
+		s.Push(E{v: cars[j].speed, i: j})
+
+	}
+	return nums
+}
+
+func main() {
+	fmt.Println(getCollisionTimes([][]int{{1, 2}, {2, 1}, {4, 3}, {7, 2}}))
+}
