@@ -43,7 +43,8 @@ func bs(a []int, v int) bool {
 			r = m - 1
 		}
 	}
-	return false
+	return false 
+
 }
 
 func main() {
