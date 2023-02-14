@@ -1,0 +1,59 @@
+package main
+
+import (
+	"fmt"
+	"sort"
+)
+
+func fre(t string) int {
+	m := map[byte]int{}
+	for i := 0; i < len(t); i++ {
+		m[t[i]] += 1
+	}
+	for c := byte('a'); c <= byte('z'); c++ {
+		if v, ok := m[c]; ok {
+			return v
+		}
+	}
+	return 0
+}
+
+func great_num(target int, nums []int) int {
+	l := 0
+	h := len(nums) - 1
+
+	for l <= h {
+		m := (l + h) // 2
+		if nums[m] > target {
+			h = m - 1
+		} else if nums[m] < target {
+			l = m + 1
+		} else {
+			l = m + 1
+		}
+	}
+	if h >= 0 {
+		return len(nums) - (h + 1)
+	}
+	return len(nums)
+}
+
+func numSmallerByFrequency(queries []string, words []string) []int {
+	q := make([]int, len(queries))
+	w := make([]int, len(words))
+	for i, t := range queries {
+		q[i] = fre(t)
+	}
+	for i, t := range words {
+		w[i] = fre(t)
+	}
+	sort.Ints(w)
+	for i, v := range q {
+		q[i] = great_num(v, w)
+	}
+	return q
+}
+
+func main() {
+	fmt.Println(numSmallerByFrequency([]string{"bbb", "cc"}, []string{"a", "aa", "aaa", "aaaa"}))
+}

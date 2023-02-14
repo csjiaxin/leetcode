@@ -1,0 +1,38 @@
+package main
+
+import "fmt"
+
+func meet(nums []int, penalty int, maxOperations int) bool {
+	for _, v := range nums {
+		ops := (v - 1) / penalty
+		maxOperations -= ops
+		if maxOperations < 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func minimumSize(nums []int, maxOperations int) int {
+	l := 1
+	h := int(1e9)
+	for l <= h {
+		m := (l + h) / 2
+		if meet(nums, m, maxOperations) {
+			h = m - 1
+		} else {
+			l = m + 1
+		}
+	}
+	if h > 0 && meet(nums, h, maxOperations) {
+		return h
+	}
+	return l
+
+}
+
+func main() {
+	fmt.Println(minimumSize([]int{2, 4, 8, 2}, 4))
+	fmt.Println(minimumSize([]int{1}, 1))
+	// fmt.Println(meet([]int{2, 4, 8, 2}, 2, 4))
+}

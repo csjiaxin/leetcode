@@ -1,0 +1,65 @@
+package main
+
+import (
+	"fmt"
+
+	"github.com/emirpasic/gods/lists"
+	"github.com/emirpasic/gods/lists/arraylist"
+)
+
+type Item struct {
+	start int
+	end   int
+}
+type MyCalendar struct {
+	list lists.List
+}
+
+func Constructor() MyCalendar {
+	return MyCalendar{
+		list: arraylist.New(),
+	}
+
+}
+
+func (this *MyCalendar) Book(start int, end int) bool {
+	if this.list.Empty() {
+		this.list.Insert(0, Item{start, end})
+		return true
+	}
+	l := 0
+	h := this.list.Size() - 1
+
+	for l <= h {
+		m := (l + h) / 2
+		v, _ := this.list.Get(m)
+		mv := v.(Item)
+		if mv.start < start {
+			l = m + 1
+		} else if mv.start == start {
+			return false
+		} else {
+			h = m - 1
+		}
+	}
+	if prev, ok := this.list.Get(l - 1); ok {
+		if prev.(Item).end > start {
+			return false
+		}
+	}
+	if lv, ok := this.list.Get(l); ok {
+		if end > lv.(Item).start {
+			return false
+		}
+
+	}
+	this.list.Insert(l, Item{start, end})
+	return true
+}
+
+func main() {
+	obj := Constructor()
+	fmt.Println(obj.Book(1, 2))
+	fmt.Println(obj.Book(2, 3))
+	// fmt.Println(obj.Book(2, 3))
+}

@@ -1,0 +1,43 @@
+package main
+
+import "fmt"
+
+func meet(answerKey string, k int, c int) bool {
+	nc := 1
+	for i := 1; i < len(answerKey); i++ {
+		if nc >= c {
+			nc = 1
+			continue
+		}
+		if answerKey[i] == answerKey[i-1] {
+			nc += 1
+		} else{
+			
+		}
+
+
+	}
+}
+
+func maxConsecutiveAnswers(answerKey string, k int) int {
+	l := 1
+	h := int(1e9)
+	for l <= h {
+		m := (l + h) / 2
+		if meet(answerKey, k, m) {
+			h = m - 1
+		} else {
+			l = m + 1
+		}
+	}
+	if h > 0 && meet(answerKey, k, h) {
+		return h
+	}
+	return l
+}
+
+func main() {
+	fmt.Println(minimumSize([]int{2, 4, 8, 2}, 4))
+	fmt.Println(minimumSize([]int{1}, 1))
+	// fmt.Println(meet([]int{2, 4, 8, 2}, 2, 4))
+}
