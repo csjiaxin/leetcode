@@ -1,0 +1,36 @@
+package main
+
+import "fmt"
+
+func minimumSum(num int) int {
+	m := []int{}
+	sum := 0
+	for num > 0 {
+		m = append(m, num%10)
+		sum += num % 10
+		num /= 10
+	}
+	m1, m2 := m[0], m[1]
+
+	if m2 < m1 {
+		m1, m2 = m2, m1
+	}
+	m3, m4 := m[2], m[3]
+	if m3 < m1 {
+		m1, m2 = m3, m1
+	} else if m3 < m2 {
+		m2 = m3
+	}
+	if m4 < m1 {
+		m1, m2 = m4, m1
+	} else if m4 < m2 {
+		m2 = m4
+	}
+
+	s := (m1+m2)*10 + (sum - m1 - m2)
+	return s
+}
+
+func main() {
+	fmt.Println(minimumSum(2932))
+}
