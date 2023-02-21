@@ -1,0 +1,60 @@
+package main
+
+import (
+	"fmt"
+)
+
+func insert_edge(adj map[int]map[int]bool, from, to int) {
+	if v, ok := adj[from]; ok {
+		v[to] = true
+	} else {
+		adj[from] = make(map[int]bool)
+		adj[from][to] = true
+	}
+
+}
+func buildAdj(edges [][]int) map[int]map[int]bool {
+	adj := make(map[int]map[int]bool)
+	for _, e := range edges {
+		insert_edge(adj, e[0], e[1])
+		insert_edge(adj, e[1], e[0])
+	}
+	return adj
+}
+func max(a, b int) int {
+	if a < b {
+		return b
+	}
+	return a
+}
+func dfs(adj map[int]map[int]bool, visit []int, at int) {
+	if visit[at] != 0 {
+		return
+	}
+	visit[at] = 1
+
+	for to, _ := range adj[at] {
+		dfs(adj, visit, to)
+	}
+}
+
+func reachableNodes(n int, edges [][]int, restricted []int) int {
+	adj := buildAdj(edges)
+	visit := make([]int, n)
+	for _, v := range restricted {
+		visit[v] = -1
+	}
+	dfs(adj, visit, 0)
+	answer := 0
+	for i := 0; i < n; i++ {
+		if visit[i] > 0 {
+			answer++
+		}
+	}
+	return answer
+
+}
+
+func main() {
+	fmt.Println(reachableNodes(7, [][]int{{0, 1}, {1, 2}, {3, 1}, {4, 0}, {0, 5}, {5, 6}}, []int{4, 5}))
+}

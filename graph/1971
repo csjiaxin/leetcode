@@ -1,0 +1,42 @@
+package main
+
+import "fmt"
+
+func insert_edge(adj map[int]map[int]bool, from, to int) {
+	if v, ok := adj[from]; ok {
+		v[to] = true
+	} else {
+		adj[from] = make(map[int]bool)
+		adj[from][to] = true
+	}
+
+}
+func buildAdj(edges [][]int) map[int]map[int]bool {
+	adj := make(map[int]map[int]bool)
+	for _, e := range edges {
+		insert_edge(adj, e[0], e[1])
+		insert_edge(adj, e[1], e[0])
+	}
+	return adj
+}
+func dfs(adj map[int]map[int]bool, visit []bool, at int) {
+	if visit[at] {
+		return
+	}
+	visit[at] = true
+	for to, _ := range adj[at] {
+		dfs(adj, visit, to)
+	}
+}
+func validPath(n int, edges [][]int, source int, destination int) bool {
+	adj := buildAdj(edges)
+	visit := make([]bool, n)
+
+	dfs(adj, visit, source)
+
+	return visit[destination]
+}
+
+func main() {
+	fmt.Println(validPath(6, [][]int{{0, 1}, {0, 2}, {3, 5}, {5, 4}, {4, 3}}, 0, 5))
+}

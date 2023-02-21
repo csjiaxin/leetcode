@@ -1,0 +1,66 @@
+package main
+
+import (
+	"fmt"
+)
+
+func insert_edge(adj map[int]map[int]bool, from, to int) {
+	if v, ok := adj[from]; ok {
+		v[to] = true
+	} else {
+		adj[from] = make(map[int]bool)
+		adj[from][to] = true
+	}
+
+}
+func buildAdj(edges [][]int) map[int]map[int]bool {
+	adj := make(map[int]map[int]bool)
+	for _, e := range edges {
+		// insert_edge(adj, e[0], e[1])
+		insert_edge(adj, e[1], e[0])
+	}
+	return adj
+}
+func max(a, b int) int {
+	if a < b {
+		return b
+	}
+	return a
+}
+func dfs(adj map[int]map[int]bool, visit []int, at int, quiet []int, answer []int) int {
+	if visit[at] >= 0 {
+		return visit[at]
+	}
+
+	ret := quiet[at]
+
+	for to, _ := range adj[at] {
+		v := dfs(adj, visit, to, quiet, answer)
+		if v < ret {
+			ret = v
+			answer[at] = answer[to]
+		}
+	}
+	visit[at] = ret
+	return ret
+}
+
+func loudAndRich(richer [][]int, quiet []int) []int {
+	adj := buildAdj(richer)
+	n := len(quiet)
+	visit := make([]int, n)
+	answer := make([]int, n)
+	for i := 0; i < n; i++ {
+		answer[i] = i
+		visit[i] = -1
+	}
+	for i := 0; i < n; i++ {
+		dfs(adj, visit, i, quiet, answer)
+	}
+	return answer
+}
+
+func main() {
+	fmt.Println(loudAndRich([][]int{{1, 0}, {2, 1}, {3, 1}, {3, 7}, {4, 3}, {5, 3}, {6, 3}}, []int{3, 2, 5, 4, 6, 1, 7, 0}))
+	// fmt.Println(loudAndRich([][]int{{1, 0}}, []int{0, 1}))
+}

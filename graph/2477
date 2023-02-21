@@ -1,0 +1,58 @@
+package main
+
+import (
+	"fmt"
+	"math"
+)
+
+func insert_edge(adj map[int]map[int]bool, from, to int) {
+	if v, ok := adj[from]; ok {
+		v[to] = true
+	} else {
+		adj[from] = make(map[int]bool)
+		adj[from][to] = true
+	}
+
+}
+func buildAdj(edges [][]int) map[int]map[int]bool {
+	adj := make(map[int]map[int]bool)
+	for _, e := range edges {
+		insert_edge(adj, e[0], e[1])
+		insert_edge(adj, e[1], e[0])
+	}
+	return adj
+}
+
+var fuel int64
+
+func dfs(adj map[int]map[int]bool, visit []bool, at, from int, seats int) int {
+	// if visit[at] {
+	// 	return 0
+	// }
+	visit[at] = true
+	n := 1
+	for to, _ := range adj[at] {
+		if to == from {
+			continue
+		}
+		n += dfs(adj, visit, to, at, seats)
+	}
+
+	if at != 0 {
+		fuel += int64(math.Ceil(float64(n) / float64(seats)))
+	}
+
+	return n
+}
+func minimumFuelCost(roads [][]int, seats int) int64 {
+	adj := buildAdj(roads)
+	visit := make([]bool, len(roads)+1)
+	fuel = 0
+
+	dfs(adj, visit, 0, -1, seats)
+	return fuel
+}
+
+func main() {
+	fmt.Println(minimumFuelCost([][]int{{0, 1}, {0, 2}, {0, 3}}, 5))
+}

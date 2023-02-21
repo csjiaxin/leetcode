@@ -4,22 +4,18 @@ import "fmt"
 
 var r map[int]int
 
-func find(b int) (int, bool) {
-	f, ok := r[b]
-	if !ok {
-		return 0, false
-	}
+func find(b int) int {
+	f := r[b]
 	if f == b {
-		return b, true
+		return b
 	}
-	return find(f)
+	r[b] = find(f)
+	return r[b]
 }
 func union_if_exist(n, b int) {
-	if p, ok := find(b); ok {
-		np, _ := find(n)
-		r[p] = np
-		// rsize[np] += rsize[p]
-	}
+	bp := find(b)
+	np := find(n)
+	r[bp] = np
 }
 func findCircleNum(isConnected [][]int) int {
 	n := len(isConnected)
@@ -38,7 +34,7 @@ func findCircleNum(isConnected [][]int) int {
 	}
 	fmap := map[int]int{}
 	for i := 0; i < n; i++ {
-		ip, _ := find(i)
+		ip := find(i)
 		fmap[ip] += 1
 	}
 	return len(fmap)
