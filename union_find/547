@@ -5,11 +5,10 @@ import "fmt"
 var r map[int]int
 
 func find(b int) int {
-	f := r[b]
-	if f == b {
+	if r[b] == b {
 		return b
 	}
-	r[b] = find(f)
+	r[b] = find(r[b])
 	return r[b]
 }
 func union_if_exist(n, b int) {

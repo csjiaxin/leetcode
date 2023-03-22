@@ -2,8 +2,6 @@ package main
 
 import "fmt"
 
-var adj [][]int
-
 type Color int
 
 const (
@@ -16,10 +14,32 @@ var visit []Color
 var ret bool
 var retArr []int
 
+type AdjType map[string]map[string]bool
+
+var adj AdjType
+
+func insert_edge(adj AdjType, from, to int) {
+	if v, ok := adj[from]; ok {
+		v[to] = true
+	} else {
+		adj[from] = make(map[int]bool)
+		adj[from][to] = true
+	}
+
+}
+func buildAdj(edges [][]int) AdjType {
+	adj := make(AdjType)
+	for _, e := range edges {
+		insert_edge(adj, e[0], e[1])
+		// insert_edge(adj, e[1], e[0])
+	}
+	return adj
+}
+
 func dfs(at int) {
 	if visit[at] == White {
 		visit[at] = Gray
-		for _, to := range adj[at] {
+		for to, _ := range adj[at] {
 			dfs(to)
 		}
 		visit[at] = Black
@@ -31,14 +51,11 @@ func dfs(at int) {
 }
 func findOrder(numCourses int, prerequisites [][]int) []int {
 
-	adj = make([][]int, numCourses)
-	ret = true
 	retArr = make([]int, 0)
-
-	for _, e := range prerequisites {
-		adj[e[0]] = append(adj[e[0]], e[1])
-	}
+	adj = buildAdj(prerequisites)
 	visit = make([]Color, numCourses)
+	ret = true
+
 	for to := 0; to < numCourses; to++ {
 		dfs(to)
 	}

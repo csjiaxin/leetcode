@@ -1,0 +1,33 @@
+package main
+
+import (
+	"fmt"
+)
+func minimumEffortPath(heights [][]int) int {
+    
+}
+
+func maxProbability(n int, edges [][]int, succProb []float64, start int, end int) float64 {
+	dist := make([]float64, n)
+	for i := 0; i < n; i++ {
+		dist[i] = 0
+	}
+	dist[start] = 1
+	for i := 0; i < n; i++ {
+		for i, e := range edges {
+			w := succProb[i]
+			if dist[e[1]]*w > dist[e[0]] {
+				dist[e[0]] = dist[e[1]] * w
+			}
+			if dist[e[0]]*w > dist[e[1]] {
+				dist[e[1]] = dist[e[0]] * w
+			}
+		}
+	}
+	return dist[end]
+}
+
+func main() {
+	// fmt.Println(maxProbability(3, [][]int{{0, 1}, {1, 2}, {0, 2}}, []float64{0.5, 0.5, 0.2}, 0, 2))
+	fmt.Println(maxProbability(5, [][]int{{1, 4}, {2, 4}, {0, 4}, {0, 3}, {0, 2}, {2, 3}}, []float64{0.37, 0.17, 0.93, 0.23, 0.39, 0.04}, 3, 4))
+}

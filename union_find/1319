@@ -1,0 +1,47 @@
+package main
+
+import "fmt"
+
+var r map[string]string
+
+func find(b string) string {
+	if r[b] == b {
+		return b
+	}
+	r[b] = find(r[b])
+	return r[b]
+}
+func union(n, b string) {
+	bp := find(b)
+	np := find(n)
+	r[bp] = np
+}
+
+func accountsMerge(accounts [][]string) [][]string {
+
+	for _, v := range accounts {
+		for i := 1; i < len(v); i++ {
+			email2Name[v[i]] = v[0]
+			if _, ok := r[v[i]]; !ok {
+				r[v[i]] = v[i]
+			}
+			union(v[i], v[1])
+		}
+	}
+
+	r := [][]string{}
+	root2List := map[string][]string{}
+	for email,_ := range email2Name{
+		root := find(email)
+		root2List[root]=append(root2List[root],email)
+	}
+
+	for root,list := range root2List{
+		r = append(r,[]string{ email2Name[root], ... list})
+	}
+	return r
+}
+
+func main() {
+	fmt.Println(accountsMerge([][]string{{"John","johnsmith@mail.com","john_newyork@mail.com"},{"John","johnsmith@mail.com","john00@mail.com"},{"Mary","mary@mail.com"},{"John","johnnybravo@mail.com"}}))
+}
