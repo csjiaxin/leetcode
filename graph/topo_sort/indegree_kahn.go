@@ -1,3 +1,4 @@
+package main
 // graph[u] contains the nodes that must come after u.
 // Returns (order, true), or (nil, false) if a cycle exists.
 func TopoSort(graph [][]int) ([]int, bool) {

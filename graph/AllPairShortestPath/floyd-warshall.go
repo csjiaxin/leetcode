@@ -1,4 +1,4 @@
-package allpairshortestpath
+package main
 
 import "fmt"
 

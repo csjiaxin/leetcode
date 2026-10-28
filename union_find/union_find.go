@@ -1,3 +1,5 @@
+package unionfind
+
 type UnionFind struct {
 	parent []int
 	size   []int

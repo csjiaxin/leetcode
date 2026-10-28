@@ -1,4 +1,4 @@
-package toposort
+package main
 
 func TopoSortDFS(graph [][]int) ([]int, bool) {
 	n := len(graph)
