@@ -1,4 +1,4 @@
-package decodestring
+package stack
 
 import "testing"
 
