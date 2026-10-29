@@ -22,13 +22,13 @@ func reverseParentheses(s string) string {
 			stack = append(stack, current.String())
 			current.Reset()
 		} else if c == ')' {
-			layer := len(stack)
+			// layer := len(stack)
 			inner := stack[len(stack)-1]
 			stack = stack[:len(stack)-1]
-			current_string := current.String()
-			if layer%2 == 1 {
-				current_string = reverseString(current_string)
-			}
+			current_string := reverseString(current.String())
+			// if layer%2 == 1 {
+			// 	current_string = reverseString(current_string)
+			// }
 			current.Reset()
 			current.WriteString(inner)
 			current.WriteString(current_string)
