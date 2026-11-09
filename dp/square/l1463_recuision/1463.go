@@ -36,12 +36,12 @@ func cherryPickup(grid [][]int) int {
 			if c1 != c2 {
 				val += grid[r2][c2]
 			}
-			if r1 < n-1 {
+			if r1 < m-1 {
 				next := 0
 				for _, d1 := range dir {
 					for _, d2 := range dir {
 						ret := dfs(r1+1, c1+d1, c2+d2)
-						next = max(val, ret)
+						next = max(next, ret)
 					}
 				}
 				val += next
@@ -50,11 +50,5 @@ func cherryPickup(grid [][]int) int {
 		}
 		return val
 	}
-	ret := 0
-	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			ret = max(dfs(0, i, j), ret)
-		}
-	}
-	return ret
+	return dfs(0, 0, n-1)
 }
