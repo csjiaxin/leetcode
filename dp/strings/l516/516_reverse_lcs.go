@@ -1,19 +1,4 @@
-package main
-
-import "fmt"
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-func min(a, b int) int {
-	if a > b {
-		return b
-	}
-	return a
-}
+package l516
 
 func LCS(text1, text2 string) int {
 	n1 := len(text1)
@@ -42,12 +27,4 @@ func reverse(s string) string {
 		b[i], b[j] = b[j], b[i]
 	}
 	return string(b)
-}
-func longestPalindromeSubseq(s string) int {
-	s2 := reverse(s)
-	return LCS(s, s2)
-}
-
-func main() {
-	fmt.Println(longestPalindromeSubseq("bbbab"))
 }
