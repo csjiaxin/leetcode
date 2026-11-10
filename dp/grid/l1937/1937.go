@@ -2,13 +2,6 @@ package l1937
 
 import "slices"
 
-func absInt(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
-
 func maxPoints(points [][]int) int64 {
 	m := len(points)
 	n := len(points[0])
@@ -22,14 +15,18 @@ func maxPoints(points [][]int) int64 {
 	}
 
 	for i := m - 2; i >= 0; i-- {
+		left := dp[i+1][0]
 		for j := 0; j < n; j++ {
-			next := dp[i+1][j]
+			// Best next-row choice at or to the left of j.
+			left = max(left-1, dp[i+1][j])
+			dp[i][j] = left + int64(points[i][j])
+		}
 
-			for k := 0; k < n; k++ {
-				val := dp[i+1][k] - int64(absInt(j-k))
-				next = max(next, val)
-			}
-			dp[i][j] = next + int64(points[i][j])
+		right := dp[i+1][n-1]
+		for j := n - 1; j >= 0; j-- {
+			// Best next-row choice at or to the right of j.
+			right = max(right-1, dp[i+1][j])
+			dp[i][j] = max(dp[i][j], right+int64(points[i][j]))
 		}
 	}
 	return slices.Max(dp[0])
