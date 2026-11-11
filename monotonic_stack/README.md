@@ -24,16 +24,18 @@
 
 ## 二、题型总览
 
-| 类型 | 题目 | 主要训练目标 |
+点击类型或题号跳转到本页对应章节，点击题号旁的 [leetcode] 打开 LeetCode 题目。
+
+| 类型（本页章节） | 题目（本页讲解 / LeetCode） | 主要训练目标 |
 | --- | --- | --- |
-| A. 最近更大元素与跨度 | [496](https://leetcode.com/problems/next-greater-element-i/)、[503](https://leetcode.com/problems/next-greater-element-ii/)、[901](https://leetcode.com/problems/online-stock-span/) | 理解一个元素何时完成任务、何时能被永久淘汰 |
-| B. 区间边界与贡献计数 | [84](https://leetcode.com/problems/largest-rectangle-in-histogram/)、[85](https://leetcode.com/problems/maximal-rectangle/)、[907](https://leetcode.com/problems/sum-of-subarray-minimums/)、[2104](https://leetcode.com/problems/sum-of-subarray-ranges/) | 弹栈时确定左右边界，处理相等元素 |
-| C. 凹槽与按层计算 | [42](https://leetcode.com/problems/trapping-rain-water/) | 区分凹槽底、左右墙和实际高度 |
-| D. 贪心删选与字典序 | [402](https://leetcode.com/problems/remove-k-digits/)、[316](https://leetcode.com/problems/remove-duplicate-letters/)、[321](https://leetcode.com/problems/create-maximum-number/) | 在剩余预算/可行性约束下弹栈，构造最优子序列 |
-| E. 特殊不变量与局部合并 | [456](https://leetcode.com/problems/132-pattern/)、[768](https://leetcode.com/problems/max-chunks-to-make-sorted-ii/)、[1130](https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/) | 不只盯栈顶；理解弹出值、分块最大值或局部成本 |
-| F. 最远合法配对 | [962](https://leetcode.com/problems/maximum-width-ramp/) | 维护可能成为最优左端点的候选 |
-| G. 单调队列 | [239](https://leetcode.com/problems/sliding-window-maximum/) | 同时处理优劣淘汰和窗口过期 |
-| H. 普通栈与排序扫描对照 | [856](https://leetcode.com/problems/score-of-parentheses/)、[853](https://leetcode.com/problems/car-fleet/) | 分清嵌套结构、车队合并与单调栈的差异 |
+| [A. 最近更大元素与跨度](#a-最近更大元素与跨度入门) | [496](#496-下一个更大元素-i--next-greater-element-i--简单) [leetcode](https://leetcode.com/problems/next-greater-element-i/)、[503](#503-下一个更大元素-ii--next-greater-element-ii--中等) [leetcode](https://leetcode.com/problems/next-greater-element-ii/)、[901](#901-股票价格跨度--online-stock-span--中等) [leetcode](https://leetcode.com/problems/online-stock-span/) | 理解一个元素何时完成任务、何时能被永久淘汰 |
+| [B. 区间边界与贡献计数](#b-区间边界与贡献核心进阶) | [84](#84-柱状图中最大的矩形--largest-rectangle-in-histogram--困难) [leetcode](https://leetcode.com/problems/largest-rectangle-in-histogram/)、[85](#85-最大矩形--maximal-rectangle--困难) [leetcode](https://leetcode.com/problems/maximal-rectangle/)、[907](#907-子数组的最小值之和--sum-of-subarray-minimums--中等) [leetcode](https://leetcode.com/problems/sum-of-subarray-minimums/)、[2104](#2104-子数组范围和--sum-of-subarray-ranges--中等) [leetcode](https://leetcode.com/problems/sum-of-subarray-ranges/) | 弹栈时确定左右边界，处理相等元素 |
+| [C. 凹槽与按层计算](#c-凹槽与按层计算) | [42](#42-接雨水--trapping-rain-water--困难) [leetcode](https://leetcode.com/problems/trapping-rain-water/) | 区分凹槽底、左右墙和实际高度 |
+| [D. 贪心删选与字典序](#d-贪心删选构造最优子序列) | [402](#402-移掉-k-位数字--remove-k-digits--中等) [leetcode](https://leetcode.com/problems/remove-k-digits/)、[316](#316-去除重复字母--remove-duplicate-letters--中等) [leetcode](https://leetcode.com/problems/remove-duplicate-letters/)、[321](#321-拼接最大数--create-maximum-number--困难) [leetcode](https://leetcode.com/problems/create-maximum-number/) | 在剩余预算/可行性约束下弹栈，构造最优子序列 |
+| [E. 特殊不变量与局部合并](#e-特殊不变量局部淘汰合并与模式识别) | [456](#456-132-模式--132-pattern--中等) [leetcode](https://leetcode.com/problems/132-pattern/)、[768](#768-最多能完成排序的块-ii--max-chunks-to-make-sorted-ii--困难) [leetcode](https://leetcode.com/problems/max-chunks-to-make-sorted-ii/)、[1130](#1130-叶值的最小代价生成树--minimum-cost-tree-from-leaf-values--中等) [leetcode](https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/) | 不只盯栈顶；理解弹出值、分块最大值或局部成本 |
+| [F. 最远合法配对](#f-最远合法配对先筛左端点) | [962](#962-最大宽度坡--maximum-width-ramp--中等) [leetcode](https://leetcode.com/problems/maximum-width-ramp/) | 维护可能成为最优左端点的候选 |
+| [G. 单调队列](#g-单调队列额外处理过期) | [239](#239-滑动窗口最大值--sliding-window-maximum--困难) [leetcode](https://leetcode.com/problems/sliding-window-maximum/) | 同时处理优劣淘汰和窗口过期 |
+| [H. 普通栈与排序扫描对照](#h-普通栈与排序扫描不要强行套模板) | [856](#856-括号的分数--score-of-parentheses--中等) [leetcode](https://leetcode.com/problems/score-of-parentheses/)、[853](#853-车队--car-fleet--中等) [leetcode](https://leetcode.com/problems/car-fleet/) | 分清嵌套结构、车队合并与单调栈的差异 |
 
 ## A. 最近更大元素与跨度：入门
 

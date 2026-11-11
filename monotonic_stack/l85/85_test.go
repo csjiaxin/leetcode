@@ -8,6 +8,7 @@ func TestMaximalRectangle(t *testing.T) {
 		rows []string
 		want int
 	}{
+		{"empty matrix", nil, 0}, {"empty row", []string{""}, 0},
 		{"example", []string{"10100", "10111", "11111", "10010"}, 6},
 		{"single zero", []string{"0"}, 0}, {"single one", []string{"1"}, 1},
 		{"one row", []string{"11011"}, 2}, {"one column", []string{"1", "1", "0", "1"}, 2},
