@@ -19,6 +19,9 @@ func TestCheckInclusion(t *testing.T) {
 		{"match at start", "ab", "abzzz", true},
 		{"match at end", "ab", "zzba", true},
 		{"window must shrink", "ab", "aaab", true},
+		{"match after excess different letters", "adc", "dcda", true},
+		{"missing and excess letters", "abc", "aaabbb", false},
+		{"reset after unrelated letters", "ab", "aazba", true},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := checkInclusion(tt.s1, tt.s2); got != tt.want {
