@@ -139,6 +139,19 @@ func (h *MinHeap) Pop() any {
 - 对指针切片，`Pop` 时将旧末尾设为 `nil`，避免底层数组继续持有对象引用；`pq.go` 已包含这种处理。
 - 时间和累计值可能很大，例如会议室调度的累计结束时间，应按题目范围考虑 `int64`；避免通过可能溢出的减法比较优先级。
 
+## 本仓库实现与测试
+
+上述 32 道题的实现与测试位于对应的 `l<题号>/` 目录。题目包复用 [internal/pqueue/queue.go](internal/pqueue/queue.go) 中基于 `container/heap` 的泛型优先级队列；912 使用原地堆排序。
+
+```sh
+go test ./heap_priority_queue/internal/... ./heap_priority_queue/l... -count=1 -cover
+go vet ./heap_priority_queue/internal/... ./heap_priority_queue/l...
+```
+
+部分题目的测试包含固定随机种子的朴素算法对照、浮点误差判断或合法答案验证，不依赖堆内部的元素顺序。调度题使用 `int64` 处理累计时间。
+
+这些实现用于本仓库学习与测试；复制到 LeetCode 时，需要将内部优先队列一并改为同文件的堆实现，并移除仓库内导入路径。`pq.go` 展示了不依赖仓库辅助包的标准接口写法。
+
 ## 建议练习顺序
 
 `1046 → 215 → 703 → 347 → 23 → 373 → 295 → 871 → 1642 → 1834 → 630 → 480 → 743 → 407`

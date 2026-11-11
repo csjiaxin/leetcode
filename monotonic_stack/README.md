@@ -1,38 +1,215 @@
-https://leetcode.com/tag/monotonic-stack/
-https://leetcode.com/problems/sum-of-subarray-minimums/discuss/178876/stack-solution-with-very-detailed-explanation-step-by-step
+# 单调栈题目分类与学习路线
 
-907. Sum of Subarray Minimums
-84 Largest Rectangle in Histogram(almost the same as this problem) https://leetcode.com/problems/largest-rectangle-in-histogram/
-Maximal Rectangle(please do this problem after you solve the above one) https://leetcode.com/problems/Maximal-Rectangle/description/
-Remove Duplicate Letters(challenge) https://leetcode.com/problems/remove-duplicate-letters/description/
+本清单将原有重复题目合并，共 **18 道题**。单调栈不是目的：先明确要寻找的边界、要淘汰的候选或要维护的不变量，再决定栈的方向。
 
-42 Trapping Rain Water (challenge) . https://leetcode.com/problems/trapping-rain-water/discuss/153992/Java-O(n)-time-and-O(1)-space-(with-explanations).
+## 一、先理解通用机制
 
-456 132 Pattern(challenge, instead of focusing on the elements in the stack, this problem focuses on the elements poped from the monotone stack) . https://leetcode.com/problems/132-pattern/discuss/94071/Single-pass-C%2B%2B-O(n)-space-and-time-solution-(8-lines)-with-detailed-explanation.
+单调栈通常用切片实现，维护栈中元素对应值的单调性。多数题存**下标**，方便计算距离和区间长度；有些题存 `(值, 合并数量)`、字符或分块最大值。
 
-Next Greater Element II (a very basic one)
-Remove K Digits
-Create Maximum Number
-sliding window maximum(challenge, monotone queue)
-Max Chunks To Make Sorted II
+从左到右寻找下一个严格更大元素的基本过程：
 
+```text
+遍历下标 i：
+    当栈非空且 nums[栈顶] < nums[i]：
+        j = 弹出栈顶
+        i 是 j 右侧第一个严格更大元素的位置
+    将 i 入栈
+```
 
-1130. Minimum Cost Tree From Leaf Values
-907. Sum of Subarray Minimums
-901. Online Stock Span
-856. Score of Parentheses
-503. Next Greater Element II
-496. Next Greater Element I
-84. Largest Rectangle in Histogram
-42. Trapping Rain Water
+- 栈中下标递增，对应值从栈底到栈顶非递增；相等值在此模板中不弹出。
+- 循环里的 while 不意味着 O(n²)：每个下标最多入栈、出栈各一次，因此总时间 O(n)。
+- 弹出 j 后的新栈顶，经常表示 j 的另一个方向的边界。
+- `>`、`>=`、`<`、`<=` 不能随意替换，尤其涉及重复值和贡献去重时。
+- 哨兵或末尾清栈可以统一处理没有找到右边界的元素，但边界必须和状态定义一致。
 
+## 二、题型总览
 
-962. Maximum Width Ramp
+| 类型 | 题目 | 主要训练目标 |
+| --- | --- | --- |
+| A. 最近更大元素与跨度 | 496、503、901 | 理解一个元素何时完成任务、何时能被永久淘汰 |
+| B. 区间边界与贡献计数 | 84、85、907、2104 | 弹栈时确定左右边界，处理相等元素 |
+| C. 凹槽与按层计算 | 42 | 区分凹槽底、左右墙和实际高度 |
+| D. 贪心删选与字典序 | 402、316、321 | 在剩余预算/可行性约束下弹栈，构造最优子序列 |
+| E. 特殊不变量与局部合并 | 456、768、1130 | 不只盯栈顶；理解弹出值、分块最大值或局部成本 |
+| F. 最远合法配对 | 962 | 维护可能成为最优左端点的候选 |
+| G. 单调队列 | 239 | 同时处理优劣淘汰和窗口过期 |
+| H. 普通栈与排序扫描对照 | 856、853 | 分清嵌套结构、车队合并与单调栈的差异 |
 
-TODO
-901. Online Stock Span
-https://leetcode.com/problems/online-stock-span/
+## A. 最近更大元素与跨度：入门
 
-2104. Sum of Subarray Ranges
+### [496. 下一个更大元素 I / Next Greater Element I](https://leetcode.com/problems/next-greater-element-i/) · 简单
 
-853. Car Fleet
+- **任务**：对查询数组中的每个值，找到它在另一数组中右侧第一个更大的值。
+- **状态与操作**：扫描 `nums2`，用非递增栈保存未解决的值或下标。当前值更大时，弹出的元素找到答案；用映射记录答案，再回答 `nums1` 的查询。题目保证值唯一，按值建映射才不会歧义。
+- **为什么能弹出**：当前值是被弹出元素遇到的第一个更大值，它的查询任务已经结束。
+- **复杂度**：O(len(nums1)+len(nums2)) 时间，O(len(nums2)) 空间。
+
+### [503. 下一个更大元素 II / Next Greater Element II](https://leetcode.com/problems/next-greater-element-ii/) · 中等
+
+- **任务**：496 的循环数组版本，允许从末尾绕回开头。
+- **状态与操作**：扫描 `2*n` 个位置，通过 `i%n` 读取值；栈存原数组下标，仅第一轮入栈，第二轮只帮助剩余元素找到答案。找不到的初始化为 -1。
+- **关键区别**：需要严格更大，相等值不能作为答案；不要无条件重复入栈，让同一任务出现多份。
+- **复杂度**：O(n) 时间、O(n) 空间。先做 496，再做本题。
+
+### [901. 股票价格跨度 / Online Stock Span](https://leetcode.com/problems/online-stock-span/) · 中等
+
+- **任务**：每天返回以当天结束、价格均不高于当天的连续天数。
+- **状态与操作**：栈存 `(price, span)`，价格从栈底到顶严格递减。新价格到来，弹出所有 `price <= 当前价格` 的记录，将跨度加到今天的 1 上。
+- **为什么能合并**：被弹出记录代表的整段连续历史都不高于当前价格，无须逐天保留。
+- **复杂度**：单次最坏 O(n)，每次操作摊还 O(1)，累计空间 O(n)。相等价格也要计入跨度。
+
+## B. 区间边界与贡献：核心进阶
+
+### [84. 柱状图中最大的矩形 / Largest Rectangle in Histogram](https://leetcode.com/problems/largest-rectangle-in-histogram/) · 困难
+
+- **任务**：选择连续柱子，以其中最低柱为高，求最大矩形面积。
+- **状态与操作**：可采用严格递增高度栈（遇到 `当前高度 <= 栈顶高度` 时弹出）。弹出下标 j 后，新栈顶 L 是左侧严格更矮边界，当前 i 是右侧第一个小于等于它的边界。
+- **计算**：`area = heights[j] * (i-L-1)`，空栈时 L=-1。末尾用虚拟零高度或显式清栈结算。
+- **重复值**：上述相等时弹出让后面的相同高度接管更宽区间；也可以保留相等值，但要一致地解释边界。
+- **复杂度**：O(n) 时间、O(n) 空间。这里是“取最大面积”，不是“累加每个区间贡献”。
+
+### [85. 最大矩形 / Maximal Rectangle](https://leetcode.com/problems/maximal-rectangle/) · 困难
+
+- **任务**：在二进制矩阵中找全为 1 的最大矩形。
+- **转化**：逐行维护直方图高度：当前位置为 1 则高度加一，为 0 则清零。每行调用 84 的直方图算法，表示以本行为底的矩形。
+- **关键点**：矩形可以跨多行，但不能跨越同一列上的零；零会重置连续高度。
+- **复杂度**：r 行 c 列，O(rc) 时间、O(c) 额外空间。建议做完 84 后立即做本题。
+
+### [907. 子数组的最小值之和 / Sum of Subarray Minimums](https://leetcode.com/problems/sum-of-subarray-minimums/) · 中等
+
+- **任务**：累加每个非空连续子数组的最小值。
+- **贡献法**：固定 a[i]，找到左侧最近严格更小的位置 L，右侧最近小于等于的位置 R；它负责的子数组数为 `(i-L)*(R-i)`。
+- **贡献**：`a[i] * (i-L) * (R-i)`。可以用两个方向扫描求边界，或在遇到 `当前值 <= 栈顶值` 时弹栈一次结算。
+- **为什么两边不对称**：`[2,2]` 中跨越两个 2 的子数组只能归属其中一个。两边都严格会重复计数，两边都非严格会漏计；反向的“一侧严格、一侧非严格”也可行。
+- **复杂度**：O(n) 时间、O(n) 空间。Go 用 `int64` 计算乘积，按题意对 `1_000_000_007` 取模。
+
+### [2104. 子数组范围和 / Sum of Subarray Ranges](https://leetcode.com/problems/sum-of-subarray-ranges/) · 中等
+
+- **转化**：每个子数组的范围是 `max-min`，答案等于“所有子数组最大值之和”减去“所有子数组最小值之和”。
+- **状态与操作**：最小值贡献使用 907 的递增栈，最大值贡献使用对称的递减栈。两种贡献都要独立处理相等值归属。
+- **边界示例**：最小值可用左 `<`、右 `<=`；最大值可用左 `>`、右 `>=`。
+- **复杂度**：O(n) 时间、O(n) 空间。返回 `int64`，本题不取模；不要沿用 907 的模运算。
+
+## C. 凹槽与按层计算
+
+### [42. 接雨水 / Trapping Rain Water](https://leetcode.com/problems/trapping-rain-water/) · 困难
+
+- **任务**：计算柱状图可以接住的雨水总量。
+- **状态与操作**：维护非递增高度的下标栈。当当前柱高于栈顶，弹出的柱子是凹槽底 bottom；新栈顶是左墙 L，当前 i 是右墙。若弹出后栈空，没有左墙，不能结算。
+- **计算**：本层水量为 `(min(height[L],height[i])-height[bottom]) * (i-L-1)`。循环弹栈可逐层填平凹槽。
+- **与 84 区别**：84 的弹出柱决定矩形高度；本题的弹出柱是槽底，要用两侧墙的较低高度减去槽底，而不是直接乘槽底高度。
+- **复杂度**：O(n) 时间、O(n) 栈空间。双指针还有 O(n) 时间、O(1) 空间解法，适合学完栈后对比。
+
+## D. 贪心删选：构造最优子序列
+
+### [402. 移掉 K 位数字 / Remove K Digits](https://leetcode.com/problems/remove-k-digits/) · 中等
+
+- **任务**：删除恰好 k 位，让剩下的数字最小。
+- **状态与操作**：栈存保留的数字。只要还有删除额度，且栈顶大于当前数字，就删除栈顶，让更小数字尽早出现在高位。
+- **关键点**：删除额度耗尽后不再保证整体单调；如果遍历结束仍有额度，从末尾删除。最后去掉前导零，空结果返回 `"0"`。
+- **复杂度**：O(n) 时间、O(n) 空间。
+
+### [316. 去除重复字母 / Remove Duplicate Letters](https://leetcode.com/problems/remove-duplicate-letters/) · 中等
+
+- **任务**：每个不同字符恰好保留一次，且结果是原串的字典序最小子序列。
+- **状态与操作**：栈存选中的字符，另记录已选集合与字符剩余次数。当前字符还未选中时，若栈顶更大且之后还会出现，就可以弹出它。
+- **关键约束**：栈顶即使更大，若后面再也不会出现，也不能弹出，否则丢失必选字符。已在栈中的字符跳过，但仍要正确更新剩余次数。
+- **复杂度**：O(n) 时间；题目仅有小写字母，辅助状态和栈最多 O(26)，输出也最多 26 个字符。不是简单地排序去重。
+
+### [321. 拼接最大数 / Create Maximum Number](https://leetcode.com/problems/create-maximum-number/) · 困难
+
+- **任务**：从两个数组分别取子序列，保持各自相对顺序，合并得到长度 k 的最大数字序列。
+- **三步**：枚举从第一个数组取 x 个；用 402 的反向贪心选取各数组指定长度的最大子序列；再按字典序合并，更新最佳答案。
+- **关键点**：合并时不能只比较当前数字。若相同，要比较两个**剩余后缀**，从字典序较大的后缀取下一位，例如 `[6,7]` 与 `[6,0,4]`。
+- **复杂度**：设长度为 m、n，可行拆分数为 S（S<=k+1）。朴素后缀比较实现为 O(S*(m+n+k²)) 时间、O(m+n+k) 工作空间；不能把后缀比较当成 O(1)。
+
+## E. 特殊不变量：局部淘汰、合并与模式识别
+
+### [456. 132 模式 / 132 Pattern](https://leetcode.com/problems/132-pattern/) · 中等
+
+- **任务**：寻找 `i<j<k`，使 `nums[i] < nums[k] < nums[j]`。
+- **状态与操作**：从右向左扫描。栈维护从栈底到顶非递增的候选值；另用 `middle` 记录已经形成某个“3 > 2”配对的最大“2”，初始为负无穷。
+- **弹栈含义**：若当前值大于栈顶，当前值可以充当“3”，被弹出的较小值可以充当“2”；连续弹出的值递增，更新 middle。若之后遇到某值 `< middle`，它就是“1”，三者的下标顺序也因反向扫描而成立。
+- **关键点**：答案由**已弹出的值**提供，不只是栈中剩余值；三个大小关系均为严格不等。
+- **复杂度**：O(n) 时间、O(n) 空间。
+
+### [768. 最多能完成排序的块 II / Max Chunks To Make Sorted II](https://leetcode.com/problems/max-chunks-to-make-sorted-ii/) · 困难
+
+- **任务**：将数组切成最多的连续块，每块排序后拼接，得到整体有序数组；允许重复值。
+- **状态与操作**：栈存各块最大值，非递减。若当前 x >= 栈顶，可以新建块；否则 x 与之前块发生顺序冲突，必须合并。
+- **合并方式**：先保存最右块的最大值，再弹出所有最大值大于 x 的块，最后将保存的最大值作为合并块的最大值放回。合并后不能把块最大值错误改成 x。
+- **关键点**：相等值允许分块，因此比较是 `>` 而非 `>=`。答案为最终块数。
+- **复杂度**：O(n) 时间、O(n) 空间。不要与 [769. 最多能完成排序的块](https://leetcode.com/problems/max-chunks-to-make-sorted/) 混淆：769 限定输入是 0 到 n-1 的排列。
+
+### [1130. 叶值的最小代价生成树 / Minimum Cost Tree From Leaf Values](https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/) · 中等
+
+- **任务**：叶子中序顺序固定，每个非叶节点的值是左右子树最大叶值的乘积，求非叶节点总和最小值。
+- **状态与操作**：维护严格递减栈。遇到 `当前值 >= 栈顶值` 时弹出 mid，它已遇到右侧不小于自己的值；左侧候选为弹出后的栈顶。把 mid 与两侧候选中较小者配对，计入 `mid * min(left,right)`；左侧不存在时只能与 right 配对。
+- **直觉**：较小叶值应尽早与较小的可用邻接最大值结合，之后它不再影响该子树的最大叶值。较大的值留下来参与更高层组合。
+- **清栈**：扫描结束后，剩余递减值按相邻值配对，直到只剩一个。不要漏掉这部分成本。
+- **复杂度**：O(n) 时间、O(n) 空间。也可用区间 DP，时间 O(n³)、空间 O(n²)；先理解 DP，再理解此处的贪心消元更稳妥。
+
+## F. 最远合法配对：先筛左端点
+
+### [962. 最大宽度坡 / Maximum Width Ramp](https://leetcode.com/problems/maximum-width-ramp/) · 中等
+
+- **任务**：找 `i<j` 且 `nums[i]<=nums[j]` 的最大 `j-i`。
+- **状态与操作**：第一遍从左向右，只把比栈顶值严格更小的下标入栈，维护严格递减的左端点候选。更晚且更大的左端点不可能优于更早且更小的左端点。
+- **第二遍**：从右向左扫描 j，当前值足够大时弹出满足条件的左端点 i，并更新宽度。此时 j 已经是该候选能匹配的最靠右位置，之后更小的 j 无法产生更宽答案，所以可以永久弹出。
+- **复杂度**：O(n) 时间、O(n) 空间。这不是“寻找最近更大值”，而是利用右侧反向遍历寻找最远合法配对。
+
+## G. 单调队列：额外处理过期
+
+### [239. 滑动窗口最大值 / Sliding Window Maximum](https://leetcode.com/problems/sliding-window-maximum/) · 困难
+
+- **任务**：返回每个长度 k 的窗口最大值。
+- **状态与操作**：双端队列存下标，值从队首到队尾递减。新元素到来，从队尾弹出所有不大于它的值：新值更大或相等、下标又更新，旧候选不再有优势。
+- **过期处理**：从队首删除所有 `index<=i-k` 的元素。形成完整窗口后，队首对应值就是最大值。
+- **为什么不是普通栈**：需要从队尾淘汰劣势候选，同时从队首移除过期候选，必须允许两端操作。
+- **复杂度**：O(n) 时间、O(k) 辅助空间（不含输出；Go 切片实现需复用/压缩空间或用环形队列，单纯保留历史前缀可能占 O(n)）。堆也能做，但简单懒删除堆最坏 O(n log n) 时间、O(n) 空间。
+
+## H. 普通栈与排序扫描：不要强行套模板
+
+### [856. 括号的分数 / Score of Parentheses](https://leetcode.com/problems/score-of-parentheses/) · 中等
+
+- **分类**：主要是普通栈/嵌套结构解析，**不要求栈值单调**。
+- **规则**：`()` 得 1 分，`AB` 得分相加，`(A)` 得分翻倍。
+- **状态与操作**：记录当前层得分；遇 `(` 保存外层得分并清零，遇 `)` 将内层变为 `max(1,2*内层得分)`，再加回外层。
+- **复杂度**：O(n) 时间、O(n) 栈空间。也可用深度计数，仅在出现 `()` 时加入 `1 << (depth-1)`，实现 O(1) 额外空间。
+
+### [853. 车队 / Car Fleet](https://leetcode.com/problems/car-fleet/) · 中等
+
+- **分类**：排序 + 到达时间的单调扫描；可以写成栈，但通常不需要显式栈。
+- **状态与操作**：按位置从靠近终点到远离终点排序，计算每辆车的独立到达时间 `time=(target-position)/speed`。维护前方最近车队的到达时间 fleetTime。
+- **合并规则**：若当前 time <= fleetTime，说明它能在终点前或恰好终点追上前方车队，合并；否则它形成新车队，并更新 fleetTime。扫描中形成的新车队时间严格递增。
+- **关键点**：不能超车，追上后只能按前车队速度行驶；不能仅按速度排序；Go 除法前要转 `float64`，否则发生整数截断。
+- **复杂度**：O(n log n) 时间；排序副本通常 O(n) 额外空间，排序后的扫描本身只需 O(1) 状态。
+
+## 三、建议学习顺序
+
+1. **最近更大与跨度**：496 → 503 → 901。
+2. **边界与重复值**：84 → 85 → 907 → 2104，重点手算 `[2,2]` 的边界归属。
+3. **几何与构造**：42 → 402 → 316。
+4. **特殊不变量**：962 → 768 → 456 → 1130。
+5. **扩展与综合**：239 → 321。
+6. **对照学习**：856（普通栈）、853（排序扫描），辨别何时不需要单调栈。
+
+## 四、做题时的检查清单
+
+- 栈保存的是下标、值，还是带数量的聚合信息？
+- 栈底到栈顶究竟是严格递增、非递减、严格递减还是非递增？
+- 弹栈代表“答案已确定”“候选被支配”“需要合并”，还是“修复字典序”？
+- 弹出元素后，新栈顶有什么含义？
+- 相等值应保留还是弹出？贡献类有没有重复计数？
+- 没找到边界时，用 -1、n、哨兵还是末尾清栈？
+- 答案是最大值、总贡献、配对费用还是子序列？乘法是否需要 `int64`？
+- 复杂度是否按所有入栈/出栈次数合计，而不是只看 while 的嵌套？
+
+## 五、参考资料
+
+- [LeetCode 单调栈题目](https://leetcode.com/tag/monotonic-stack/)
+- [907：单调栈逐步解释](https://leetcode.com/problems/sum-of-subarray-minimums/discuss/178876/stack-solution-with-very-detailed-explanation-step-by-step)
+- [42：O(n) 时间、O(1) 空间双指针解释](https://leetcode.com/problems/trapping-rain-water/discuss/153992/Java-O(n)-time-and-O(1)-space-(with-explanations).)
+- [456：从右向左扫描及弹出值的意义](https://leetcode.com/problems/132-pattern/discuss/94071/Single-pass-C%2B%2B-O(n)-space-and-time-solution-(8-lines)-with-detailed-explanation.)
+
+原清单中的 901、2104 已归入对应学习分类；本文是学习索引，不代表相关 Go 实现已完成。

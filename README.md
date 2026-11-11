@@ -11,3 +11,9 @@ https://leetcode.com/discuss/interview-question/352460/Google-Online-Assessment-
 Patience sorting
 https://www.cs.princeton.edu/courses/archive/spring13/cos423/lectures/LongestIncreasingSubsequence.pdf
 https://en.wikipedia.org/wiki/Patience_sorting
+
+
+Trapping Rain Water（接雨水）
+题目	问题	适合练习
+42 https://leetcode.com/problems/trapping-rain-water/description/. 接雨水	一维柱状图，计算总积水量	前后缀最大值、双指针、单调栈
+407. 接雨水 II	二维高度矩阵，计算总积水量	最小堆＋网格搜索
