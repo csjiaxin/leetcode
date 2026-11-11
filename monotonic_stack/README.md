@@ -26,14 +26,14 @@
 
 | 类型 | 题目 | 主要训练目标 |
 | --- | --- | --- |
-| A. 最近更大元素与跨度 | 496、503、901 | 理解一个元素何时完成任务、何时能被永久淘汰 |
-| B. 区间边界与贡献计数 | 84、85、907、2104 | 弹栈时确定左右边界，处理相等元素 |
-| C. 凹槽与按层计算 | 42 | 区分凹槽底、左右墙和实际高度 |
-| D. 贪心删选与字典序 | 402、316、321 | 在剩余预算/可行性约束下弹栈，构造最优子序列 |
-| E. 特殊不变量与局部合并 | 456、768、1130 | 不只盯栈顶；理解弹出值、分块最大值或局部成本 |
-| F. 最远合法配对 | 962 | 维护可能成为最优左端点的候选 |
-| G. 单调队列 | 239 | 同时处理优劣淘汰和窗口过期 |
-| H. 普通栈与排序扫描对照 | 856、853 | 分清嵌套结构、车队合并与单调栈的差异 |
+| A. 最近更大元素与跨度 | [496](https://leetcode.com/problems/next-greater-element-i/)、[503](https://leetcode.com/problems/next-greater-element-ii/)、[901](https://leetcode.com/problems/online-stock-span/) | 理解一个元素何时完成任务、何时能被永久淘汰 |
+| B. 区间边界与贡献计数 | [84](https://leetcode.com/problems/largest-rectangle-in-histogram/)、[85](https://leetcode.com/problems/maximal-rectangle/)、[907](https://leetcode.com/problems/sum-of-subarray-minimums/)、[2104](https://leetcode.com/problems/sum-of-subarray-ranges/) | 弹栈时确定左右边界，处理相等元素 |
+| C. 凹槽与按层计算 | [42](https://leetcode.com/problems/trapping-rain-water/) | 区分凹槽底、左右墙和实际高度 |
+| D. 贪心删选与字典序 | [402](https://leetcode.com/problems/remove-k-digits/)、[316](https://leetcode.com/problems/remove-duplicate-letters/)、[321](https://leetcode.com/problems/create-maximum-number/) | 在剩余预算/可行性约束下弹栈，构造最优子序列 |
+| E. 特殊不变量与局部合并 | [456](https://leetcode.com/problems/132-pattern/)、[768](https://leetcode.com/problems/max-chunks-to-make-sorted-ii/)、[1130](https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/) | 不只盯栈顶；理解弹出值、分块最大值或局部成本 |
+| F. 最远合法配对 | [962](https://leetcode.com/problems/maximum-width-ramp/) | 维护可能成为最优左端点的候选 |
+| G. 单调队列 | [239](https://leetcode.com/problems/sliding-window-maximum/) | 同时处理优劣淘汰和窗口过期 |
+| H. 普通栈与排序扫描对照 | [856](https://leetcode.com/problems/score-of-parentheses/)、[853](https://leetcode.com/problems/car-fleet/) | 分清嵌套结构、车队合并与单调栈的差异 |
 
 ## A. 最近更大元素与跨度：入门
 
