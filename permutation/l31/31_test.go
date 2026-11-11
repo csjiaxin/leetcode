@@ -10,6 +10,7 @@ func TestNextPermutation(t *testing.T) {
 		name       string
 		nums, want []int
 	}{
+		{"increasing", []int{2, 3, 1}, []int{3, 1, 2}},
 		{"increasing", []int{1, 2, 3}, []int{1, 3, 2}},
 		{"largest wraps", []int{3, 2, 1}, []int{1, 2, 3}},
 		{"duplicates", []int{1, 1, 5}, []int{1, 5, 1}},
