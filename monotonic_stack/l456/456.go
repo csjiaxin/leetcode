@@ -1,5 +1,7 @@
 package l456
 
+import "math"
+
 type Stack[T any] struct {
 	d []T
 }
@@ -29,5 +31,20 @@ func (s *Stack[T]) Push(v T) {
 
 // https://leetcode.com/problems/132-pattern/
 func find132pattern(nums []int) bool {
-	panic("not implemented")
+	stack := New[int]()
+
+	N := len(nums)
+	second := math.MinInt
+	for j := N - 1; j >= 0; j-- {
+		v := nums[j]
+		if stack.Size() > 0 && v < stack.Peek() && second != math.MinInt && v < second {
+			return true
+		}
+		for stack.Size() > 0 && stack.Peek() < v {
+			popped := stack.Pop()
+			second = max(second, popped)
+		}
+		stack.Push(v)
+	}
+	return false
 }
