@@ -17,6 +17,8 @@ func TestMaxSlidingWindow(t *testing.T) {
 		{"window one", []int{3, -1, 2}, 1, []int{3, -1, 2}},
 		{"full window", []int{2, 5, 1}, 3, []int{5}},
 		{"equal", []int{2, 2, 2}, 2, []int{2, 2}},
+		{"equal negative maximum retained", []int{-1, -1, -2, -3}, 3, []int{-1, -1}},
+		{"equal negative maximum expires", []int{-1, -1, -2, -3}, 2, []int{-1, -1, -2}},
 		{"expire maximum", []int{5, 4, 3, 2}, 2, []int{5, 4, 3}},
 		{"new maximum", []int{1, 2, 3, 4}, 2, []int{2, 3, 4}},
 		{"negative", []int{-4, -2, -5, -1}, 2, []int{-2, -2, -1}},

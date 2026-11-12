@@ -4,5 +4,4 @@ package l992
 // subarraysWithKDistinct counts nonempty contiguous subarrays containing
 // exactly k distinct integers.
 func subarraysWithKDistinct(nums []int, k int) int {
-	panic("not implemented")
 }
