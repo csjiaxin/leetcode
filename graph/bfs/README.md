@@ -1,6 +1,8 @@
 # BFS / 多源 BFS：等权最短路
 
-[返回总目录](../README.md)
+[返回总目录](../../algorithm_templates/README.md)
+
+[扩展练习：迁移点与边界](#extended-practice)
 
 ## 目录
 
@@ -198,4 +200,21 @@ func updateMatrix(mat [][]int) [][]int {
 - 分层时提前固定end，新加入的格子属于下一层。
 - 994没有新鲜橘子返回0，有新鲜但不可达返回-1。
 - 额外资源如钥匙、剩余障碍消除次数需要进入状态，不能仅按坐标去重。
-- 带权问题请看 [Dijkstra](../dijkstra/README.md)；已有分类：[graph](../../graph/)。
+- 带权问题请看 [Dijkstra](../SingleSourceShortestPath/README.md)；已有分类：[graph](..)。
+
+<a id="extended-practice"></a>
+
+## 扩展练习：迁移点与边界
+
+新增题目只补充学习路线与解法总结，不自动生成未请求的实现或测试。
+
+| 题目（原题） | 如何迁移当前模板 | 必须确认的条件 / 边界 |
+| --- | --- | --- |
+| [127. 单词接龙](https://leetcode.com/problems/word-ladder/) | 单词为状态，每次改一个字母形成等权边，BFS最短转换链 | 答案计单词数，终点不在字典直接无解；可双向BFS |
+| [752. 打开转盘锁](https://leetcode.com/problems/open-the-lock/) | 四位密码状态，每位加减1形成八个邻居 | 起点若禁用先返回-1；入队时标记 |
+| [1162. 地图分析](https://leetcode.com/problems/as-far-from-land-as-possible/) | 所有陆地为多源，求海洋到最近陆地距离的最大值 | 全海或全陆返回-1 |
+| [1926. 迷宫中离入口最近的出口](https://leetcode.com/problems/nearest-exit-from-entrance-in-maze/) | 入口单源，首次到边界的非入口格即最近出口 | 入口本身即使在边界也不算出口 |
+| [1293. 网格中的最短路径](https://leetcode.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/) | 状态为行列与剩余消除次数，不能仅按坐标visited | 同坐标更多剩余资源可支配较少资源，须证明剪枝 |
+| [909. 蛇梯棋](https://leetcode.com/problems/snakes-and-ladders/) | 棋盘格编号为状态，掷骰子一次为一条等权边 | 蛇梯跳转只按题意一次，注意交替行坐标映射 |
+
+**复习方法**：先独立写出状态、合法性或松弛条件，再指出相较本篇基础题改变的那一行；若前提不满足，主动换算法，不为统一模板牺牲正确性。

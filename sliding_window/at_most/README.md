@@ -1,6 +1,8 @@
 # atMost 相减：恰好 K 的子数组
 
-[返回总目录](../README.md)
+[返回总目录](../../algorithm_templates/README.md)
+
+[扩展练习：迁移点与边界](#extended-practice)
 
 ## 目录
 
@@ -116,7 +118,7 @@ func numberOfSubarrays(nums []int, k int) int {
 
 **例子**：[2,1,2]、k=1，答案4。唯一奇数的左右两边都可选择是否带上偶数，不能只对每个右端点加1。
 
-**复杂度**：时间 O(n)，空间 O(1)。另一种解法是 [前缀奇数数量＋哈希表](../prefix_state_hash/README.md#lc1248)。
+**复杂度**：时间 O(n)，空间 O(1)。另一种解法是 [前缀奇数数量＋哈希表](../../Subarray/readme.md#lc1248)。
 
 <a id="lc930"></a>
 
@@ -171,3 +173,20 @@ func numSubarraysWithSum(nums []int, goal int) int {
 - 窗口清空时 left=right+1，贡献为0，不计空子数组。
 - 计数中间值用 int64；上述题目答案在 LeetCode int 范围内，最后转 int。
 - 所有独立代码块可单独复制，不能把多个 `package template` 合到同一文件。
+
+<a id="extended-practice"></a>
+
+## 扩展练习：迁移点与边界
+
+新增题目只补充学习路线与解法总结，不自动生成未请求的实现或测试。
+
+| 题目（原题） | 如何迁移当前模板 | 必须确认的条件 / 边界 |
+| --- | --- | --- |
+| [2062. 统计字符串中的元音子字符串](https://leetcode.com/problems/count-vowel-substrings-of-a-string/) | 仅元音的段内恰好五种=atMost(5)-atMost(4)，辅音出现时重置窗口 | 不能允许窗口跨过辅音 |
+| [3306. 元音辅音字符串计数II](https://leetcode.com/problems/count-of-substrings-containing-every-vowel-and-k-consonants-ii/) | 全元音至少一次且恰好k辅音；可用atLeast(k)-atLeast(k+1) | 同时维护元音覆盖和辅音数，不能只数辅音 |
+| [1358. 包含所有三种字符的子字符串数目](https://leetcode.com/problems/number-of-substrings-containing-all-three-characters/) | 字符仅a/b/c，可用全部区间-atMost(2)，或覆盖后计数 | 这是至少覆盖而非直接恰好k事件的普通改名 |
+| [2537. 统计好子数组的数目](https://leetcode.com/problems/count-the-number-of-good-subarrays/) | 加入值x新增freq[x]个相等对，维护至少k对窗口 | 对数不是不同值种数；移除顺序影响减少的对数 |
+| [2302. 统计得分小于K的子数组数目](https://leetcode.com/problems/count-subarrays-with-score-less-than-k/) | 正数窗口得分=和×长度，收缩到<k后累加合法后缀 | 严格小于；乘法和答案用int64 |
+| [2762. 不间断子数组](https://leetcode.com/problems/continuous-subarrays/) | 合法条件max-min<=2，单调双端队列维护最值，合法后累加长度 | 仍是至多型计数，但不能只用频次数量判断合法 |
+
+**复习方法**：先独立写出状态、合法性或松弛条件，再指出相较本篇基础题改变的那一行；若前提不满足，主动换算法，不为统一模板牺牲正确性。

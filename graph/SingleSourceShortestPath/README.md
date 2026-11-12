@@ -1,6 +1,8 @@
 # Dijkstra：按当前最优标签扩展
 
-[返回总目录](../README.md)
+[返回总目录](../../algorithm_templates/README.md)
+
+[扩展练习：迁移点与边界](#extended-practice)
 
 ## 目录
 
@@ -256,4 +258,21 @@ func maxProbability(n int, edges [][]int, succProb []float64, startNode int, end
 - 普通加法版本不能处理负边；INF也不应与合法有限值混淆。
 - 每题完整堆实现各自独立，Less决定优先级，不能只改松弛而忘记改堆方向。
 
-已有分类：[最短路](../../graph/SingleSourceShortestPath/)。
+已有分类：[最短路](.)。
+
+<a id="extended-practice"></a>
+
+## 扩展练习：迁移点与边界
+
+新增题目只补充学习路线与解法总结，不自动生成未请求的实现或测试。
+
+| 题目（原题） | 如何迁移当前模板 | 必须确认的条件 / 边界 |
+| --- | --- | --- |
+| [1976. 到达目的地的方案数](https://leetcode.com/problems/number-of-ways-to-arrive-at-destination/) | 距离改善覆盖ways，相等则累加ways | 本题正权保证按距离处理计数依赖；计数取模 |
+| [1786. 从第一个节点到最后一个节点的受限路径数](https://leetcode.com/problems/number-of-restricted-paths-from-first-to-last-node/) | 从终点Dijkstra求距离，再沿距离严格递减的DAG计数 | 受限路径不是只数最短路 |
+| [778. 水位上升的泳池中游泳](https://leetcode.com/problems/swim-in-rising-water/) | 路径标签为沿途最高格高度，candidate=max(d,邻格高度) | 源标签为起点高度，不是0 |
+| [1368. 使网格图至少有一条有效路径的最小代价](https://leetcode.com/problems/minimum-cost-to-make-at-least-one-valid-path-in-a-grid/) | 沿箭头代价0，否则1，Dijkstra可用 | 因仅0/1权，0-1 BFS可优化到线性 |
+| [2045. 到达目的地的第二短时间](https://leetcode.com/problems/second-minimum-time-to-reach-destination/) | 每点保留两个严格不同到达时间，加上红绿灯等待 | 不是标准单dist；同一最短时间重复到达不算第二短 |
+| [505. 迷宫II](https://leetcode.com/problems/the-maze-ii/) | 每次滚到墙前才停，边权为本次滚动格数，Dijkstra求最短距离 | 不是每次滚动算一步；目标必须为可停位置，原题可能需要会员 |
+
+**复习方法**：先独立写出状态、合法性或松弛条件，再指出相较本篇基础题改变的那一行；若前提不满足，主动换算法，不为统一模板牺牲正确性。

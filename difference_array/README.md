@@ -1,6 +1,8 @@
 # 差分＋前缀扫描：批量区间变化
 
-[返回总目录](../README.md)
+[返回总目录](../algorithm_templates/README.md)
+
+[扩展练习：迁移点与边界](#extended-practice)
 
 ## 目录
 
@@ -146,4 +148,21 @@ func maximumPopulation(logs [][]int) int {
 - 稀疏巨大坐标不要分配U数组：用map聚合同坐标变化，排序扫描，时间O(m log(m+1))、空间O(m)。
 - 坐标压缩保留顺序；算覆盖长度还需乘原坐标间距，不能直接用压缩下标差。
 - 实数闭区间不能机械r+1，必须明确同坐标事件顺序。
-- 差分不是通用在线查询结构；动态区间更新和查询可看 [线段树](../../tree/segment/)。
+- 差分不是通用在线查询结构；动态区间更新和查询可看 [线段树](../tree/segment)。
+
+<a id="extended-practice"></a>
+
+## 扩展练习：迁移点与边界
+
+新增题目只补充学习路线与解法总结，不自动生成未请求的实现或测试。
+
+| 题目（原题） | 如何迁移当前模板 | 必须确认的条件 / 边界 |
+| --- | --- | --- |
+| [2381. 字母移位II](https://leetcode.com/problems/shifting-letters-ii/) | 闭区间增减字母位移，差分累计后对26规范化 | 负余数要加26；取消点right+1 |
+| [3355. 零数组变换I](https://leetcode.com/problems/zero-array-transformation-i/) | 每条查询覆盖处可独立减0或1，差分计算覆盖能力 | 比较覆盖数>=nums[i]，不是每区间强制全部减1 |
+| [1893. 检查是否区域内所有整数都被覆盖](https://leetcode.com/problems/check-if-all-the-integers-in-a-range-are-covered/) | 整数闭区间差分，目标区间每点覆盖数至少1 | 取消点r+1，不要只比较总覆盖长度 |
+| [2406. 将区间分为最少组数](https://leetcode.com/problems/divide-intervals-into-minimum-number-of-groups/) | 整数闭区间最大并发覆盖即最少组数 | 端点相接算重叠；大坐标用稀疏事件或最小堆 |
+| [2536. 子矩阵元素加1](https://leetcode.com/problems/increment-submatrices-by-one/) | 二维矩形四角差分，再二维前缀恢复 | 额外哨兵行列；四角符号+ - - + |
+| [732. 我的日程安排表III](https://leetcode.com/problems/my-calendar-iii/) | 半开预订记录端点变化，每次返回最大重叠 | 这是在线更新；简单有序事件重扫可行但非最优，规模大考虑动态线段树 |
+
+**复习方法**：先独立写出状态、合法性或松弛条件，再指出相较本篇基础题改变的那一行；若前提不满足，主动换算法，不为统一模板牺牲正确性。
