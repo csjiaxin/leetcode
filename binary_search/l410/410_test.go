@@ -8,7 +8,8 @@ func TestSplitArray(t *testing.T) {
 		nums    []int
 		k, want int
 	}{
-		{"example", []int{7, 2, 5, 10, 8}, 2, 18}, {"example two", []int{1, 2, 3, 4, 5}, 2, 9},
+		{"example", []int{7, 2, 5, 10, 8}, 2, 18},
+		{"example two", []int{1, 2, 3, 4, 5}, 2, 9},
 		{"one group", []int{1, 2, 3}, 1, 6}, {"each separate", []int{1, 4, 4}, 3, 4},
 		{"single", []int{9}, 1, 9}, {"zeros", []int{0, 0, 0}, 2, 0},
 		{"zero groups", []int{0, 5, 0}, 3, 5},
