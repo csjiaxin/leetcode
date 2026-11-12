@@ -8,6 +8,11 @@ func TestMinWindow(t *testing.T) {
 	}{
 		{"example", "ADOBECODEBANC", "ABC", "BANC"},
 		{"single", "a", "a", "a"},
+		{"empty target", "abc", "", ""},
+		{"empty source", "", "a", ""},
+		{"both empty", "", "", ""},
+		{"excess copies remain satisfied", "AAAB", "AAB", "AAB"},
+		{"irrelevant characters inside", "AxB", "AB", "AxB"},
 		{"not enough copies", "a", "aa", ""},
 		{"no match", "abc", "z", ""},
 		{"case sensitive", "aA", "A", "A"},
