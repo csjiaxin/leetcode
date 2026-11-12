@@ -30,67 +30,91 @@
 
 ## 2. 通用 Go 骨架
 
-用 step 定义状态更新、need 定义需要匹配的历史状态。状态用 int64；复杂掩码也可映射为该整数类型。
+**通用的是处理步骤，不必把它们封装成回调函数。** 先掌握下面两种直接写法：求数量用 freq，求最长用 first。
+
+### 2.1 求数量：保存历史状态出现次数
+
+以 [560. 和为 K 的子数组](https://leetcode.com/problems/subarray-sum-equals-k/) 为基础模板：
 
 ```go
 package template
 
-// CountByPrefix 统计非空连续区间；单次 step/need 应为 O(1)。
-func CountByPrefix(nums []int, initial int64,
-    step func(int64, int) int64,
-    need func(int64) int64,
-) int64 {
-    freq := map[int64]int64{initial: 1}
-    state := initial
-    var answer int64
+func SubarraySum(nums []int, k int64) int64 {
+    freq := map[int64]int64{0: 1} // 空前缀和为0，出现1次
+    var prefix, answer int64
+
     for _, x := range nums {
-        state = step(state, x)
-        answer += freq[need(state)] // 先查过去
-        freq[state]++              // 后记录现在
+        prefix += int64(x)         // 1. 更新当前状态
+        answer += freq[prefix-k]   // 2. 查询历史状态
+        freq[prefix]++             // 3. 记录当前状态
     }
     return answer
 }
+```
 
-func SubarraySum(nums []int, k int64) int64 {
-    return CountByPrefix(nums, 0,
-        func(state int64, x int) int64 { return state + int64(x) },
-        func(state int64) int64 { return state - k },
-    )
-}
+只需理解这个等式：`当前前缀和 - 历史前缀和 = k`，所以查询 `prefix-k`。不需要 step、need 等辅助函数。
 
+### 2.2 换成余数：循环骨架不变
+
+[974. 和可被 K 整除的子数组](https://leetcode.com/problems/subarray-sums-divisible-by-k/) 只需把状态换为前缀和的余数，查询相同余数：
+
+```go
+package template
+
+// 题设 k>0，累计前缀和使用 int64。
 func DivisibleSubarrays(nums []int, k int64) int64 {
-    if k <= 0 { panic("k must be positive") }
-    return CountByPrefix(nums, 0,
-        func(state int64, x int) int64 {
-            // 规范化到 [0,k)，避免先加 k 造成溢出。
-            xmod := int64(x)%k
-            if xmod < 0 { xmod += k }
-            if state >= k-xmod { return state-(k-xmod) }
-            return state+xmod
-        },
-        func(state int64) int64 { return state },
-    )
-}
+    freq := map[int64]int64{0: 1}
+    var prefix, answer int64
 
-// LongestByPrefix 查询相同历史状态，保留最早下标。
-func LongestByPrefix(nums []int, initial int64,
-    step func(int64, int) int64,
-) int {
-    first := map[int64]int{initial: -1}
-    state, answer := initial, 0
+    for _, x := range nums {
+        prefix += int64(x)
+        remainder := prefix % k
+        if remainder < 0 {
+            remainder += k // Go 的负余数需要规范化
+        }
+        answer += freq[remainder]
+        freq[remainder]++
+    }
+    return answer
+}
+```
+
+两个前缀余数相同，差值就能被 k 整除。不需要额外维护复杂的模加法；本模板假设前缀总和在 int64 范围内，覆盖本题约束。
+
+### 2.3 求最长：保存历史状态最早下标
+
+以 [525. 连续数组](https://leetcode.com/problems/contiguous-array/) 为模板，0 记为 -1，1 记为 +1；相同前缀差之间的区间含有相同数量的 0 和 1。
+
+```go
+package template
+
+func FindMaxLength(nums []int) int {
+    first := map[int]int{0: -1} // 空前缀位于下标-1
+    balance, answer := 0, 0
+
     for i, x := range nums {
-        state = step(state, x)
-        if j, ok := first[state]; ok {
+        if x == 0 {
+            balance--
+        } else {
+            balance++
+        }
+
+        if j, ok := first[balance]; ok {
             answer = max(answer, i-j)
         } else {
-            first[state] = i // 不覆盖最早下标
+            first[balance] = i // 只记录第一次出现的位置
         }
     }
     return answer
 }
 ```
 
-这里是状态模式的抽象，不代表所有前缀题都必须强行用回调。面试中可直接展开，先写清等式，再选择计数或最早位置。
+**只记两种循环结构：**
+
+- 求数量：更新状态 → `answer += freq[需要的历史状态]` → `freq[当前状态]++`。
+- 求最长：更新状态 → 若历史状态出现过，用 `i-最早下标` 更新答案；否则记录当前下标。
+
+以上三个代码块各自可以单独复制编译；合并到同一个文件时只保留一次 `package template`。
 
 <a id="mapping"></a>
 
@@ -106,14 +130,14 @@ func LongestByPrefix(nums []int, initial int64,
 
 这里前缀和 0 出现两次，所以最后一次查询一次增加 2，不是只增加 1。
 
-| 题目 | step / 状态 | 查询历史 | 表保存什么 | 初始化 |
+| 题目 | 当前前缀状态 | 查询历史 | 表保存什么 | 初始化 |
 | --- | --- | --- | --- | --- |
 | [560](https://leetcode.com/problems/subarray-sum-equals-k/) | 前缀和 | state-K | 出现次数 | freq[0]=1 |
 | [974](https://leetcode.com/problems/subarray-sums-divisible-by-k/) | 规范化的余数 | 相同余数 | 出现次数 | freq[0]=1 |
 | [525](https://leetcode.com/problems/contiguous-array/) | 1 数量减 0 数量 | 相同差值 | 最早下标 | first[0]=-1 |
 | [1371](https://leetcode.com/problems/find-the-longest-substring-containing-vowels-in-even-counts/) | a/e/i/o/u 各占一位，遇到就异或对应位 | 相同掩码 | 最早下标 | first[0]=-1 |
 
-525 可使用 LongestByPrefix：遇到 0 状态减 1，遇到 1 状态加 1。1371 可按 ASCII 字节遍历字符串；只有五个元音会翻位，其他字符不改变状态，最多 32 种状态。
+525 直接使用上面的 FindMaxLength：遇到 0 状态减 1，遇到 1 状态加 1。1371 沿用“保存最早下标”的循环，把 balance 换成五位奇偶掩码；按 ASCII 字节遍历，只有五个元音会翻位，其他字符不改变状态，最多 32 种状态。
 
 **次数 vs 最早位置**：同一状态出现越多，计数贡献越多；求最长时则只需要最早位置，晚位置不会产生更长区间。
 
