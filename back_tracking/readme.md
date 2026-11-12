@@ -1,10 +1,168 @@
-https://leetcode.com/tag/backtracking/
+# 回溯：通用解题思路、模板与 LeetCode 题单
 
-2096. Step-By-Step Directions From a Binary Tree Node to Another
-https://leetcode.com/problems/step-by-step-directions-from-a-binary-tree-node-to-another/
-968. Binary Tree Cameras
-https://leetcode.com/problems/binary-tree-cameras/
-46. Permutations
-https://leetcode.com/problems/permutations/
+> 回溯不是背诵一种函数，而是：**把答案表示为一连串选择，在搜索树上尝试，失败或完成后恢复状态。**
+>
+> 本文只整理思路与参考代码，不修改题目目录中的实现。题目链接均使用 leetcode.com。
 
-https://leetcode.com/problems/minimum-number-of-work-sessions-to-finish-the-tasks/discuss/1431846/C%2B%2B-DFS-with-pruning
+## 目录
+
+- [1. 什么时候考虑回溯？](#when)
+- [2. 通用解题步骤与骨架](#framework)
+- [3. 子集与组合：用 start 避免重复顺序](#combination)
+  - [78. 子集](#lc78)
+  - [77. 组合](#lc77)
+  - [39. 组合总和](#lc39)
+  - [40. 组合总和 II：同层去重](#lc40)
+- [4. 排列：用 used 标记当前路径](#permutation)
+  - [46. 全排列](#lc46)
+  - [47. 全排列 II：重复元素](#lc47)
+- [5. 切割：131. 分割回文串](#partition)
+- [6. 网格路径：79. 单词搜索](#grid)
+- [7. 约束放置：51. N 皇后](#constraint)
+- [8. 剪枝、去重与常见错误](#pitfalls)
+- [9. 扩展题单与迁移点](#practice)
+- [10. 推荐学习顺序与复盘清单](#route)
+
+<a id="when"></a>
+## 1. 什么时候考虑回溯？
+
+常见信号：求所有方案、枚举组合、排列、合法切割、满足约束的摆放；或者只问是否存在方案，但很难直接计算答案。
+
+| 问题类型 | 每层决定什么 | 递归状态 | 何时收集答案 |
+| --- | --- | --- | --- |
+| 子集 | 接下来选哪个元素 | `start`、`path` | 每个节点都是子集 |
+| 固定长度组合 | 下一个选哪个数 | `start`、`path` | `len(path)==k` |
+| 组合总和 | 下一个选哪个数 | `start`、`remain` | `remain==0` |
+| 排列 | 当前位置放哪个元素 | `used`、`path` | 路径长度等于元素个数 |
+| 切割 | 下一段在哪里结束 | `start`、分段路径 | 已消耗全部输入 |
+| 网格路径 | 下一步走向哪里 | 位置、进度、路径访问标记 | 完成目标 |
+| 约束放置 | 当前行/格放什么 | 当前行/格、约束占用信息 | 所有位置处理完 |
+
+**复杂度通常是指数级或阶乘级，不意味着算法写错。** 如果题目要求输出所有子集或排列，输出本身就可能有 `2^n` 或 `n!` 个。
+
+### 回溯、DFS、动态规划怎么区分？
+
+- **DFS 是遍历方式**；回溯是通过 DFS 试探选择并恢复状态的一种搜索方法。
+- 普通图遍历的 `visited` 常表示全局已访问；回溯的 `used` 往往只表示**当前路径**已使用，退出时要恢复。
+- 如果不同路径到达的完整状态相同，且只求数量/最优值/是否存在，可以考虑记忆化或 DP。
+- 求所有具体方案时，不能仅因两个路径的 `start` 相同就跳过其中一个：它们的前缀答案不同。
+
+<a id="framework"></a>
+## 2. 通用解题步骤与骨架
+
+依次回答六个问题：
+
+1. **答案长什么样？** 用 `path` 表示已经完成的部分。
+2. **每层选择什么？** 一个数、一段字符串、一步方向，还是一行中的列？
+3. **状态需要什么？** 如 `start`、剩余目标、`used`、列和对角线占用。
+4. **何时成功，何时失败？** 明确收集答案与提前返回的条件。
+5. **哪些分支一定无解或重复？** 在递归前剪枝。
+6. **修改了哪些共享状态？** 递归后逐一恢复。
+
+固定骨架（伪代码）：
+
+```text
+搜索(状态):
+    如果当前节点是答案:
+        记录答案的独立副本
+        按题意决定是否返回
+
+    遍历当前状态下的候选选择:
+        如果选择无效、重复或不可能完成:
+            跳过
+        做选择：修改 path / used / 约束
+        搜索(新状态)
+        撤销选择：恢复共享状态
+```
+
+不建议为了“通用”强行封装很多回调。保留相同控制流程，每道题直接写清状态和判断，更容易理解。
+
+### Go 的两条关键规则
+
+```go
+// path 是切片，需要复制；不能直接把可复用的 path 存进答案。
+answer = append(answer, append([]int{}, path...))
+
+// 撤销最近一次 append。
+path = path[:len(path)-1]
+```
+
+`start`、`remain` 等整数按值传递，无须撤销；切片底层数据、`used` 和地图等共享状态则需要恢复。
+
+<a id="combination"></a>
+## 3. 子集与组合：用 start 避免重复顺序
+
+组合中 `[1,2]` 与 `[2,1]` 是同一方案。只向后选择下标，保证路径下标递增，就不需要枚举不同顺序。
+
+| 变化点 | 写法 | 原因 |
+| --- | --- | --- |
+| 元素只能使用一次 | `dfs(i+1)` | 下一层不能再选当前下标 |
+| 元素允许重复使用 | `dfs(i)` | 下一层仍可选择当前元素 |
+| 输入含重复值 | 排序后，`i>start && nums[i]==nums[i-1]` 时跳过 | 同一层不从相同值再次展开 |
+| 只要 k 个元素 | 长度达到 k 才收集 | 中间节点不是完整答案 |
+| 所有子集 | 进入每层时就收集 | 中间节点本身也是答案 |
+
+<a id="lc78"></a>
+### 78. 子集
+
+[LeetCode 78](https://leetcode.com/problems/subsets/) · [本地练习](l78/78.go)
+
+**题意**：给定互不相同的整数，返回所有子集，包括空集。
+
+**状态与解释**：`dfs(start)` 枚举“在当前路径后，还能从哪些下标选择元素”。每个节点先保存一次，再往后扩展。
+
+```go
+func subsets(nums []int) [][]int {
+    answer := [][]int{}
+    path := []int{}
+    var dfs func(int)
+    dfs = func(start int) {
+        answer = append(answer, append([]int{}, path...))
+        for i := start; i < len(nums); i++ {
+            path = append(path, nums[i])
+            dfs(i + 1)
+            path = path[:len(path)-1]
+        }
+    }
+    dfs(0)
+    return answer
+}
+```
+
+例如 `[1,2]` 的答案是 `[]、[1]、[1,2]、[2]`。时间 `O(n·2^n)`（含复制），辅助空间 `O(n)`，不含答案。本地已有实现使用迭代扩展法，也正确；上面展示的是回溯写法。
+
+<a id="lc77"></a>
+### 77. 组合
+
+[LeetCode 77](https://leetcode.com/problems/combinations/) · [本地练习](l77/77.go)
+
+**题意**：从 `1..n` 中选择 k 个不同的数，顺序无关。
+
+**变化点**：仅在长度达到 k 时收集。还缺 `need=k-len(path)` 个数，而从 i 到 n 只有 `n-i+1` 个，必须满足 `i<=n-need+1`。
+
+```go
+func combine(n int, k int) [][]int {
+    answer := [][]int{}
+    if k < 0 || k > n { return answer }
+    path := []int{}
+    var dfs func(int)
+    dfs = func(start int) {
+        if len(path) == k {
+            answer = append(answer, append([]int{}, path...))
+            return
+        }
+        need := k - len(path)
+        for i := start; i <= n-need+1; i++ {
+            path = append(path, i)
+            dfs(i + 1)
+            path = path[:len(path)-1]
+        }
+    }
+    dfs(1)
+    return answer
+}
+```
+
+例如 `n=4,k=2` 有 `[1,2]、[1,3]、[1,4]、[2,3]、[2,4]、[3,4]`。`k>=1` 时，时间 `O(k·C(n,k))`，辅助空间 `O(k)`，不含答案；`k=0` 返回一个空组合。
+
+<!-- MORE_PROBLEMS -->
