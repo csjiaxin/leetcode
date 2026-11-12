@@ -1,122 +1,201 @@
 # BFS / 多源 BFS：等权最短路
 
-[返回模板目录](../README.md)
+[返回总目录](../README.md)
 
 ## 目录
 
-- [适用条件与不变量](#invariant)
-- [Go 固定骨架](#code)
-- [题目变化点与推演](#mapping)
-- [复杂度与易错点](#pitfalls)
+- [1. 核心思路](#core)
+- [2. 1091：八方向最短路径](#lc1091)
+- [3. 994：同步腐烂传播](#lc994)
+- [4. 542：到最近0的距离](#lc542)
+- [5. 对比与易错点](#pitfalls)
 
-<a id="invariant"></a>
+<a id="core"></a>
 
-## 1. 适用条件与不变量
+## 1. 核心思路
 
-图中每一步代价相同，求最少步数、最近源距离或同步传播时间。边权不同时普通 FIFO BFS 不保证最短路：0/1 权可用 0-1 BFS，非负一般权用 Dijkstra，负权需其他算法。
+每步代价相同，FIFO队列按距离非递减处理。**首次入队就标记访问**，首次发现的距离即最短距离。
 
-**不变量**：首次发现节点时，已经找到最短距离；队列按距离非递减处理。发现后立即设置距离并入队，不能等出队才标记。
+```text
+源点入队并标记 → 依次弹出 → 遍历合法未访问邻居 → 标记距离并入队
+多源：所有源以距离0一起入队，而不是分别搜索
+```
 
-多源 BFS 不是对每个源分别 BFS，而是把所有源同时以距离 0 入队，相当于它们处于同一层。得到到最近源的距离。
+变化点是源、邻居、可通行条件和答案单位。加权图不能直接套普通BFS。以下各题代码独立，网格输入允许修改的实现会明确说明。
 
-状态不一定是一个坐标：钥匙集合、剩余消除次数等也可能属于状态；不同状态不能仅因坐标相同而合并。
+<a id="lc1091"></a>
 
-<a id="code"></a>
+## 2. [1091. 二进制矩阵中的最短路径](https://leetcode.com/problems/shortest-path-in-binary-matrix/)
 
-## 2. Go 固定骨架
+[练习](l1091/1091.go) · [测试](l1091/1091_test.go)
+
+**题意**：0可通行、1阻塞，可走八方向，求左上到右下路径上的格子数，无路为-1。
+
+**状态**：dist=-1表示未发现，源距离为1，因为路径计格子而不是边。
 
 ```go
 package template
 
-// 节点编号 [0,len(graph))；不可达返回 -1。
-func MultiSourceBFS(graph [][]int, sources []int) []int {
-    dist:=make([]int,len(graph))
-    for i:=range dist { dist[i]=-1 }
-    queue:=[]int{}
-    for _,s:=range sources {
-        if dist[s]!=-1 { continue } // 去重源点
-        dist[s]=0
-        queue=append(queue,s)
-    }
-    for head:=0;head<len(queue);head++ {
-        u:=queue[head]
-        for _,v:=range graph[u] {
-            if dist[v]!=-1 { continue }
-            dist[v]=dist[u]+1 // 入队前标记
-            queue=append(queue,v)
-        }
-    }
-    return dist
-}
-
-// 网格多源骨架，不改变原网格。passable 及邻居规则由题意提供。
-func GridBFS(rows,cols int, sources [][2]int, directions [][2]int,
-    passable func(int,int) bool,
-) [][]int {
-    dist:=make([][]int,rows)
-    for r:=range dist {
-        dist[r]=make([]int,cols)
-        for c:=range dist[r] { dist[r][c]=-1 }
-    }
-    queue:=[][2]int{}
-    for _,s:=range sources {
-        r,c:=s[0],s[1]
-        if r<0 || r>=rows || c<0 || c>=cols || !passable(r,c) || dist[r][c]!=-1 { continue }
-        dist[r][c]=0
-        queue=append(queue,s)
-    }
-    for head:=0;head<len(queue);head++ {
-        r,c:=queue[head][0],queue[head][1]
-        for _,d:=range directions {
-            nr,nc:=r+d[0],c+d[1]
-            if nr<0 || nr>=rows || nc<0 || nc>=cols { continue }
-            if !passable(nr,nc) || dist[nr][nc]!=-1 { continue }
-            dist[nr][nc]=dist[r][c]+1
-            queue=append(queue,[2]int{nr,nc})
-        }
-    }
-    return dist
+func shortestPathBinaryMatrix(grid [][]int) int {
+	n := len(grid)
+	if grid[0][0] != 0 || grid[n-1][n-1] != 0 {
+		return -1
+	}
+	dist := make([][]int, n)
+	for i := range dist {
+		dist[i] = make([]int, n)
+		for j := range dist[i] {
+			dist[i][j] = -1
+		}
+	}
+	queue := [][2]int{{0, 0}}
+	dist[0][0] = 1
+	for head := 0; head < len(queue); head++ {
+		r, c := queue[head][0], queue[head][1]
+		if r == n-1 && c == n-1 {
+			return dist[r][c]
+		}
+		for dr := -1; dr <= 1; dr++ {
+			for dc := -1; dc <= 1; dc++ {
+				if dr == 0 && dc == 0 {
+					continue
+				}
+				nr, nc := r+dr, c+dc
+				if nr < 0 || nr >= n || nc < 0 || nc >= n {
+					continue
+				}
+				if grid[nr][nc] != 0 || dist[nr][nc] != -1 {
+					continue
+				}
+				dist[nr][nc] = dist[r][c] + 1
+				queue = append(queue, [2]int{nr, nc})
+			}
+		}
+	}
+	return -1
 }
 ```
 
-固定过程：初始化 -1 → 所有源入队置 0 → 队头扩展 → 首次访问置距离。变化点：sources、邻居 directions、passable 及最终答案汇总。
+**例子**：[[0,1],[1,0]]可直接对角走，答案2；单格[[0]]答案1。
 
-<a id="mapping"></a>
+**复杂度**：时间、空间O(n²)。不修改输入。
 
-## 3. 题目变化点与推演
+<a id="lc994"></a>
 
-| 题目 | 源点 | 邻居 / 可通行条件 | 输出与距离单位 |
-| --- | --- | --- | --- |
-| [1091. 二进制矩阵中的最短路径](https://leetcode.com/problems/shortest-path-in-binary-matrix/) | 左上角 | 八方向，值为 0 | dist[终点]+1，因为路径长度计算格子数；不可达为 -1 |
-| [994. 腐烂的橘子](https://leetcode.com/problems/rotting-oranges/) | 所有值为 2 的格子 | 四方向，非零格子 | 所有新鲜橘子距离的最大值；有新鲜橘子不可达则 -1；无新鲜为 0 |
-| [542. 01 矩阵](https://leetcode.com/problems/01-matrix/) | 所有值为 0 的格子 | 四方向，所有格子可通行 | 返回 dist 矩阵，每次跨一条边计 1 |
+## 3. [994. 腐烂的橘子](https://leetcode.com/problems/rotting-oranges/)
 
-994 中把已有腐烂格子也视为可通行是安全的，它们都在初始源集合并已标记，不会重复加入。使用不可变网格＋dist 方案，无需靠修改 grid 判断传播完成。
+[练习](l994/994.go) · [测试](l994/994_test.go)
 
-四方向为上、下、左、右；八方向再加四个对角方向。1091 可对角移动，不能照搬 994 的 directions。
+**题意**：每分钟腐烂橘子感染四邻的新鲜橘子，求全部腐烂所需时间，无解-1，无新鲜0。
 
-推演：路径 0—1—2—3—4，以 0、4 为源：
+**状态**：所有腐烂橘子同时为源，记录fresh；每次处理固定一层，感染新格时立即改成2，兼作访问标记。
 
-```text
-初始：queue=[0,4]，dist=[0,-1,-1,-1,0]
-弹出0：发现1，dist[1]=1
-弹出4：发现3，dist[3]=1
-弹出1：发现2，dist[2]=2
-弹出3：2已被发现，不再入队
-最终 dist=[0,1,2,1,0]
+```go
+package template
+
+func orangesRotting(grid [][]int) int {
+	rows, cols := len(grid), len(grid[0])
+	queue := [][2]int{}
+	fresh := 0
+	for r := 0; r < rows; r++ {
+		for c := 0; c < cols; c++ {
+			if grid[r][c] == 2 {
+				queue = append(queue, [2]int{r, c})
+			}
+			if grid[r][c] == 1 {
+				fresh++
+			}
+		}
+	}
+	directions := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	minutes, head := 0, 0
+	for head < len(queue) && fresh > 0 {
+		end := len(queue)
+		for head < end {
+			r, c := queue[head][0], queue[head][1]
+			head++
+			for _, d := range directions {
+				nr, nc := r+d[0], c+d[1]
+				if nr < 0 || nr >= rows || nc < 0 || nc >= cols || grid[nr][nc] != 1 {
+					continue
+				}
+				grid[nr][nc] = 2
+				fresh--
+				queue = append(queue, [2]int{nr, nc})
+			}
+		}
+		minutes++
+	}
+	if fresh > 0 {
+		return -1
+	}
+	return minutes
+}
 ```
 
-1091 单格 [0]：源到自身边数为 0，但题目路径格子数为 1。994 无新鲜橘子：传播时间为 0，不应多加一分钟。
+**例子**：[[2,1,1,1,2]]，两端同时传播，中间最后在第2分钟腐烂。
+
+**复杂度**：时间、队列空间O(RC)。本实现修改输入；测试应复制网格。
+
+<a id="lc542"></a>
+
+## 4. [542. 01矩阵](https://leetcode.com/problems/01-matrix/)
+
+[练习](l542/542.go) · [测试](l542/542_test.go)
+
+**题意**：为每个格子求到最近0的四方向距离，题设至少有一个0。
+
+**状态**：所有0以距离0入队，其他格子为-1；多源BFS得到最近源距离，不需要对每个1单独搜索。
+
+```go
+package template
+
+func updateMatrix(mat [][]int) [][]int {
+	rows, cols := len(mat), len(mat[0])
+	dist := make([][]int, rows)
+	queue := [][2]int{}
+	for r := 0; r < rows; r++ {
+		dist[r] = make([]int, cols)
+		for c := 0; c < cols; c++ {
+			dist[r][c] = -1
+			if mat[r][c] == 0 {
+				dist[r][c] = 0
+				queue = append(queue, [2]int{r, c})
+			}
+		}
+	}
+	directions := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	for head := 0; head < len(queue); head++ {
+		r, c := queue[head][0], queue[head][1]
+		for _, d := range directions {
+			nr, nc := r+d[0], c+d[1]
+			if nr < 0 || nr >= rows || nc < 0 || nc >= cols || dist[nr][nc] != -1 {
+				continue
+			}
+			dist[nr][nc] = dist[r][c] + 1
+			queue = append(queue, [2]int{nr, nc})
+		}
+	}
+	return dist
+}
+```
+
+**例子**：[[0,1,1,1,0]]得到[[0,1,2,1,0]]，每格选择最近的0。
+
+**复杂度**：时间、空间O(RC)。不修改输入。
 
 <a id="pitfalls"></a>
 
-## 4. 复杂度与易错点
+## 5. 对比与易错点
 
-- 邻接表图时间 O(V+E)，除输入外空间 O(V)。常数邻居的 R×C 网格时间、额外空间均 O(RC)。
-- 入队立即标记，确保每个状态最多入队一次；不能从不同父节点反复加入。
-- 若按层统计时间，处理一层前固定队列层尾，不能把新入队元素算进当前层。存 dist 时无需另写层循环。
-- 源是障碍、终点是障碍、无源、有不可达状态都要按题意处理。
-- 所有源同时入队，不能从第一个源完成搜索后把其余源当成访问过而略过。
-- BFS 找的是状态图上的最短步数；状态是否包含额外资源，决定 visited 的维度。
+| 题目 | 源点 | 邻居 | 距离单位 |
+| --- | --- | --- | --- |
+| 1091 | 左上角 | 八方向 | 格子数，源为1 |
+| 994 | 所有腐烂橘子 | 四方向 | 分钟，源为0 |
+| 542 | 所有0 | 四方向 | 边数，源为0 |
 
-已有相关练习：[图论](../../graph/)、[DFS 网格题](../../dfs/)。带权问题见 [Dijkstra](../dijkstra/README.md)。
+- 入队时标记，不是出队时标记，避免重复发现。
+- 分层时提前固定end，新加入的格子属于下一层。
+- 994没有新鲜橘子返回0，有新鲜但不可达返回-1。
+- 额外资源如钥匙、剩余障碍消除次数需要进入状态，不能仅按坐标去重。
+- 带权问题请看 [Dijkstra](../dijkstra/README.md)；已有分类：[graph](../../graph/)。

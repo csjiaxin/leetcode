@@ -1,110 +1,259 @@
-# Dijkstra：非负边权最短路径
+# Dijkstra：按当前最优标签扩展
 
-[返回模板目录](../README.md)
+[返回总目录](../README.md)
 
 ## 目录
 
-- [条件与不变量](#invariant)
-- [Go 通用骨架](#code)
-- [松弛变化点与例子](#mapping)
-- [复杂度与陷阱](#pitfalls)
+- [1. 核心思路](#core)
+- [2. 743：非负加法最短路](#lc743)
+- [3. 1631：最小化最大高度差](#lc1631)
+- [4. 1514：最大路径概率](#lc1514)
+- [5. 对比与易错点](#pitfalls)
 
-<a id="invariant"></a>
+<a id="core"></a>
 
-## 1. 条件与不变量
+## 1. 核心思路
 
-标准版本要求所有边权非负。维护源点到每个节点的最佳已知距离，最小堆优先处理距离最小者。与 BFS 相比，不能因第一次入堆就标记为最终确定。
+标准Dijkstra适用于非负边权。堆保存候选标签，同节点可有多个旧条目，弹出后与当前最佳值比较，跳过过期项。
 
-**不变量**：每次弹出一个非过期的最小距离，它就是该节点的最短距离。非负边保证尚未处理的更远节点无法绕路产生更短结果。
+```text
+源标签初始化 → 堆取最优 → 过期则跳过 → 松弛出边
+仅严格改善时更新并入堆
+```
 
-同一节点可能先以较大距离入堆，后来又以更小距离入堆；不必删除旧堆项，弹出时比较 `item.distance!=dist[item.node]`，跳过过期项。
+**不变量**：弹出的非过期最优标签可以确定，因为沿路径继续扩展不会变得更优。加法最短路要求非负；minimax用max扩展；概率用[0,1]乘法并改成最大堆。不能任意替换公式而不证明性质。
 
-<a id="code"></a>
+每题代码块包含自己的堆类型和建图，独立可编译；辅助类型重复是为单题阅读方便，不要把不同题代码块直接合并。
 
-## 2. Go 通用骨架
+<a id="lc743"></a>
+
+## 2. [743. 网络延迟时间](https://leetcode.com/problems/network-delay-time/)
+
+[练习](l743/743.go) · [测试](l743/743_test.go)
+
+**题意**：从k发信号，求所有节点收到信号的最短时间最大值，有不可达为-1。边有向，编号1..n。
+
+**状态**：dist源为0，其余INF；candidate=d+w，用最小堆。
 
 ```go
 package template
 
 import "container/heap"
 
-const Infinity int64 = 1<<63-1
-
-type Edge struct { To int; Weight int64 }
-type Item struct { Node int; Distance int64 }
-type MinHeap []Item
-func(h MinHeap) Len() int { return len(h) }
-func(h MinHeap) Less(i,j int) bool { return h[i].Distance<h[j].Distance }
-func(h MinHeap) Swap(i,j int) { h[i],h[j]=h[j],h[i] }
-func(h *MinHeap) Push(x any) { *h=append(*h,x.(Item)) }
-func(h *MinHeap) Pop() any {
-    old:=*h
-    x:=old[len(old)-1]
-    *h=old[:len(old)-1]
-    return x
+type state struct {
+	node     int
+	distance int64
 }
+type minHeap []state
 
-// 节点编号合法，src 存在，所有边权非负。
-// 所需有限距离必须 < Infinity；更大的结果不在本模板表示范围内。
-func Dijkstra(graph [][]Edge,src int) []int64 {
-    dist:=make([]int64,len(graph))
-    for i:=range dist { dist[i]=Infinity }
-    dist[src]=0
-    queue:=&MinHeap{{Node:src,Distance:0}}
-    heap.Init(queue)
-    for queue.Len()>0 {
-        current:=heap.Pop(queue).(Item)
-        u,d:=current.Node,current.Distance
-        if d!=dist[u] { continue }
-        // 若只求某个 target，在过期检查后可于 u==target 时返回。
-        for _,e:=range graph[u] {
-            if e.Weight<0 { panic("negative edge weight") }
-            if e.Weight>Infinity-d { continue } // 防止加法溢出
-            candidate:=d+e.Weight
-            if candidate<dist[e.To] {
-                dist[e.To]=candidate
-                heap.Push(queue,Item{Node:e.To,Distance:candidate})
-            }
-        }
-    }
-    return dist
+func (h minHeap) Len() int           { return len(h) }
+func (h minHeap) Less(i, j int) bool { return h[i].distance < h[j].distance }
+func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *minHeap) Push(x any)        { *h = append(*h, x.(state)) }
+func (h *minHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
+
+func networkDelayTime(times [][]int, n int, k int) int {
+	type edge struct {
+		to     int
+		weight int64
+	}
+	graph := make([][]edge, n)
+	for _, e := range times {
+		graph[e[0]-1] = append(graph[e[0]-1], edge{e[1] - 1, int64(e[2])})
+	}
+	const inf int64 = 1<<63 - 1
+	dist := make([]int64, n)
+	for i := range dist {
+		dist[i] = inf
+	}
+	dist[k-1] = 0
+	queue := &minHeap{{k - 1, 0}}
+	heap.Init(queue)
+	for queue.Len() > 0 {
+		cur := heap.Pop(queue).(state)
+		if cur.distance != dist[cur.node] {
+			continue
+		}
+		for _, e := range graph[cur.node] {
+			if e.weight > inf-cur.distance {
+				continue
+			}
+			candidate := cur.distance + e.weight
+			if candidate < dist[e.to] {
+				dist[e.to] = candidate
+				heap.Push(queue, state{e.to, candidate})
+			}
+		}
+	}
+	var answer int64
+	for _, d := range dist {
+		if d == inf {
+			return -1
+		}
+		answer = max(answer, d)
+	}
+	return int(answer)
 }
 ```
 
-边权非负是调用者必须保证的前提，代码中的检查只发现实际遍历到的违规边。Infinity 同时是不可达标志，不用它表示真实路径值；根据题目范围选安全类型和哨兵。
+**例子**：1→2(10)、1→3(1)、3→2(1)，dist[2]从10改善为2；旧堆项10要跳过。
 
-<a id="mapping"></a>
+**复杂度**：懒删除版本时间O(V+E log(E+2))，空间O(V+E)。题设非负且有限距离远小于INF。
 
-## 3. 松弛变化点与例子
+<a id="lc1631"></a>
 
-```text
-边：0→1(10)，0→2(1)，2→1(1)
-弹出 (0,0)：1 更新为10，2更新为1
-弹出 (2,1)：1 更新为2
-弹出 (1,2)：距离确定为2
-弹出 (1,10)：10!=dist[1]，跳过
+## 3. [1631. 最小体力消耗路径](https://leetcode.com/problems/path-with-minimum-effort/)
+
+[练习](l1631/1631.go) · [测试](l1631/1631_test.go)
+
+**题意**：路径代价为沿途相邻高度差的最大值，最小化这个最大值。
+
+**变化点**：candidate=max(已有代价,当前边高度差)，不是相加；仍最小堆，因为扩展只会不减。
+
+```go
+package template
+
+import "container/heap"
+
+type state struct {
+	row, col int
+	effort   int64
+}
+type minHeap []state
+
+func (h minHeap) Len() int           { return len(h) }
+func (h minHeap) Less(i, j int) bool { return h[i].effort < h[j].effort }
+func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *minHeap) Push(x any)        { *h = append(*h, x.(state)) }
+func (h *minHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
+
+func minimumEffortPath(heights [][]int) int {
+	rows, cols := len(heights), len(heights[0])
+	const inf int64 = 1<<63 - 1
+	dist := make([][]int64, rows)
+	for r := range dist {
+		dist[r] = make([]int64, cols)
+		for c := range dist[r] {
+			dist[r][c] = inf
+		}
+	}
+	dist[0][0] = 0
+	queue := &minHeap{{0, 0, 0}}
+	heap.Init(queue)
+	directions := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	for queue.Len() > 0 {
+		cur := heap.Pop(queue).(state)
+		r, c := cur.row, cur.col
+		if cur.effort != dist[r][c] {
+			continue
+		}
+		if r == rows-1 && c == cols-1 {
+			return int(cur.effort)
+		}
+		for _, d := range directions {
+			nr, nc := r+d[0], c+d[1]
+			if nr < 0 || nr >= rows || nc < 0 || nc >= cols {
+				continue
+			}
+			delta := int64(heights[nr][nc]) - int64(heights[r][c])
+			if delta < 0 {
+				delta = -delta
+			}
+			candidate := max(cur.effort, delta)
+			if candidate < dist[nr][nc] {
+				dist[nr][nc] = candidate
+				heap.Push(queue, state{nr, nc, candidate})
+			}
+		}
+	}
+	return -1
+}
 ```
 
-固定过程：堆取当前最优 → 跳过过期项 → 遍历邻居 → 仅在严格改善时更新并入堆。
+**例子**：[[1,100],[2,3]]沿1→2→3的最大差1，优于经过100。单格代价0。
 
-| 题目 | 路径标签和初值 | 候选值 | 堆与比较 | 最终答案 |
-| --- | --- | --- | --- | --- |
-| [743. 网络延迟时间](https://leetcode.com/problems/network-delay-time/) | 累计距离，源=0、其他=INF | d+w | 最小堆，candidate<dist[v] | 所有距离最大值，有不可达则 -1；节点编号转 0-based |
-| [1631. 最小体力消耗路径](https://leetcode.com/problems/path-with-minimum-effort/) | 路径最大相邻高度差，源=0 | max(d,abs(height[u]-height[v])) | 最小堆，candidate<dist[v] | 右下角标签 |
-| [1514. 概率最大的路径](https://leetcode.com/problems/path-with-maximum-probability/) | 路径成功概率，源=1、其他=0 | probability×edgeProbability | 最大堆，candidate>best[v] | 终点最大概率，不可达为 0 |
+**复杂度**：V=RC，四邻网格E=O(V)，时间O(V log(V+1))，空间O(V)。高度差int64覆盖题设范围。
 
-1631、1514 不是直接替换输入边权就套标准加法：必须同步修改标签含义、初值、松弛和堆比较。1514 要求概率在 [0,1]，沿路径扩展不会增加概率，对应最大优先的支配关系；一般自定义代价未必满足这个性质。
+<a id="lc1514"></a>
+
+## 4. [1514. 概率最大的路径](https://leetcode.com/problems/path-with-maximum-probability/)
+
+[练习](l1514/1514.go) · [测试](l1514/1514_test.go)
+
+**题意**：无向边有成功概率，路径概率相乘，求起点到终点最大概率。
+
+**变化点**：源为1、其他为0；candidate=prob×edgeProb；更大才更新，使用最大堆。概率范围[0,1]保证扩展不增加。
+
+```go
+package template
+
+import "container/heap"
+
+type state struct {
+	node        int
+	probability float64
+}
+type maxHeap []state
+
+func (h maxHeap) Len() int           { return len(h) }
+func (h maxHeap) Less(i, j int) bool { return h[i].probability > h[j].probability }
+func (h maxHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *maxHeap) Push(x any)        { *h = append(*h, x.(state)) }
+func (h *maxHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
+
+func maxProbability(n int, edges [][]int, succProb []float64, startNode int, endNode int) float64 {
+	type edge struct {
+		to          int
+		probability float64
+	}
+	graph := make([][]edge, n)
+	for i, e := range edges {
+		a, b := e[0], e[1]
+		graph[a] = append(graph[a], edge{b, succProb[i]})
+		graph[b] = append(graph[b], edge{a, succProb[i]})
+	}
+	best := make([]float64, n)
+	best[startNode] = 1
+	queue := &maxHeap{{startNode, 1}}
+	heap.Init(queue)
+	for queue.Len() > 0 {
+		cur := heap.Pop(queue).(state)
+		if cur.probability != best[cur.node] {
+			continue
+		}
+		if cur.node == endNode {
+			return cur.probability
+		}
+		for _, e := range graph[cur.node] {
+			candidate := cur.probability * e.probability
+			if candidate > best[e.to] {
+				best[e.to] = candidate
+				heap.Push(queue, state{e.to, candidate})
+			}
+		}
+	}
+	return 0
+}
+```
+
+**例子**：0→1为0.5、1→2为0.5、0→2为0.2，间接概率0.25更大。零概率路径与不可达的答案都可为0。
+
+**复杂度**：时间O(V+E log(E+2))，空间O(V+E)。严格改善避免概率1的环重复入堆。
 
 <a id="pitfalls"></a>
 
-## 4. 复杂度与陷阱
+## 5. 对比与易错点
 
-- 本懒删除堆版本时间 O(V+E log(E+2))，空间 O(V+E)，堆可能存 O(E) 条目。简单图中常写 O((V+E)log(V+1))。
-- 最小堆不是按节点编号排序，而是距离。struct 字段不要把 Node 和 Distance 放反。
-- 必须跳过旧距离，否则重复扩展大量边；只在严格改善时入堆，避免零权环无限添加等值项。
-- 不要“首次入队即 visited”，上面的 0→1 例子会漏掉更短路线。
-- 建图要区分有向和无向：743 的边有方向；1514 的边无方向，要添加两边。
-- 不能用普通 Dijkstra 处理负边；有向无环图即使有负边也可考虑拓扑 DP，其他场景考虑 Bellman-Ford。
-- 不需要为 1514 随意加入 epsilon 阻止微小改善；答案容差与松弛条件是不同概念。
+| 题目 | 初值 | 松弛 | 堆 |
+| --- | --- | --- | --- |
+| 743 | 源0，其余INF | d+w | 最小 |
+| 1631 | 源0，其余INF | max(d,高度差) | 最小 |
+| 1514 | 源1，其余0 | p×边概率 | 最大 |
 
-已有练习：[最短路径](../../graph/SingleSourceShortestPath/)、[743](../../heap_priority_queue/l743/)、[1631](../../heap_priority_queue/l1631/)、[1514](../../heap_priority_queue/l1514/)。
+- 首次入堆不代表确定，出堆先跳过过期标签，再考虑提前返回。
+- 只在严格改善时入堆，避免等值环重复扩展。
+- 743有向，1514无向，建图不能混用。
+- 普通加法版本不能处理负边；INF也不应与合法有限值混淆。
+- 每题完整堆实现各自独立，Less决定优先级，不能只改松弛而忘记改堆方向。
+
+已有分类：[最短路](../../graph/SingleSourceShortestPath/)。

@@ -1,128 +1,173 @@
-# atMost 相减：恰好 K 的连续区间计数
+# atMost 相减：恰好 K 的子数组
 
-[返回模板目录](../README.md)
+[返回总目录](../README.md)
 
 ## 目录
 
-- [适用条件与证明](#invariant)
-- [Go 通用骨架](#code)
-- [例子与题目映射](#mapping)
-- [复杂度与陷阱](#pitfalls)
+- [1. 核心思路](#core)
+- [2. 992：恰好 K 种整数](#lc992)
+- [3. 1248：恰好 K 个奇数](#lc1248)
+- [4. 930：二元数组和为 goal](#lc930)
+- [5. 对比与易错点](#pitfalls)
 
-<a id="invariant"></a>
+<a id="core"></a>
 
-## 1. 适用条件与证明
-
-若每个区间有整数属性 count，则集合“count<=K-1”包含于“count<=K”，所以：
+## 1. 核心思路
 
 ```text
-exactly(K) = atMost(K) - atMost(K-1)
+恰好 K 的数量 = 至多 K 的数量 - 至多 K-1 的数量
+
+遍历右端点：
+    加入当前元素
+    while 超出预算：移除左端元素
+    累加 right-left+1
 ```
 
-集合相减公式本身很通用，但**用滑窗计算 atMost**还需要：删除左端元素不增加该属性；固定 right 时，合法左端点形成连续后缀。
+**为什么加 right-left+1？** 收缩到最早合法 left 后，以 right 结尾、起点在 [left,right] 的所有子数组都合法，且更早的起点都非法。
 
-收缩到最早合法 left 后，所有 `[left,right]`、`[left+1,right]`……`[right,right]` 都合法，数量为 `right-left+1`，并且更早起点都非法。
+公式来自集合相减；滑窗实现另有条件：删掉左端元素不能让约束变坏。种数、奇数数目、非负数组的和满足要求，任意负数数组的和不满足。
 
-不同整数种数、奇数数量满足条件；含负数数组的和通常不满足。总数量最多 n(n+1)/2，使用 int64。
+**通用的是循环步骤，不需要 add/remove/valid 回调。** 每次 atMost 调用都建立独立窗口；k<0 返回 0。下面每题都有独立、完整的实现，不依赖其他章节代码。代码仅在文档中，练习文件保持原样。
 
-<a id="code"></a>
+<a id="lc992"></a>
 
-## 2. Go 通用骨架
+## 2. [992. K 个不同整数的子数组](https://leetcode.com/problems/subarrays-with-k-different-integers/)
+
+[练习](l992/992.go) · [测试](l992/992_test.go)
+
+**题意**：统计恰好包含 k 种不同整数的非空连续子数组。
+
+**状态与不变量**：freq 保存窗口内频次，distinct 保存不同数的数量。收缩后 distinct<=limit；频次从0变1时增加种数，从1变0时减少种数。
 
 ```go
 package template
 
-// add/remove 用数组下标更新窗口；valid 必须满足收缩可修复。
-// 调用前状态为空，结束后状态可能非空；每次调用必须创建新状态。
-func CountWindows(n int, add, remove func(int), valid func() bool) int64 {
-    left := 0
-    var answer int64
-    for right := 0; right < n; right++ {
-        add(right)
-        for left <= right && !valid() {
-            remove(left)
-            left++
-        }
-        answer += int64(right-left+1)
-    }
-    return answer
-}
-
-func AtMostDistinct(nums []int, k int) int64 {
-    if k < 0 { return 0 }
-    freq := make(map[int]int)
-    distinct := 0
-    return CountWindows(len(nums),
-        func(i int) {
-            if freq[nums[i]] == 0 { distinct++ }
-            freq[nums[i]]++
-        },
-        func(i int) {
-            freq[nums[i]]--
-            if freq[nums[i]] == 0 {
-                distinct--
-                delete(freq, nums[i])
-            }
-        },
-        func() bool { return distinct <= k },
-    )
-}
-
-func ExactlyDistinct(nums []int, k int) int64 {
-    return AtMostDistinct(nums,k)-AtMostDistinct(nums,k-1)
-}
-
-func AtMostOdd(nums []int, k int) int64 {
-    if k < 0 { return 0 }
-    odd := 0
-    contribution := func(i int) int {
-        if nums[i]%2 != 0 { return 1 }
-        return 0
-    }
-    return CountWindows(len(nums),
-        func(i int) { odd += contribution(i) },
-        func(i int) { odd -= contribution(i) },
-        func() bool { return odd <= k },
-    )
-}
-
-func ExactlyOdd(nums []int, k int) int64 {
-    return AtMostOdd(nums,k)-AtMostOdd(nums,k-1)
+func subarraysWithKDistinct(nums []int, k int) int {
+	atMost := func(limit int) int64 {
+		if limit < 0 {
+			return 0
+		}
+		freq := make(map[int]int)
+		left, distinct := 0, 0
+		var answer int64
+		for right, x := range nums {
+			if freq[x] == 0 {
+				distinct++
+			}
+			freq[x]++
+			for distinct > limit {
+				y := nums[left]
+				freq[y]--
+				if freq[y] == 0 {
+					delete(freq, y)
+					distinct--
+				}
+				left++
+			}
+			answer += int64(right - left + 1)
+		}
+		return answer
+	}
+	return int(atMost(k) - atMost(k-1))
 }
 ```
 
-<a id="mapping"></a>
+**推演**：[1,2,1]、k=2。atMost(2)=1+2+3=6；atMost(1)=3，故答案为3，分别是 [1,2]、[2,1]、[1,2,1]。
 
-## 3. 例子与题目映射
+**复杂度**：时间 O(n)，空间 O(min(n,k+1))。两次扫描仍为线性；删除零频键避免 map 保留无用历史值。
 
-[992](https://leetcode.com/problems/subarrays-with-k-different-integers/)：nums=[1,2,1]，K=2。
+<a id="lc1248"></a>
 
-```text
-atMost(2) = 6：所有非空子数组
-atMost(1) = 3：[1]、[2]、[1]
-exactly(2) = 6-3 = 3：[1,2]、[2,1]、[1,2,1]
+## 3. [1248. 统计优美子数组](https://leetcode.com/problems/count-number-of-nice-subarrays/)
+
+[练习](l1248/1248.go) · [测试](l1248/1248_test.go)
+
+**题意**：统计恰好包含 k 个奇数的非空连续子数组。
+
+**状态**：只需 odd，不再需要频次表。奇数贡献1，偶数贡献0；加入和移除时维护 odd。
+
+```go
+package template
+
+func numberOfSubarrays(nums []int, k int) int {
+	atMost := func(limit int) int64 {
+		if limit < 0 {
+			return 0
+		}
+		left, odd := 0, 0
+		var answer int64
+		for right, x := range nums {
+			if x%2 != 0 {
+				odd++
+			}
+			for odd > limit {
+				if nums[left]%2 != 0 {
+					odd--
+				}
+				left++
+			}
+			answer += int64(right - left + 1)
+		}
+		return answer
+	}
+	return int(atMost(k) - atMost(k-1))
+}
 ```
 
-计算 atMost(2) 时，三个右端点分别贡献 1、2、3 个；每个子数组按唯一右端点计数，既不重复也不遗漏。
+**例子**：[2,1,2]、k=1，答案4。唯一奇数的左右两边都可选择是否带上偶数，不能只对每个右端点加1。
 
-| 题目 | 属性 / 状态 | atMost 的合法条件 | 变化点 |
-| --- | --- | --- | --- |
-| [992. K 个不同整数的子数组](https://leetcode.com/problems/subarrays-with-k-different-integers/) | 频次表＋distinct | distinct<=K | 频次从 0→1 和 1→0 才修改种数 |
-| [1248. 统计优美子数组](https://leetcode.com/problems/count-number-of-nice-subarrays/) | 奇数数量 | odd<=K | 奇数贡献 1、偶数贡献 0 |
-| [930. 和相同的二元子数组](https://leetcode.com/problems/binary-subarrays-with-sum/) | 0/1 窗口和 | sum<=goal | 非负确保单调，goal=0 也适用 |
+**复杂度**：时间 O(n)，空间 O(1)。另一种解法是 [前缀奇数数量＋哈希表](../prefix_state_hash/README.md#lc1248)。
 
-1248 也可以用奇数前缀数量＋哈希表：查询 prefix-K。公式相同但计数机制不同，可比较 [前缀状态模板](../prefix_state_hash/README.md)。
+<a id="lc930"></a>
+
+## 4. [930. 和相同的二元子数组](https://leetcode.com/problems/binary-subarrays-with-sum/)
+
+[练习](l930/930.go) · [测试](l930/930_test.go)
+
+**题意**：数组仅含0、1，统计和恰好为 goal 的非空子数组。
+
+**状态**：sum 是窗口和。非负元素确保删左端不会增加和，因此可以用至多和的窗口。
+
+```go
+package template
+
+func numSubarraysWithSum(nums []int, goal int) int {
+	atMost := func(limit int) int64 {
+		if limit < 0 {
+			return 0
+		}
+		left, sum := 0, 0
+		var answer int64
+		for right, x := range nums {
+			sum += x
+			for sum > limit {
+				sum -= nums[left]
+				left++
+			}
+			answer += int64(right - left + 1)
+		}
+		return answer
+	}
+	return int(atMost(goal) - atMost(goal-1))
+}
+```
+
+**例子**：[0,0,0]、goal=0。atMost(0)=1+2+3=6；atMost(-1)=0，答案6。这就是负预算提前返回的重要性。
+
+**复杂度**：时间 O(n)，空间 O(1)。含负数的普通数组不可照搬，可改用前缀和计数。
 
 <a id="pitfalls"></a>
 
-## 4. 复杂度与陷阱
+## 5. 对比与易错点
 
-- 两次线性扫描仍是 O(n)。distinct 的 map 空间 O(min(n,K+1))；odd 状态空间 O(1)。
-- k<0 必须先返回 0，否则窗口清空也无法满足条件。恰好 0 时会调用 atMost(-1)。
-- 每次 atMost 都初始化新的 left、freq、answer，不能沿用第一次的窗口状态。
-- map 删除零频键可用 len(freq) 表示种数；若不删除，必须另存 distinct，不能混用。
-- `right-left+1` 是非空窗口个数；窗口为空时为 0，不要额外计入空子数组。
-- 统计的是区间数量，不是最长窗口：应累加当前所有合法后缀，而非每个 right 只加 1。
-- 不能直接用 sum<=K 套在任意负数数组上。集合差恒等式仍成立，但滑窗计算 atMost 的方法会错。
+| 题目 | 窗口状态 | 违规条件 | 每轮贡献 |
+| --- | --- | --- | --- |
+| 992 | freq、distinct | distinct>limit | right-left+1 |
+| 1248 | odd | odd>limit | right-left+1 |
+| 930 | sum | sum>limit | right-left+1 |
 
-已有练习：[992](../../sliding_window/l992/)、[其他滑窗题](../../sliding_window/)。
+- 求的是数量，累加所有合法后缀，不是维护最长长度。
+- 每次 atMost 都重置 left 和状态，不能沿用第一次的状态。
+- 窗口清空时 left=right+1，贡献为0，不计空子数组。
+- 计数中间值用 int64；上述题目答案在 LeetCode int 范围内，最后转 int。
+- 所有独立代码块可单独复制，不能把多个 `package template` 合到同一文件。

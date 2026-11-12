@@ -1,117 +1,205 @@
 # 单调栈：最近边界与贡献结算
 
-[返回模板目录](../README.md)
+[返回总目录](../README.md)
 
 ## 目录
 
-- [适用条件与不变量](#invariant)
-- [Go 骨架：两种遍历方式](#code)
-- [变化点与推演](#mapping)
-- [复杂度与陷阱](#pitfalls)
+- [1. 核心思路](#core)
+- [2. 739：每日温度](#lc739)
+- [3. 496：下一个更大元素](#lc496)
+- [4. 84：柱状图最大矩形](#lc84)
+- [5. 907：子数组最小值贡献](#lc907)
+- [6. 对比与易错点](#pitfalls)
 
-<a id="invariant"></a>
+<a id="core"></a>
 
-## 1. 适用条件与不变量
+## 1. 核心思路
 
-需要某个位置左/右侧最近的更大/更小元素，或某个值作为区间最值的作用边界。栈存下标，值通过原数组访问。
+栈保存尚未确定答案的下标。遍历当前元素，遇到能确定栈顶边界的值，就弹栈结算，然后入栈当前下标。
 
-**从左向右、弹栈结算**：栈保存尚未找到右侧答案的位置；当前值满足条件时，为弹出的旧下标确定右侧答案。
+```text
+遍历i → while栈顶满足弹出条件：弹出j并结算 → i入栈
+```
 
-**从右向左、清除候选后查询**：栈保存右侧未被支配的候选；弹掉不可能作为当前答案的值，再由栈顶给当前下标提供答案。
+每个下标最多入栈、出栈一次，所以总时间O(n)。比较符号取决于“严格更大/更小”和重复值归属，不能脱离题目机械背符号。以下代码块互相独立，均不依赖其他题实现。
 
-两种写法的相等处理不同，不能只背“严格大于就用某一个比较符号”。
+<a id="lc739"></a>
 
-<a id="code"></a>
+## 2. [739. 每日温度](https://leetcode.com/problems/daily-temperatures/)
 
-## 2. Go 骨架：两种遍历方式
+[练习](l739/739.go) · [测试](l739/739_test.go)
+
+**题意**：对每一天求还需等几天才有更高温度，不存在为0。
+
+**栈含义**：等待更高温度的下标，温度非递增。当前温度严格更大，才为旧下标确定答案。
 
 ```go
 package template
 
-// 返回右侧第一个严格更大元素的下标，不存在为 -1。
-func NextGreaterLeftScan(nums []int) []int {
-    answer := make([]int,len(nums))
-    for i := range answer { answer[i] = -1 }
-    stack := make([]int,0,len(nums))
-    for i,x := range nums {
-        for len(stack)>0 && nums[stack[len(stack)-1]]<x {
-            j := stack[len(stack)-1]
-            stack = stack[:len(stack)-1]
-            answer[j] = i
-        }
-        stack = append(stack,i) // 值保持非递增，允许相等
-    }
-    return answer
-}
-
-func NextGreaterRightScan(nums []int) []int {
-    answer := make([]int,len(nums))
-    stack := make([]int,0,len(nums))
-    for i:=len(nums)-1;i>=0;i-- {
-        for len(stack)>0 && nums[stack[len(stack)-1]]<=nums[i] {
-            stack = stack[:len(stack)-1] // 相等不是严格更大候选
-        }
-        answer[i] = -1
-        if len(stack)>0 { answer[i] = stack[len(stack)-1] }
-        stack = append(stack,i)
-    }
-    return answer
-}
-
-// 非负柱高；遇到更低柱或结束时结算被弹出的柱子。
-func LargestRectangle(heights []int) int64 {
-    stack := []int{}
-    var answer int64
-    for i:=0;i<=len(heights);i++ {
-        for len(stack)>0 && (i==len(heights) || heights[stack[len(stack)-1]]>heights[i]) {
-            j:=stack[len(stack)-1]
-            stack=stack[:len(stack)-1]
-            left:=-1
-            if len(stack)>0 { left=stack[len(stack)-1] }
-            area:=int64(heights[j])*int64(i-left-1)
-            answer=max(answer,area)
-        }
-        if i<len(heights) { stack=append(stack,i) }
-    }
-    return answer
+func dailyTemperatures(temperatures []int) []int {
+	answer := make([]int, len(temperatures))
+	stack := []int{}
+	for i, x := range temperatures {
+		for len(stack) > 0 && temperatures[stack[len(stack)-1]] < x {
+			j := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			answer[j] = i - j
+		}
+		stack = append(stack, i)
+	}
+	return answer
 }
 ```
 
-最后一个函数在 i=n 时强制清空栈，短路条件避免访问 heights[n]；不用修改输入来追加哨兵。
+**例子**：[30,30,40]，i=2同时解决前两天下标，答案[2,1,0]。相等不是更暖，不能弹。
 
-<a id="mapping"></a>
+**复杂度**：时间O(n)，空间O(n)，包括输出和栈。
 
-## 3. 变化点与推演
+<a id="lc496"></a>
 
-nums=[2,2,3]，左向右结算：
+## 3. [496. 下一个更大元素 I](https://leetcode.com/problems/next-greater-element-i/)
 
-```text
-i=0：栈 [0]
-i=1：相等不弹，栈 [0,1]
-i=2：3>2，弹 1，answer[1]=2；再弹 0，answer[0]=2
-结果 [2,2,-1]
+[练习](l496/496.go) · [测试](l496/496_test.go)
+
+**题意**：nums1是nums2的子集，两数组各自无重复。为nums1每个值查找它在nums2右侧的第一个更大值。
+
+**变化**：仍弹出等待右侧更大值的下标，但结果存为“旧值→下一个更大值”的map，最后按nums1顺序输出。
+
+```go
+package template
+
+func nextGreaterElement(nums1 []int, nums2 []int) []int {
+	next := make(map[int]int)
+	stack := []int{}
+	for i, x := range nums2 {
+		for len(stack) > 0 && nums2[stack[len(stack)-1]] < x {
+			j := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			next[nums2[j]] = x
+		}
+		stack = append(stack, i)
+	}
+	answer := make([]int, len(nums1))
+	for i, x := range nums1 {
+		if value, ok := next[x]; ok {
+			answer[i] = value
+		} else {
+			answer[i] = -1
+		}
+	}
+	return answer
+}
 ```
 
-| 题目 | 比较 / 栈的含义 | 弹出时或查询后做什么 |
-| --- | --- | --- |
-| [739. 每日温度](https://leetcode.com/problems/daily-temperatures/) | 左向右遇到严格更大温度才弹 | answer[j]=i-j，不存在时为 0 |
-| [496. 下一个更大元素 I](https://leetcode.com/problems/next-greater-element-i/) | 找严格更大位置 | 从下标取数值，再建立题目要求的映射 |
-| [84. 柱状图中最大的矩形](https://leetcode.com/problems/largest-rectangle-in-histogram/) | 非递减柱高栈，遇低柱结算 | 面积 height[j]×(right-left-1) |
-| [907. 子数组的最小值之和](https://leetcode.com/problems/sum-of-subarray-minimums/) | 为每个最小值划分左右边界 | 贡献 nums[i]×(i-L)×(R-i)，按题意取模 |
+**例子**：nums1=[4,1,2]、nums2=[1,3,4,2]，答案[-1,3,-1]。不是寻找右侧最大值。
 
-907 的一种正确归属：L 为左侧最近**严格小于**，R 为右侧最近**小于等于**。这样 [2,2] 的双元素区间归于右侧那个 2，恰计一次。反向不对称也可，但两边都严格会重复、两边都非严格会遗漏。
+**复杂度**：时间O(n+m)，空间O(n+m)，n、m为两数组长度。
 
-84 示例 [2,1,2]：末尾清栈时高度 1 覆盖三根，面积为 3。相等柱在本骨架中保留，靠较早柱最终覆盖完整宽度；不要把中间弹出的相等柱宽度当作严格小于边界。
+<a id="lc84"></a>
+
+## 4. [84. 柱状图中最大的矩形](https://leetcode.com/problems/largest-rectangle-in-histogram/)
+
+[练习](l84/84.go) · [测试](l84/84_test.go)
+
+**题意**：每根柱宽1，求能组成的最大矩形面积。
+
+**栈含义**：柱高非递减，遇更矮柱时结算旧柱j。弹出后新栈顶left限制左侧扩展，宽为i-left-1。相等柱保留，较早的柱最终覆盖完整宽度。
+
+```go
+package template
+
+func largestRectangleArea(heights []int) int {
+	stack := []int{}
+	var answer int64
+	for i := 0; i <= len(heights); i++ {
+		for len(stack) > 0 && (i == len(heights) || heights[stack[len(stack)-1]] > heights[i]) {
+			j := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			left := -1
+			if len(stack) > 0 {
+				left = stack[len(stack)-1]
+			}
+			answer = max(answer, int64(heights[j])*int64(i-left-1))
+		}
+		if i < len(heights) {
+			stack = append(stack, i)
+		}
+	}
+	return int(answer)
+}
+```
+
+**例子**：[2,1,2]，末尾清栈时高度1覆盖宽3，答案3。i=n强制结算，短路条件避免访问heights[n]。
+
+**复杂度**：时间O(n)，空间O(n)。相等保留时left可为等高柱，不能误称每次都是“严格更小左边界”。
+
+<a id="lc907"></a>
+
+## 5. [907. 子数组的最小值之和](https://leetcode.com/problems/sum-of-subarray-minimums/)
+
+[练习](l907/907.go) · [测试](l907/907_test.go)
+
+**题意**：所有非空子数组的最小值求和，对10^9+7取模。
+
+**贡献法**：为i找左侧最近严格小于L、右侧最近小于等于R。以i为指定最小值的区间数是(i-L)×(R-i)，贡献再乘arr[i]。
+
+```go
+package template
+
+func sumSubarrayMins(arr []int) int {
+	n := len(arr)
+	left, right := make([]int, n), make([]int, n)
+	stack := []int{}
+	for i, x := range arr {
+		for len(stack) > 0 && arr[stack[len(stack)-1]] >= x {
+			stack = stack[:len(stack)-1]
+		}
+		left[i] = -1
+		if len(stack) > 0 {
+			left[i] = stack[len(stack)-1]
+		}
+		stack = append(stack, i)
+	}
+	stack = stack[:0]
+	for i := n - 1; i >= 0; i-- {
+		for len(stack) > 0 && arr[stack[len(stack)-1]] > arr[i] {
+			stack = stack[:len(stack)-1]
+		}
+		right[i] = n
+		if len(stack) > 0 {
+			right[i] = stack[len(stack)-1]
+		}
+		stack = append(stack, i)
+	}
+	const mod int64 = 1000000007
+	var answer int64
+	for i, x := range arr {
+		contribution := int64(x) * int64(i-left[i]) * int64(right[i]-i)
+		answer = (answer + contribution) % mod
+	}
+	return int(answer)
+}
+```
+
+**例子**：[2,2]，left=[-1,-1]、right=[1,2]，贡献2和4，总和6。双元素区间归给右侧的2，防止重复。
+
+**复杂度**：时间O(n)，空间O(n)。先转int64再乘；本题约束下乘积可表示。
 
 <a id="pitfalls"></a>
 
-## 4. 复杂度与陷阱
+## 6. 对比与易错点
 
-- 每个下标入栈一次、出栈至多一次，总时间 O(n)，额外空间 O(n)。内层 while 不等于 O(n²)。
-- 存值无法直接算等待天数或宽度，应存下标。
-- `>`、`>=` 的选择同时依赖遍历方向、弹栈含义及重复值归属，必须写出不变量。
-- 栈空时左边界常用 -1；右侧不存在常用 n；面积宽度为 R-L-1。
-- 贡献乘法先转 int64，再相乘；转型太晚不能挽救已经溢出的 int 运算。
-- 栈不是滑动窗口队列，不负责自动移除过期的左端位置。窗口最大值可考虑单调队列。
+| 题目 | 结算内容 | 相等值处理 |
+| --- | --- | --- |
+| 739 | 等待天数i-j | 相等不弹 |
+| 496 | 下一个更大值 | 题目值唯一 |
+| 84 | 高×宽 | 本实现相等保留，由早柱覆盖完整范围 |
+| 907 | 最小值×左右选择数 | 左严格、右非严格，统一归属 |
 
-已有练习：[monotonic_stack](../../monotonic_stack/)，重点 [84](../../monotonic_stack/l84/)、[907](../../monotonic_stack/l907/)。
+- 栈存下标才能算距离、宽度；不要混淆当前i和被弹出的j。
+- 左不存在用-1，右不存在用n，但宽度公式与贡献公式不同。
+- 907两侧都严格会重复计数，两侧都非严格会遗漏。
+- 遍历方向和弹栈含义改变时，比较符号也要重新推导。
+- 窗口最大值的过期处理需要单调队列，不是这个栈骨架。
+
+已有分类：[monotonic_stack](../../monotonic_stack/)。

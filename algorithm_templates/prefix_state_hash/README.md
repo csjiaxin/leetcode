@@ -1,156 +1,224 @@
 # 前缀状态＋哈希表
 
-[返回模板目录](../README.md)
+[返回总目录](../README.md)
 
 ## 目录
 
-- [适用条件与不变量](#invariant)
-- [通用 Go 骨架](#code)
-- [推演与题目变化点](#mapping)
-- [复杂度与易错点](#pitfalls)
+- [1. 核心思路](#core)
+- [2. 560：子数组和为 K](#lc560)
+- [3. 974：子数组和可整除](#lc974)
+- [4. 525：0 和 1 数量相等](#lc525)
+- [5. 1371：元音出现偶数次](#lc1371)
+- [6. 1248：恰好 K 个奇数](#lc1248)
+- [7. 对比与易错点](#pitfalls)
 
-<a id="invariant"></a>
+<a id="core"></a>
 
-## 1. 适用条件与不变量
+## 1. 核心思路
 
-连续区间 `[l,r]` 可以用两个前缀状态的关系表达：前缀和之差、余数相同、0/1 数量差相同、奇偶掩码异或为零。**允许负数**，不依赖窗口和的单调性。
+区间 [l,r] 可用两个前缀状态的关系表示。对每个右端点，查询能和当前前缀配对的历史前缀。
 
-以 P[r] 表示到 r 的前缀状态，空前缀 P[-1]=0：
+```text
+初始化空前缀
+遍历：更新状态 → 查询历史 → 记录当前
+求数量：保存出现次数
+求最长：保存第一次出现的位置
+```
 
-- 和为 K：P[r]-P[l-1]=K，因此查询历史状态 P[r]-K。
-- 和被 K 整除：两个前缀的规范化余数相同。
-- 0/1 数量相等：把 0 记为 -1、1 记为 +1，两个前缀差相同。
-- 元音全为偶数：五位奇偶掩码相同，区间异或为零。
+**不变量**：查询时只使用当前之前的前缀（含空前缀）。允许负数，不依赖窗口和单调性。先推导等式，再写直接循环，无需 step/need 回调。
 
-**不变量**：查询时，哈希表只保存当前元素之前的前缀（含空前缀）；查询结束才记录当前状态，避免把空区间计入答案。
+以下实现分别完整独立，使用标准题目签名；仅展示于文档，不填练习函数。
 
-固定骨架：初始化空前缀 → 更新当前状态 → 查询历史 → 记录当前状态。
+<a id="lc560"></a>
 
-<a id="code"></a>
+## 2. [560. 和为 K 的子数组](https://leetcode.com/problems/subarray-sum-equals-k/)
 
-## 2. 通用 Go 骨架
+[练习](l560/560.go) · [测试](l560/560_test.go)
 
-**通用的是处理步骤，不必把它们封装成回调函数。** 先掌握下面两种直接写法：求数量用 freq，求最长用 first。
+**题意**：求非空连续子数组和恰好等于 k 的数量。
 
-### 2.1 求数量：保存历史状态出现次数
-
-以 [560. 和为 K 的子数组](https://leetcode.com/problems/subarray-sum-equals-k/) 为基础模板：
+**推导**：当前前缀和-历史前缀和=k，所以查询 prefix-k。freq[0]=1 表示空前缀。
 
 ```go
 package template
 
-func SubarraySum(nums []int, k int64) int64 {
-    freq := map[int64]int64{0: 1} // 空前缀和为0，出现1次
-    var prefix, answer int64
-
-    for _, x := range nums {
-        prefix += int64(x)         // 1. 更新当前状态
-        answer += freq[prefix-k]   // 2. 查询历史状态
-        freq[prefix]++             // 3. 记录当前状态
-    }
-    return answer
+func subarraySum(nums []int, k int) int {
+	freq := map[int64]int64{0: 1}
+	var prefix, answer int64
+	for _, x := range nums {
+		prefix += int64(x)
+		answer += freq[prefix-int64(k)]
+		freq[prefix]++
+	}
+	return int(answer)
 }
 ```
 
-只需理解这个等式：`当前前缀和 - 历史前缀和 = k`，所以查询 `prefix-k`。不需要 step、need 等辅助函数。
+**例子**：[1,-1,1]、k=1。依次查询0、-1、0，命中次数1、0、2，答案3。最后一次历史前缀0已出现两次。
 
-### 2.2 换成余数：循环骨架不变
+**复杂度**：平均时间 O(n)，空间 O(n)。k=0 时也先查后记，避免把空区间计入。
 
-[974. 和可被 K 整除的子数组](https://leetcode.com/problems/subarray-sums-divisible-by-k/) 只需把状态换为前缀和的余数，查询相同余数：
+<a id="lc974"></a>
+
+## 3. [974. 和可被 K 整除的子数组](https://leetcode.com/problems/subarray-sums-divisible-by-k/)
+
+[练习](l974/974.go) · [测试](l974/974_test.go)
+
+**题意**：统计和能被 k 整除的非空子数组，题设 k>0。
+
+**推导**：两前缀相减能被 k 整除，等价于规范化余数相同。Go 的负余数要加 k，统一到 [0,k)。
 
 ```go
 package template
 
-// 题设 k>0，累计前缀和使用 int64。
-func DivisibleSubarrays(nums []int, k int64) int64 {
-    freq := map[int64]int64{0: 1}
-    var prefix, answer int64
-
-    for _, x := range nums {
-        prefix += int64(x)
-        remainder := prefix % k
-        if remainder < 0 {
-            remainder += k // Go 的负余数需要规范化
-        }
-        answer += freq[remainder]
-        freq[remainder]++
-    }
-    return answer
+func subarraysDivByK(nums []int, k int) int {
+	freq := map[int64]int64{0: 1}
+	var prefix, answer int64
+	for _, x := range nums {
+		prefix += int64(x)
+		remainder := prefix % int64(k)
+		if remainder < 0 {
+			remainder += int64(k)
+		}
+		answer += freq[remainder]
+		freq[remainder]++
+	}
+	return int(answer)
 }
 ```
 
-两个前缀余数相同，差值就能被 k 整除。不需要额外维护复杂的模加法；本模板假设前缀总和在 int64 范围内，覆盖本题约束。
+**例子**：[-1,1]、k=2。两个前缀余数为1、0；后者与空前缀匹配，答案1。
 
-### 2.3 求最长：保存历史状态最早下标
+**复杂度**：平均时间 O(n)，空间 O(min(n+1,k))。不必构造复杂的模加法，int64 前缀和足够覆盖本题约束。
 
-以 [525. 连续数组](https://leetcode.com/problems/contiguous-array/) 为模板，0 记为 -1，1 记为 +1；相同前缀差之间的区间含有相同数量的 0 和 1。
+<a id="lc525"></a>
+
+## 4. [525. 连续数组](https://leetcode.com/problems/contiguous-array/)
+
+[练习](l525/525.go) · [测试](l525/525_test.go)
+
+**题意**：0/1 数组中，求0与1数量相等的最长连续区间。
+
+**状态**：0记-1、1记+1，balance相同的两前缀之间数量平衡。first[0]=-1；只保留最早位置，才能得到最长距离。
 
 ```go
 package template
 
-func FindMaxLength(nums []int) int {
-    first := map[int]int{0: -1} // 空前缀位于下标-1
-    balance, answer := 0, 0
-
-    for i, x := range nums {
-        if x == 0 {
-            balance--
-        } else {
-            balance++
-        }
-
-        if j, ok := first[balance]; ok {
-            answer = max(answer, i-j)
-        } else {
-            first[balance] = i // 只记录第一次出现的位置
-        }
-    }
-    return answer
+func findMaxLength(nums []int) int {
+	first := map[int]int{0: -1}
+	balance, answer := 0, 0
+	for i, x := range nums {
+		if x == 0 {
+			balance--
+		} else {
+			balance++
+		}
+		if j, ok := first[balance]; ok {
+			answer = max(answer, i-j)
+		} else {
+			first[balance] = i
+		}
+	}
+	return answer
 }
 ```
 
-**只记两种循环结构：**
+**例子**：[0,1,0,1]。balance=0 首次位置始终为-1，最后得到3-(-1)=4；覆盖最早位置会漏掉这个答案。
 
-- 求数量：更新状态 → `answer += freq[需要的历史状态]` → `freq[当前状态]++`。
-- 求最长：更新状态 → 若历史状态出现过，用 `i-最早下标` 更新答案；否则记录当前下标。
+**复杂度**：平均时间 O(n)，空间 O(n)。
 
-以上三个代码块各自可以单独复制编译；合并到同一个文件时只保留一次 `package template`。
+<a id="lc1371"></a>
 
-<a id="mapping"></a>
+## 5. [1371. 每个元音包含偶数次的最长子字符串](https://leetcode.com/problems/find-the-longest-substring-containing-vowels-in-even-counts/)
 
-## 3. 推演与题目变化点
+[练习](l1371/1371.go) · [测试](l1371/1371_test.go)
 
-[560. 和为 K 的子数组](https://leetcode.com/problems/subarray-sum-equals-k/)：nums=[1,-1,1]、K=1。
+**题意**：求最长子串，使 a/e/i/o/u 各自出现偶数次，0次也合法。
 
-| 当前元素 | 前缀和 | 查询历史前缀 | 查询到的次数 | 累计答案 |
-| --- | --- | --- | --- | --- |
-| 1 | 1 | 0 | 1（空前缀） | 1 |
-| -1 | 0 | -1 | 0 | 1 |
-| 1 | 1 | 0 | 2（空前缀、前两个元素） | 3 |
+**状态**：用五位掩码记录奇偶性，遇元音翻转对应位。两个前缀掩码相同，区间内每个元音都出现偶数次。与525一样保存最早下标。
 
-这里前缀和 0 出现两次，所以最后一次查询一次增加 2，不是只增加 1。
+```go
+package template
 
-| 题目 | 当前前缀状态 | 查询历史 | 表保存什么 | 初始化 |
-| --- | --- | --- | --- | --- |
-| [560](https://leetcode.com/problems/subarray-sum-equals-k/) | 前缀和 | state-K | 出现次数 | freq[0]=1 |
-| [974](https://leetcode.com/problems/subarray-sums-divisible-by-k/) | 规范化的余数 | 相同余数 | 出现次数 | freq[0]=1 |
-| [525](https://leetcode.com/problems/contiguous-array/) | 1 数量减 0 数量 | 相同差值 | 最早下标 | first[0]=-1 |
-| [1371](https://leetcode.com/problems/find-the-longest-substring-containing-vowels-in-even-counts/) | a/e/i/o/u 各占一位，遇到就异或对应位 | 相同掩码 | 最早下标 | first[0]=-1 |
+func findTheLongestSubstring(s string) int {
+	first := map[int]int{0: -1}
+	mask, answer := 0, 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case 'a':
+			mask ^= 1 << 0
+		case 'e':
+			mask ^= 1 << 1
+		case 'i':
+			mask ^= 1 << 2
+		case 'o':
+			mask ^= 1 << 3
+		case 'u':
+			mask ^= 1 << 4
+		}
+		if j, ok := first[mask]; ok {
+			answer = max(answer, i-j)
+		} else {
+			first[mask] = i
+		}
+	}
+	return answer
+}
+```
 
-525 直接使用上面的 FindMaxLength：遇到 0 状态减 1，遇到 1 状态加 1。1371 沿用“保存最早下标”的循环，把 balance 换成五位奇偶掩码；按 ASCII 字节遍历，只有五个元音会翻位，其他字符不改变状态，最多 32 种状态。
+**例子**："aba" 的掩码依次为1、1、0，最后与空前缀0匹配，长度3。辅音不改掩码，但仍计入长度。
 
-**次数 vs 最早位置**：同一状态出现越多，计数贡献越多；求最长时则只需要最早位置，晚位置不会产生更长区间。
+**复杂度**：时间 O(n)，空间 O(32)=O(1)。题设为小写英文字母，按字节下标即为字符位置。
+
+<a id="lc1248"></a>
+
+## 6. [1248. 统计优美子数组](https://leetcode.com/problems/count-number-of-nice-subarrays/)
+
+[练习](l1248/1248.go) · [测试](l1248/1248_test.go)
+
+**题意**：统计恰好有 k 个奇数的连续子数组。
+
+**状态**：odd 为前缀奇数数目，查询 odd-k 的历史次数。它是560的“每个元素先变成0/1”的版本。
+
+```go
+package template
+
+func numberOfSubarrays(nums []int, k int) int {
+	freq := map[int]int64{0: 1}
+	odd := 0
+	var answer int64
+	for _, x := range nums {
+		if x%2 != 0 {
+			odd++
+		}
+		answer += freq[odd-k]
+		freq[odd]++
+	}
+	return int(answer)
+}
+```
+
+**例子**：[2,1,2]、k=1，答案4：左右偶数都可带或不带。也可用 [atMost相减](../at_most/README.md#lc1248)，本节只展示前缀版本。
+
+**复杂度**：平均时间 O(n)，空间 O(n)。
 
 <a id="pitfalls"></a>
 
-## 4. 复杂度与易错点
+## 7. 对比与易错点
 
-- 平均时间 O(n)，额外空间 O(n)；974 至多 min(n+1,K) 种余数，1371 只有 32 种状态。
-- Go 的负数取模仍可能为负：先 `r=x%k`，若 r<0 则 r+=k，得到 [0,k) 的规范化余数。
-- 先记录当前再查询，K=0 时会误计空区间。nums=[0] 的正确答案为 1，而不是 2。
-- 求最长时覆盖 first[state] 会丢失最早边界；first 为 0 不能代表“不存在”，须使用 map 的 ok。
-- 区间数量最多 n(n+1)/2，使用 int64；前缀和也应检查题目数值范围。
-- 这不是通用的区间最大值查询：最大值不能由两个普通前缀最大值相减恢复。
-- [1248](https://leetcode.com/problems/count-number-of-nice-subarrays/) 也可把奇数记为 1、偶数记为 0 后使用前缀计数，与 [atMost 模板](../at_most/README.md) 对照。
+| 题目 | 状态 | 查询历史 | 保存内容 |
+| --- | --- | --- | --- |
+| 560 | 前缀和 | prefix-k | 次数 |
+| 974 | 前缀余数 | 相同余数 | 次数 |
+| 525 | 1数量-0数量 | 相同balance | 最早下标 |
+| 1371 | 元音奇偶掩码 | 相同mask | 最早下标 |
+| 1248 | 前缀奇数数目 | odd-k | 次数 |
 
-已有相关练习：[滑动窗口](../../sliding_window/)、[子数组专题](../../Subarray/)。
+- 求数量初始化 freq[0]=1；求最长初始化 first[0]=-1，不要混淆。
+- 数量问题先查询再记录，否则可能计空区间；最长问题不要覆盖最早下标。
+- map 中的0可能是合法下标，判断存在须用 ok。
+- 计数和前缀和使用 int64 中间值；本题答案范围允许返回 int。若通用场景答案更大，应连返回类型也改成 int64。
+- 前缀状态可以处理负数；不能据此推论含负数的和也能用普通滑窗。
+- 区间最大值一般不能由两个前缀最大值相减得到。
+
+已有分类：[滑动窗口](../../sliding_window/)、[子数组](../../Subarray/)。

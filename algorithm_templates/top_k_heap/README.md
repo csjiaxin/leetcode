@@ -1,108 +1,294 @@
-# 固定大小 K 的堆：保留最好的 K 个
+# Top K堆与双堆：按题目独立实现
 
-[返回模板目录](../README.md)
+[返回总目录](../README.md)
 
 ## 目录
 
-- [适用条件与不变量](#invariant)
-- [Go 通用骨架](#code)
-- [变化点与推演](#mapping)
-- [复杂度与陷阱](#pitfalls)
+- [1. 核心思路](#core)
+- [2. 215：数组第K大](#lc215)
+- [3. 703：数据流第K大](#lc703)
+- [4. 347：前K个高频元素](#lc347)
+- [5. 973：最近K个点](#lc973)
+- [6. 295：数据流中位数（双堆对照）](#lc295)
+- [7. 对比与易错点](#pitfalls)
 
-<a id="invariant"></a>
+<a id="core"></a>
 
-## 1. 适用条件与不变量
+## 1. 核心思路
 
-动态加入数据，维护最大 K 个、最小 K 个或按评分最优 K 个。堆顶应该是**当前保留候选里最差的那个**，方便新元素与淘汰门槛比较。
+保留最好的K个候选，堆顶是其中最差者，方便淘汰：最大K个用最小堆，最小K个用最大堆。
 
-求最大 K 个 → 最小堆；求最小 K 个 → 最大堆。不是看到“最大”就用最大堆。
+```text
+加入新候选 → 大小超过K则弹出最差 → 剩余候选始终是已见最好的K个
+```
 
-**不变量**：处理 t 个元素后，堆大小为 min(K,t)，保存已见多重集合中最大的这些元素。t>=K 时，堆顶才是第 K 大；t<K 时不存在第 K 大，应返回状态而不是误报堆顶。
+重复值按出现次数计排名；堆内切片不是有序结果。295需要两个堆平衡，不能直接套固定K；放在本篇用于对照。
 
-这里重复值按多次出现计入排名，例如 [5,5,4] 的第2大为5，不是4；“第K个不同值”是另一种要求。
+以下每题包含自己的container/heap辅助类型，代码块相互独立。Less决定堆方向，接口Pop只移除末尾，由heap.Pop负责堆顶交换。
 
-<a id="code"></a>
+<a id="lc215"></a>
 
-## 2. Go 通用骨架
+## 2. [215. 数组中的第K个最大元素](https://leetcode.com/problems/kth-largest-element-in-an-array/)
+
+[练习](l215/215.go) · [测试](l215/215_test.go)
+
+**题意**：返回多重集合意义的第k大，不是第k个不同值，题设1<=k<=n。
+
+**状态**：保留最大k个，最小堆顶即第k大。
 
 ```go
 package template
 
 import "container/heap"
 
-type IntMinHeap []int
-func(h IntMinHeap) Len() int { return len(h) }
-func(h IntMinHeap) Less(i,j int) bool { return h[i]<h[j] }
-func(h IntMinHeap) Swap(i,j int) { h[i],h[j]=h[j],h[i] }
-func(h *IntMinHeap) Push(x any) { *h=append(*h,x.(int)) }
-func(h *IntMinHeap) Pop() any {
-    old:=*h
-    x:=old[len(old)-1]
-    *h=old[:len(old)-1]
-    return x
-}
+type minHeap []int
 
-type TopK struct { k int; values IntMinHeap }
+func (h minHeap) Len() int           { return len(h) }
+func (h minHeap) Less(i, j int) bool { return h[i] < h[j] }
+func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *minHeap) Push(x any)        { *h = append(*h, x.(int)) }
+func (h *minHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
 
-func NewTopK(k int) *TopK {
-    if k<=0 { panic("k must be positive") }
-    return &TopK{k:k} // 空堆天然满足堆性质
-}
-
-// ok=false 表示已见元素不足 k 个，不存在第 k 大。
-func(t *TopK) Add(x int) (value int,ok bool) {
-    if len(t.values)<t.k {
-        heap.Push(&t.values,x)
-    } else if x>t.values[0] {
-        t.values[0]=x
-        heap.Fix(&t.values,0)
-    }
-    if len(t.values)<t.k { return 0,false }
-    return t.values[0],true
-}
-
-// 返回未排序的候选副本，不暴露内部堆给调用方修改。
-func(t *TopK) Values() []int {
-    return append([]int(nil),t.values...)
+func findKthLargest(nums []int, k int) int {
+	h := &minHeap{}
+	for _, x := range nums {
+		heap.Push(h, x)
+		if h.Len() > k {
+			heap.Pop(h)
+		}
+	}
+	return (*h)[0]
 }
 ```
 
-固定过程：未满先加；满时与堆顶比较；更优才替换并恢复堆性质。变化点是元素类型和 Less / 新元素比较条件，二者必须使用同一排名规则。
+**例子**：[5,5,4]、k=2，答案5，不去重。
 
-<a id="mapping"></a>
+**复杂度**：时间O(n log(k+1))，空间O(k)。也可快速选择，但不是本模板重点。
 
-## 3. 变化点与推演
+<a id="lc703"></a>
 
-K=3，依次加入 [4,13,8,2,5]：
+## 3. [703. 数据流中的第K大元素](https://leetcode.com/problems/kth-largest-element-in-a-stream/)
 
-| 加入 | 保留集合（非堆内实际顺序） | 第3大 |
-| --- | --- | --- |
-| 4 | {4} | 不存在 |
-| 13 | {4,13} | 不存在 |
-| 8 | {4,8,13} | 4 |
-| 2 | {4,8,13} | 4 |
-| 5 | {5,8,13} | 5 |
+[练习](l703/703.go) · [测试](l703/703_test.go)
 
-新值等于堆顶时可以忽略，因为保留的数值多重集合无需改变，排名答案相同；这不等于对输入去重。
+**题意**：初始化已有流，每次Add后返回当前第k大；题设保证调用返回时元素足够。
 
-| 题目 | 元素 / 比较键 | 骨架的调用方式 | 额外变化 |
-| --- | --- | --- | --- |
-| [703. 数据流中的第 K 大元素](https://leetcode.com/problems/kth-largest-element-in-a-stream/) | 整数值 | 初始化流并持续 Add | 题目保证查询时满足其第K大约束；通用接口显式返回 ok |
-| [215. 数组中的第 K 个最大元素](https://leetcode.com/problems/kth-largest-element-in-an-array/) | 整数值 | 遍历一次，最后取堆顶 | 要求1<=K<=n；也可使用快速选择 |
-| [347. 前 K 个高频元素](https://leetcode.com/problems/top-k-frequent-elements/) | (值,出现次数)，按次数比较 | 先统计所有频次，再遍历不同值入堆 | 不是按值大小排序；通常无需输出有序 |
-| [973. 最接近原点的 K 个点](https://leetcode.com/problems/k-closest-points-to-origin/) | 距离平方 | 需要保留最小K个，所以用最大堆 | 距离用 int64，避免平方溢出 |
+**变化**：将215中的堆作为持久状态，构造时依次Add初始数据；不足k时内部堆顶只是现有最小值，构造不使用这个返回值。
 
-347 的频率 map 占 O(U)，U 为不同值数量。不能直接用上述整数堆丢掉早期元素，之后才发现它出现次数最多：计数键与堆元素必须按问题正确建模；若频率在线改变，需额外维护更新或懒删除策略。
+```go
+package template
+
+import "container/heap"
+
+type minHeap []int
+
+func (h minHeap) Len() int           { return len(h) }
+func (h minHeap) Less(i, j int) bool { return h[i] < h[j] }
+func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *minHeap) Push(x any)        { *h = append(*h, x.(int)) }
+func (h *minHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
+
+type KthLargest struct {
+	k      int
+	values minHeap
+}
+
+func Constructor(k int, nums []int) KthLargest {
+	result := KthLargest{k: k}
+	for _, x := range nums {
+		result.Add(x)
+	}
+	return result
+}
+
+func (s *KthLargest) Add(val int) int {
+	heap.Push(&s.values, val)
+	if len(s.values) > s.k {
+		heap.Pop(&s.values)
+	}
+	return s.values[0]
+}
+```
+
+**例子**：k=3、初始[4,5,8,2]，依次Add(3)、Add(5)，返回4、5。
+
+**复杂度**：构造O(n log(k+1))，每次Add O(log(k+1))，空间O(k)。通用接口若允许查询不足k个的流，应另返回ok，不把堆顶误称第k大。
+
+<a id="lc347"></a>
+
+## 4. [347. 前K个高频元素](https://leetcode.com/problems/top-k-frequent-elements/)
+
+[练习](l347/347.go) · [测试](l347/347_test.go)
+
+**题意**：返回出现次数最多的k个不同值，顺序任意。
+
+**变化**：先统计所有频次，堆元素为(value,count)，比较count而不是value。不能在频次尚未统计完成时直接丢弃值。
+
+```go
+package template
+
+import "container/heap"
+
+type entry struct{ value, count int }
+type minHeap []entry
+
+func (h minHeap) Len() int           { return len(h) }
+func (h minHeap) Less(i, j int) bool { return h[i].count < h[j].count }
+func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *minHeap) Push(x any)        { *h = append(*h, x.(entry)) }
+func (h *minHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
+
+func topKFrequent(nums []int, k int) []int {
+	freq := make(map[int]int)
+	for _, x := range nums {
+		freq[x]++
+	}
+	h := &minHeap{}
+	for x, count := range freq {
+		heap.Push(h, entry{x, count})
+		if h.Len() > k {
+			heap.Pop(h)
+		}
+	}
+	answer := make([]int, h.Len())
+	for i, e := range *h {
+		answer[i] = e.value
+	}
+	return answer
+}
+```
+
+**例子**：[100,1,1,1,2,2]、k=1，答案[1]，不是[100]。
+
+**复杂度**：U个不同值，平均时间O(n+U log(k+1))，空间O(U+k)。题设答案集合唯一，组内输出顺序不限。
+
+<a id="lc973"></a>
+
+## 5. [973. 最接近原点的K个点](https://leetcode.com/problems/k-closest-points-to-origin/)
+
+[练习](l973/973.go) · [测试](l973/973_test.go)
+
+**题意**：保留距离原点最近的k个点，输出顺序任意。
+
+**变化**：保留最小k个距离，所以用最大堆淘汰最远者；平方距离即可，无需开方。
+
+```go
+package template
+
+import "container/heap"
+
+type point struct {
+	x, y     int
+	distance int64
+}
+type maxHeap []point
+
+func (h maxHeap) Len() int           { return len(h) }
+func (h maxHeap) Less(i, j int) bool { return h[i].distance > h[j].distance }
+func (h maxHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *maxHeap) Push(x any)        { *h = append(*h, x.(point)) }
+func (h *maxHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
+
+func kClosest(points [][]int, k int) [][]int {
+	h := &maxHeap{}
+	for _, p := range points {
+		x, y := int64(p[0]), int64(p[1])
+		heap.Push(h, point{p[0], p[1], x*x + y*y})
+		if h.Len() > k {
+			heap.Pop(h)
+		}
+	}
+	answer := make([][]int, h.Len())
+	for i, p := range *h {
+		answer[i] = []int{p.x, p.y}
+	}
+	return answer
+}
+```
+
+**例子**：[[1,3],[-2,2]]、k=1，平方距离10与8，返回[[-2,2]]。重复坐标仍是多个输入点，不能用集合去重。
+
+**复杂度**：时间O(n log(k+1))，空间O(k)。平方前转int64，覆盖本题坐标范围。
+
+<a id="lc295"></a>
+
+## 6. [295. 数据流的中位数](https://leetcode.com/problems/find-median-from-data-stream/)
+
+[练习](l295/295.go) · [测试](l295/295_test.go)
+
+**题意**：动态加入数字，查询中位数，保证查询时至少一个数字。
+
+**双堆不变量**：low为较小一半的最大堆，high为较大一半的最小堆；low的数量等于high或多1，且low中所有值<=high中所有值。
+
+```go
+package template
+
+import "container/heap"
+
+type maxHeap []int
+
+func (h maxHeap) Len() int           { return len(h) }
+func (h maxHeap) Less(i, j int) bool { return h[i] > h[j] }
+func (h maxHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *maxHeap) Push(x any)        { *h = append(*h, x.(int)) }
+func (h *maxHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
+
+type minHeap []int
+
+func (h minHeap) Len() int           { return len(h) }
+func (h minHeap) Less(i, j int) bool { return h[i] < h[j] }
+func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *minHeap) Push(x any)        { *h = append(*h, x.(int)) }
+func (h *minHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
+
+type MedianFinder struct {
+	low  maxHeap
+	high minHeap
+}
+
+func Constructor() MedianFinder { return MedianFinder{} }
+
+func (m *MedianFinder) AddNum(num int) {
+	if len(m.low) == 0 || num <= m.low[0] {
+		heap.Push(&m.low, num)
+	} else {
+		heap.Push(&m.high, num)
+	}
+	if len(m.low) > len(m.high)+1 {
+		heap.Push(&m.high, heap.Pop(&m.low).(int))
+	}
+	if len(m.high) > len(m.low) {
+		heap.Push(&m.low, heap.Pop(&m.high).(int))
+	}
+}
+
+func (m *MedianFinder) FindMedian() float64 {
+	if len(m.low) > len(m.high) {
+		return float64(m.low[0])
+	}
+	return (float64(m.low[0]) + float64(m.high[0])) / 2
+}
+```
+
+**例子**：加入[5,15,1,3]，中位数依次5、10、5、4。偶数时先转float64再加，避免整数相加溢出；精度覆盖本题范围。
+
+**复杂度**：Add O(log(n+1))，查询O(1)，空间O(n)。双堆保存全部数据，不是固定K空间。
 
 <a id="pitfalls"></a>
 
-## 4. 复杂度与陷阱
+## 7. 对比与易错点
 
-- n 次加入总时间 O(n log(K+1))，空间 O(K)；347 另有 O(n) 统计时间和 O(U) 频率空间。
-- 堆内切片不是排序结果，只保证堆顶最差；若要求排序输出，需要对副本排序或反复弹堆。
-- Go 的 heap.Pop 会先把堆顶交换到末尾，自定义 Pop 只需取最后一项；不要在接口方法中再次删除堆顶。
-- k<=0 要明确定义行为。本模板拒绝非法 k；“前K个返回全部现有值”和“存在第K大”是两个不同接口。
-- 频率并列时若题目要求字典序，必须把次级规则也写进比较器，不能依赖 map 遍历顺序。
-- 中位数通常需要双堆平衡，不是固定 K 模板直接可解；[295](https://leetcode.com/problems/find-median-from-data-stream/) 应另学双堆。
+| 题目 | 排名键 | 堆方向 | 保留数量 |
+| --- | --- | --- | --- |
+| 215 / 703 | 值 | 最小堆淘汰小值 | K |
+| 347 | 频次 | 最小堆淘汰低频 | K，另有频率map |
+| 973 | 距离平方 | 最大堆淘汰远点 | K |
+| 295 | 值 | 较小半最大堆＋较大半最小堆 | 全部 |
 
-已有练习：[heap_priority_queue](../../heap_priority_queue/)、[703](../../heap_priority_queue/l703/)、[347](../../heap_priority_queue/l347/)。
+- 空堆天然满足堆性质；若用非空切片直接初始化，需要heap.Init。
+- 自定义Pop只取切片末尾，不要在其中再次执行删除堆顶。
+- 输出顺序有要求时另外排序副本；堆内部切片并非有序。
+- 同频率若要求字典序，要补次级比较；不能依赖map遍历顺序。
+- 固定K模板不自动支持删除流中旧元素，也不能直接求任意分位数。
+
+已有分类：[heap_priority_queue](../../heap_priority_queue/)。
