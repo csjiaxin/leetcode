@@ -7,7 +7,10 @@ func TestRepeatedSubstringPattern(t *testing.T) {
 		s    string
 		want bool
 	}{
-		{"abab", true}, {"aba", false}, {"abcabcabcabc", true}, {"a", false},
+		{"abab", true},
+		{"aba", false},
+		{"abcabcabcabc", true},
+		{"a", false},
 		{"aa", true}, {"abc", false}, {"ababa", false}, {"ababaa", false},
 	}
 	for _, tt := range tests {
