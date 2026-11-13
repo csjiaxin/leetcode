@@ -1,12 +1,17 @@
 # 差分＋前缀扫描：批量区间变化
 
-[返回总目录](../algorithm_templates/README.md)
+[返回仓库目录](../README.md)
 
 [扩展练习：迁移点与边界](#extended-practice)
 
 ## 目录
 
 - [1. 核心思路](#core)
+  - [1.1 解决什么样的问题？](#problem-shape)
+  - [1.2 思路来源：从逐点修改到记录相邻变化](#derivation)
+  - [1.3 如何理解：开始生效与停止生效](#events)
+  - [1.4 从零数组到非零数组](#initial-array)
+  - [1.5 通用 Go 模板与使用边界](#template)
 - [2. 1094：拼车](#lc1094)
 - [3. 1109：航班预订](#lc1109)
 - [4. 1854：人口最多年份](#lc1854)
@@ -16,16 +21,308 @@
 
 ## 1. 核心思路
 
-整段增加delta，只记录开始生效与停止生效两个事件，最后前缀扫描恢复当前总量。
+**一句话：对一整段位置增加相同的量，不逐点修改，只记录“从哪里开始增加、从哪里停止增加”，最后一次扫描还原结果。**
 
-| 区间 | 起点 | 取消位置 |
+<a id="problem-shape"></a>
+### 1.1 解决什么样的问题？
+
+典型问题由三部分组成：
+
+1. 有一排位置：数组下标、航班编号、站点、年份或时间点。
+2. 每次操作影响一个**连续区间**，给区间内每个位置增加或减少相同的量。
+3. 需要汇总各位置的最终值，或扫描最大值、覆盖数、是否超出容量。
+
+| 问题描述 | 区间内累计的是什么？ | 最后求什么？ |
 | --- | --- | --- |
-| 整数闭区间[l,r] | diff[l]+=delta | diff[r+1]-=delta |
-| 半开区间[l,r) | diff[l]+=delta | diff[r]-=delta |
+| [1109. 航班预订统计](https://leetcode.com/problems/corporate-flight-bookings/) | 每笔订单增加的座位数 | 每个航班的总座位数 |
+| [1094. 拼车](https://leetcode.com/problems/car-pooling/) | 每批乘客占用的座位数 | 是否有路段超载 |
+| [1854. 人口最多的年份](https://leetcode.com/problems/maximum-population-year/) | 每个人对存活年份贡献1 | 最大人口的最早年份 |
+| [1893. 检查是否区域内所有整数都被覆盖](https://leetcode.com/problems/check-if-all-the-integers-in-a-range-are-covered/) | 每个区间贡献一次覆盖 | 目标范围内是否处处被覆盖 |
 
-**不变量**：处理完坐标x的全部净变化后，前缀累计值就是x处的有效总量。同坐标加减应先聚合，不凭输入事件顺序判断超载。
+识别信号不是“题目里出现数组”，而是：**很多次连续区间的同量增减，最后统一汇总。**
 
-适合批量离线更新。以下分别给出各题实现，不把闭区间与半开区间混在同一函数里。
+例如，长度为 n 的数组有 m 次区间加法。逐个修改区间内的元素，最坏时间为 `O(m·n)`；差分把每次更新压缩为两个端点操作，最后扫描一次，时间变为 `O(m+n)`。
+
+<a id="derivation"></a>
+### 1.2 思路来源：从逐点修改到记录相邻变化
+
+先不记公式，观察：**给一整段都加3后，相邻元素之间的差发生了什么变化？**
+
+对零数组的闭区间 `[1,3]` 加3，下标从0开始：
+
+```text
+下标 i        0   1   2   3   4
+修改前 a      0   0   0   0   0
+修改后 a      0   3   3   3   0
+相邻差 diff   0  +3   0   0  -3
+```
+
+定义：
+
+```text
+diff[0] = a[0]
+diff[i] = a[i] - a[i-1]，i >= 1
+```
+
+区间内部相邻两个元素都加3，因此它们的差不变：
+
+```text
+(a[i]+3) - (a[i-1]+3) = a[i] - a[i-1]
+```
+
+只有两个边界发生变化：
+
+- **左边界 l**：当前元素增加，前一个元素不增加，所以 `diff[l] += 3`。
+- **右边界之后 r+1**：当前元素不增加，前一个元素增加，所以 `diff[r+1] -= 3`。
+
+于是，修改很多元素的问题，转化成只修改两个差值的问题。
+
+为什么做前缀和就能还原？因为相邻差相加会抵消中间项：
+
+```text
+diff[0] + diff[1] + ... + diff[i]
+= a[0] + (a[1]-a[0]) + ... + (a[i]-a[i-1])
+= a[i]
+```
+
+所以可以记为：**差分记录相邻变化，前缀和把变化累积回实际值。**
+
+<a id="events"></a>
+### 1.3 如何理解：开始生效与停止生效
+
+还有一种不依赖代数公式的理解：把每次区间更新看成一项有起止时间的贡献。
+
+对 `[1,3]` 加3，意味着：
+
+```text
+位置1：从这里开始，多累计3
+位置2：没有新的变化，继续累计3
+位置3：没有新的变化，继续累计3
+位置4：从这里开始，取消刚才那份3
+```
+
+**右侧的减3不是把位置4的最终值变成负数，而是取消此前开始的贡献。** 扫描时要把所有事件累计起来，不能直接把单个 `diff[i]` 当作答案。
+
+多个区间可以叠加。例如再对 `[2,4]` 加2：
+
+```text
+下标                  0   1   2   3   4   5（哨兵）
+[1,3] 加3的事件       0  +3   0   0  -3   0
+[2,4] 加2的事件       0   0  +2   0   0  -2
+合并后的 diff         0  +3  +2   0  -3  -2
+前缀累计              0   3   5   5   2   0
+实际数组              0   3   5   5   2
+```
+
+下标5不属于实际数组，只用来放取消事件。最后累计回0，表示这两项额外贡献都已经结束。
+
+| 区间含义 | 开始生效 | 停止生效 | 原因 |
+| --- | --- | --- | --- |
+| 整数闭区间 `[l,r]` | `diff[l] += delta` | `diff[r+1] -= delta` | r仍受影响，从下一个位置才取消 |
+| 半开区间 `[l,r)` | `diff[l] += delta` | `diff[r] -= delta` | r本身已经不受影响 |
+
+**扫描不变量**：处理完坐标 x 的全部净变化后，前缀累计值就是 x 处的有效总量。同坐标加减应先聚合，不凭输入事件顺序判断超载。
+
+这也解释了拼车题为什么在下车站直接减：乘客占用的是 `[from,to)`，到达 to 时这一份占用已经结束。
+
+<a id="initial-array"></a>
+### 1.4 从零数组到非零数组
+
+前面的例子从零开始，是为了突出每次操作的贡献。如果原数组不为零，先区分两部分：
+
+```text
+最终数组 = 原数组 + 每个位置累计获得的增量
+```
+
+例如，对原数组 `[2,5,5]` 的闭区间 `[1,2]` 加2（下标从0开始）：
+
+```text
+下标          0   1   2
+原数组        2   5   5
+本次增量      0   2   2
+最终数组      2   7   7
+```
+
+差分可以记录**完整数组**，也可以只记录**增量**。两种方式都正确，但扫描得到的东西不同。
+
+#### 方式一：先构建原数组差分，再修改——扫描得到最终值
+
+第一步，把原数组 `[2,5,5]` 改写成相邻差：
+
+```text
+diff[0] = 2           // 第一个位置从0变为2
+diff[1] = 5 - 2 = 3   // 从位置0到位置1，值增加3
+diff[2] = 5 - 5 = 0   // 从位置1到位置2，值不变
+```
+
+此时，即使没有区间更新，扫描 `[2,3,0]` 就已经能恢复原数组：
+
+```text
+位置0：累计值 = 2           → 原值2
+位置1：累计值 = 2+3 = 5     → 原值5
+位置2：累计值 = 2+3+0 = 5   → 原值5
+```
+
+第二步，记录 `[1,2]` 加2：在位置1开始增加，在位置3取消。
+
+```text
+下标                   0   1   2   3（哨兵）
+原数组差分             2   3   0   0
+本次更新的端点事件     0  +2   0  -2
+相加后的 diff          2   5   0  -2
+```
+
+这里的哨兵初始置0，只用于容纳更新的取消事件；它不属于原数组，也没有定义为“原数组在位置3归零”的差值。只扫描实际下标 `0..2` 即可。
+
+第三步，前缀累计直接得到最终数组：
+
+```text
+位置0：累计值 = 2           → 最终值2
+位置1：累计值 = 2+5 = 7     → 最终值7
+位置2：累计值 = 2+5+0 = 7   → 最终值7
+```
+
+**为什么不用再加原数组？** 因为初始化 diff 时，原数组的信息已经包含在里面；更新是在这份信息上叠加的。
+
+#### 方式二：零差分只记录更新——扫描得到增量
+
+第一步，保留原数组不动，另外创建全零的差分数组。这里的 diff 不包含任何原值，只记录更新产生的变化。
+
+第二步，同样在位置1加2、位置3减2：
+
+```text
+下标                   0   1   2   3（哨兵）
+初始增量差分           0   0   0   0
+记录更新后的 diff      0  +2   0  -2
+前缀累计的增量         0   2   2   0
+```
+
+第三步，把实际位置的累计增量加到原数组上：
+
+```text
+位置0：原值2 + 累计增量0 = 2
+位置1：原值5 + 累计增量2 = 7
+位置2：原值5 + 累计增量2 = 7
+```
+
+**为什么必须再加原数组？** 因为这次 diff 从零开始，只知道“多了多少”，不知道原来是多少。单独扫描它只能得到 `[0,2,2]`，不能得到 `[2,7,7]`。
+
+#### 两种方式为什么等价？
+
+差分和前缀累加都支持加法叠加：
+
+```text
+方式一：前缀和(原数组的差分 + 增量的差分)
+      = 原数组 + 增量
+
+方式二：原数组 + 前缀和(增量的差分)
+      = 原数组 + 增量
+```
+
+区别只在于：**原数组的信息，是一开始放进 diff，还是最后再加回来。**
+
+| 对比项 | 方式一：完整数组差分 | 方式二：只记录增量 |
+| --- | --- | --- |
+| 初始化 | `diff[0]=a[0]`，其余实际位置为相邻差 | 全部为0 |
+| 区间更新 | 左端加、右端之后减 | 左端加、右端之后减 |
+| 扫描累计值表示什么？ | 最终数组的值 | 在原值基础上增加的量 |
+| 如何写答案？ | `answer[i] = current` | `answer[i] = a[i] + extra` |
+| 不执行任何更新时 | 扫描恢复原数组 | 扫描得到全零增量 |
+
+**自检办法**：假设没有任何更新，你的代码是否仍能返回原数组？
+
+- 方式一又加一次原数组，会把原值算两遍，本例错误地得到 `[4,12,12]`。
+- 方式二忘记加原数组，会丢失原值，本例错误地得到 `[0,2,2]`。
+
+下节通用 Go 模板使用方式二：变量 `extra` 明确表示“累计增量”，所以答案写成 `value + extra`。
+
+<a id="template"></a>
+### 1.5 通用 Go 模板与使用边界
+
+下面采用方式2：原数组不变，`diff` 只记录增量。使用 Go 1.18+ 的 `T any`，下标始终使用 `int`。
+
+**Go 不能直接对 `T any` 使用加减运算**，所以由调用者提供 `zero`（加法单位元）、`add` 和 `sub`。模板只负责固定的差分流程，各题负责转换区间并读取结果。
+
+约定每次更新满足 `0 <= Left <= Right < len(nums)`，统一使用0-based整数闭区间。`add` 应满足可交换、可结合，`zero` 是单位元，`sub(a,b)` 表示加上 b 的逆元；回调应返回新值，不修改参数引用的数据。浮点运算只能近似满足这些性质，需接受舍入误差；整数中间结果应在类型范围内。
+
+```go
+type RangeAdd[T any] struct {
+    Left, Right int
+    Delta       T
+}
+
+// 返回新数组；回调不得修改 nums、updates 或共享的 zero。
+func applyRangeAdds[T any](
+    nums []T, updates []RangeAdd[T], zero T,
+    add func(T, T) T, sub func(T, T) T,
+) []T {
+    diff := make([]T, len(nums)+1)
+    for i := range diff {
+        diff[i] = zero // T 的语言零值不一定是业务上的加法单位元
+    }
+    for _, u := range updates {
+        diff[u.Left] = add(diff[u.Left], u.Delta)
+        diff[u.Right+1] = sub(diff[u.Right+1], u.Delta)
+    }
+
+    answer := make([]T, len(nums))
+    extra := zero
+    for i, value := range nums {
+        extra = add(extra, diff[i])
+        answer[i] = add(value, extra)
+    }
+    return answer
+}
+
+// 本文 LeetCode 示例都使用 int，因此共用这两个简单运算函数。
+func addInt(a, b int) int { return a + b }
+func subInt(a, b int) int { return a - b }
+```
+
+**调用示例**：
+
+```go
+func example() {
+    integers := applyRangeAdds(
+        []int{2, 5, 5},
+        []RangeAdd[int]{{Left: 1, Right: 2, Delta: 2}},
+        0, addInt, subInt,
+    ) // [2, 7, 7]
+
+    decimals := applyRangeAdds(
+        []float64{1.5, 2.5, 3.5},
+        []RangeAdd[float64]{{Left: 0, Right: 1, Delta: -0.5}},
+        0.0,
+        func(a, b float64) float64 { return a + b },
+        func(a, b float64) float64 { return a - b },
+    ) // [1, 2, 3.5]
+
+    _ = integers
+    _ = decimals
+}
+```
+
+- `any` 只是不限制类型，**不代表任意类型都天然适合差分**。必须提供符合上述规则的运算；例如普通字符串拼接不可交换，也没有通用的减法，不能直接套用。
+- `RangeAdd` 将 `int` 下标与 T 类型的增量分开，不用 `[3]T` 混装不同含义的数据。
+- 泛型不会扩大数值范围；本篇三题的题设数值范围允许使用 `int`，更大累计量应改用 `int64` 并传入对应运算。
+- **下面所有 Go 代码块共用本节模板与 `addInt/subInt`，放在同一个包内即可编译；提交某一道题时，需要一并复制这些声明。**
+
+假设回调耗时与返回值大小均为 `O(1)`，时间 `O(m+n)`，额外空间 `O(n)`，m为更新次数。
+
+换题时，主要改变三个地方：
+
+- **区间边界**：闭区间还是半开区间？下标从0还是1开始？
+- **贡献大小**：座位数、人数、覆盖次数，还是正负位移？
+- **扫描目标**：保存各位置值、判断容量，还是记录最大值？
+
+### 什么时候不直接套用？
+
+- **区间赋值、区间乘法**：普通加法差分不能用同样的两个端点公式直接处理；这里依赖的是可以叠加、可以用相反数取消的加法贡献。
+- **每次更新后立即查询**：反复完整扫描可能退化；根据查询类型考虑树状数组或线段树。差分也可以与树状数组结合，不是只能离线使用。
+- **坐标巨大但事件稀疏**：仍可使用端点事件思想，但应排序扫描事件，而不是开巨大数组。
+- **只查询静态区间和**：优先考虑原数组的前缀和；差分主要是在优化区间更新，不是直接求区间和。
+
+以下各题统一调用 `applyRangeAdds`：题目只负责把自己的区间转换为模板要求的0-based闭区间，再使用返回结果。半开区间 `[l,r)` 转成整数闭区间 `[l,r-1]`，不能直接把 r 当作模板的右端点。
 
 <a id="lc1094"></a>
 
@@ -37,33 +334,31 @@
 
 **端点**：乘客占用[from,to)，在to已下车，可给同站上车的人腾位，所以to直接减，不是to+1。
 
-```go
-package template
+**转换**：`[from,to)` → `[from,to-1]`。初始人数全为0，模板返回每个站点出发后的载客量，无须再次做前缀和。
 
+```go
 func carPooling(trips [][]int, capacity int) bool {
-	maxPosition := 0
-	for _, t := range trips {
-		maxPosition = max(maxPosition, t[2])
-	}
-	diff := make([]int64, maxPosition+1)
-	for _, t := range trips {
-		diff[t[1]] += int64(t[0])
-		diff[t[2]] -= int64(t[0])
-	}
-	var passengers int64
-	for _, change := range diff {
-		passengers += change
-		if passengers > int64(capacity) {
-			return false
-		}
-	}
-	return true
+    maxPosition := 0
+    updates := make([]RangeAdd[int], 0, len(trips))
+    for _, t := range trips {
+        maxPosition = max(maxPosition, t[2])
+        updates = append(updates, RangeAdd[int]{
+            Left: t[1], Right: t[2]-1, Delta: t[0],
+        })
+    }
+    passengers := applyRangeAdds(
+        make([]int, maxPosition+1), updates, 0, addInt, subInt,
+    )
+    for _, count := range passengers {
+        if count > capacity { return false }
+    }
+    return true
 }
 ```
 
 **例子**：[[2,1,5],[3,5,7]]、容量3，位置5净变化+1，载荷从2变3，返回true，不是临时5人。
 
-**复杂度**：m条行程、最大坐标U，时间O(m+U)，空间O(U)。
+**复杂度**：m条行程、最大坐标U，时间O(m+U+1)，空间O(m+U+1)；本写法额外保存了m条模板更新。
 
 <a id="lc1109"></a>
 
@@ -75,28 +370,23 @@ func carPooling(trips [][]int, capacity int) bool {
 
 **端点**：题目1-based闭区间，转0-based后[first-1,last-1]，在last位置取消。
 
-```go
-package template
+**转换**：`[first,last]` → `[first-1,last-1]`。初始座位数全为0，模板返回值直接就是题目答案。
 
+```go
 func corpFlightBookings(bookings [][]int, n int) []int {
-	diff := make([]int64, n+1)
-	for _, b := range bookings {
-		diff[b[0]-1] += int64(b[2])
-		diff[b[1]] -= int64(b[2])
-	}
-	answer := make([]int, n)
-	var seats int64
-	for i := 0; i < n; i++ {
-		seats += diff[i]
-		answer[i] = int(seats)
-	}
-	return answer
+    updates := make([]RangeAdd[int], 0, len(bookings))
+    for _, b := range bookings {
+        updates = append(updates, RangeAdd[int]{
+            Left: b[0]-1, Right: b[1]-1, Delta: b[2],
+        })
+    }
+    return applyRangeAdds(make([]int, n), updates, 0, addInt, subInt)
 }
 ```
 
 **例子**：[[1,2,2],[2,3,3]]、n=3，答案[2,5,3]。航班2同时包含在两段中。
 
-**复杂度**：时间O(m+n)，空间O(n)。diff额外开一个哨兵，允许末航班取消事件写入diff[n]。
+**复杂度**：时间O(m+n)，空间O(m+n)，其中模板更新列表占O(m)。模板内部的diff额外开一个哨兵，允许末航班取消事件写入diff[n]。
 
 <a id="lc1854"></a>
 
@@ -108,31 +398,34 @@ func corpFlightBookings(bookings [][]int, n int) []int {
 
 **端点与汇总**：区间[birth,death)，birth加1、death减1。按年升序扫描，只有严格超过历史最大值才更新年份，保留最早并列值。
 
-```go
-package template
+**转换**：用 `year-1950` 作为下标，`[birth,death)` → `[birth-1950,death-1950-1]`。模板返回每年的实际人口，再扫描最大值，不重复累加。
 
+```go
 func maximumPopulation(logs [][]int) int {
-	// 题设年份位于1950到2050之间。
-	var diff [2051]int
-	for _, log := range logs {
-		diff[log[0]]++
-		diff[log[1]]--
-	}
-	population, best, answer := 0, 0, 1950
-	for year := 1950; year <= 2050; year++ {
-		population += diff[year]
-		if population > best {
-			best = population
-			answer = year
-		}
-	}
-	return answer
+    const firstYear, lastYear = 1950, 2050 // 来自本题约束
+    updates := make([]RangeAdd[int], 0, len(logs))
+    for _, log := range logs {
+        updates = append(updates, RangeAdd[int]{
+            Left: log[0]-firstYear, Right: log[1]-firstYear-1, Delta: 1,
+        })
+    }
+    population := applyRangeAdds(
+        make([]int, lastYear-firstYear+1), updates, 0, addInt, subInt,
+    )
+    best, answer := 0, firstYear
+    for i, count := range population {
+        if count > best {
+            best = count
+            answer = firstYear + i
+        }
+    }
+    return answer
 }
 ```
 
 **例子**：[[1950,1960],[1960,1970]]，1960一出一进，人口始终1，答案1950。
 
-**复杂度**：时间O(m+U)，空间O(U)，本题U为固定101个年份，额外空间可视为O(1)。
+**复杂度**：时间O(m+U)，空间O(m+U)，其中更新列表占O(m)。本题U为固定101个年份，因此当前写法时间和额外空间均为O(m)，不再是只用固定年份数组的O(1)空间写法。
 
 <a id="pitfalls"></a>
 
