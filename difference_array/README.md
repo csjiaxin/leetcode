@@ -239,44 +239,39 @@ diff[2] = 5 - 5 = 0   // 从位置1到位置2，值不变
 <a id="template"></a>
 ### 1.5 通用 Go 模板与使用边界
 
-下面采用方式2：原数组不变，`diff` 只记录增量。使用 Go 1.18+ 的 `T any`，下标始终使用 `int`。
+下面采用方式2：原数组不变，`diff` 只记录增量。使用 Go 1.18+ 的 `T Number`，数组值与增量使用 T，下标始终使用 `int`。通过数值类型约束直接执行加减，不需要传入运算回调。
 
-**Go 不能直接对 `T any` 使用加减运算**，所以由调用者提供 `zero`（加法单位元）、`add` 和 `sub`。模板只负责固定的差分流程，各题负责转换区间并读取结果。
-
-约定每次更新满足 `0 <= Left <= Right < len(nums)`，统一使用0-based整数闭区间。`add` 应满足可交换、可结合，`zero` 是单位元，`sub(a,b)` 表示加上 b 的逆元；回调应返回新值，不修改参数引用的数据。浮点运算只能近似满足这些性质，需接受舍入误差；整数中间结果应在类型范围内。
+约定每次更新满足 `0 <= Left <= Right < len(nums)`，统一使用0-based整数闭区间。整数运算的中间结果与最终值都应在 T 的范围内；浮点数存在舍入误差，并应避免溢出以及 NaN/Inf。
 
 ```go
-type RangeAdd[T any] struct {
+// 支持有符号整数、浮点数，以及以它们为底层类型的自定义类型。
+// 不包含无符号整数，避免负增量和取消事件发生无符号下溢。
+type Number interface {
+    ~int | ~int8 | ~int16 | ~int32 | ~int64 |
+        ~float32 | ~float64
+}
+
+type RangeAdd[T Number] struct {
     Left, Right int
     Delta       T
 }
 
-// 返回新数组；回调不得修改 nums、updates 或共享的 zero。
-func applyRangeAdds[T any](
-    nums []T, updates []RangeAdd[T], zero T,
-    add func(T, T) T, sub func(T, T) T,
-) []T {
-    diff := make([]T, len(nums)+1)
-    for i := range diff {
-        diff[i] = zero // T 的语言零值不一定是业务上的加法单位元
-    }
+// 返回新数组，不修改 nums 或 updates。
+func applyRangeAdds[T Number](nums []T, updates []RangeAdd[T]) []T {
+    diff := make([]T, len(nums)+1) // 末尾多一个取消事件的位置
     for _, u := range updates {
-        diff[u.Left] = add(diff[u.Left], u.Delta)
-        diff[u.Right+1] = sub(diff[u.Right+1], u.Delta)
+        diff[u.Left] += u.Delta
+        diff[u.Right+1] -= u.Delta
     }
 
     answer := make([]T, len(nums))
-    extra := zero
+    var extra T
     for i, value := range nums {
-        extra = add(extra, diff[i])
-        answer[i] = add(value, extra)
+        extra += diff[i]
+        answer[i] = value + extra
     }
     return answer
 }
-
-// 本文 LeetCode 示例都使用 int，因此共用这两个简单运算函数。
-func addInt(a, b int) int { return a + b }
-func subInt(a, b int) int { return a - b }
 ```
 
 **调用示例**：
@@ -286,15 +281,11 @@ func example() {
     integers := applyRangeAdds(
         []int{2, 5, 5},
         []RangeAdd[int]{{Left: 1, Right: 2, Delta: 2}},
-        0, addInt, subInt,
     ) // [2, 7, 7]
 
     decimals := applyRangeAdds(
         []float64{1.5, 2.5, 3.5},
         []RangeAdd[float64]{{Left: 0, Right: 1, Delta: -0.5}},
-        0.0,
-        func(a, b float64) float64 { return a + b },
-        func(a, b float64) float64 { return a - b },
     ) // [1, 2, 3.5]
 
     _ = integers
@@ -302,12 +293,12 @@ func example() {
 }
 ```
 
-- `any` 只是不限制类型，**不代表任意类型都天然适合差分**。必须提供符合上述规则的运算；例如普通字符串拼接不可交换，也没有通用的减法，不能直接套用。
+- `~int64` 表示允许底层类型为 `int64` 的自定义类型，例如 `type Amount int64`。
 - `RangeAdd` 将 `int` 下标与 T 类型的增量分开，不用 `[3]T` 混装不同含义的数据。
-- 泛型不会扩大数值范围；本篇三题的题设数值范围允许使用 `int`，更大累计量应改用 `int64` 并传入对应运算。
-- **下面所有 Go 代码块共用本节模板与 `addInt/subInt`，放在同一个包内即可编译；提交某一道题时，需要一并复制这些声明。**
+- 泛型不会扩大数值范围；本篇三题的题设数值范围允许使用 `int`，更大累计量应改用 `int64`。
+- **下面所有 Go 代码块共用本节的 `Number`、`RangeAdd` 和 `applyRangeAdds`，放在同一个包内即可编译；提交某一道题时，需要一并复制这些声明。**
 
-假设回调耗时与返回值大小均为 `O(1)`，时间 `O(m+n)`，额外空间 `O(n)`，m为更新次数。
+时间 `O(m+n)`，额外空间 `O(n)`，m为更新次数。
 
 换题时，主要改变三个地方：
 
@@ -347,7 +338,7 @@ func carPooling(trips [][]int, capacity int) bool {
         })
     }
     passengers := applyRangeAdds(
-        make([]int, maxPosition+1), updates, 0, addInt, subInt,
+        make([]int, maxPosition+1), updates,
     )
     for _, count := range passengers {
         if count > capacity { return false }
@@ -380,7 +371,7 @@ func corpFlightBookings(bookings [][]int, n int) []int {
             Left: b[0]-1, Right: b[1]-1, Delta: b[2],
         })
     }
-    return applyRangeAdds(make([]int, n), updates, 0, addInt, subInt)
+    return applyRangeAdds(make([]int, n), updates)
 }
 ```
 
@@ -410,7 +401,7 @@ func maximumPopulation(logs [][]int) int {
         })
     }
     population := applyRangeAdds(
-        make([]int, lastYear-firstYear+1), updates, 0, addInt, subInt,
+        make([]int, lastYear-firstYear+1), updates,
     )
     best, answer := 0, firstYear
     for i, count := range population {
