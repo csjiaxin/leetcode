@@ -7,14 +7,15 @@ type TreeNode struct {
 
 // https://leetcode.com/problems/distribute-coins-in-binary-tree/
 func distributeCoins(root *TreeNode) int {
-	type State struct {
+	type S struct {
 		balance, moves int
 	}
-	state := PostOrder(root, State{}, func(node *TreeNode, left, right State) State {
-		return State{
-			balance: node.Val - 1 + left.balance + right.balance,
-			moves:   left.moves + right.moves + abs(left.balance) + abs(right.balance),
+	state := PostOrder(root, S{}, func(node *TreeNode, left S, right S) S {
+		s := S{
+			balance: node.Val + left.balance + right.balance - 1,
+			moves:   abs(left.balance) + left.moves + right.moves + abs(right.balance),
 		}
+		return s
 	})
 	return state.moves
 }

@@ -7,24 +7,39 @@ type TreeNode struct {
 
 // https://leetcode.com/problems/binary-tree-cameras/
 func minCameraCover(root *TreeNode) int {
-	// Larger than any legal answer (at most 1000 nodes), with safe addition.
-	const inf = 1 << 20
-	type State struct {
-		camera    int // Current node has a camera; entire subtree is covered.
-		covered   int // Covered by a child, without a camera at the current node.
-		uncovered int // Only the current node is uncovered, waiting for its parent.
+	type S struct {
+		canExtend    bool
+		installLight bool
+		cameras      int
 	}
-	empty := State{camera: inf}
-	state := PostOrder(root, empty, func(node *TreeNode, left, right State) State {
-		return State{
-			camera: min(inf, 1+min(left.camera, left.covered, left.uncovered)+
-				min(right.camera, right.covered, right.uncovered)),
-			covered: min(inf, left.camera+min(right.camera, right.covered),
-				right.camera+min(left.camera, left.covered)),
-			uncovered: min(inf, left.covered+right.covered),
+
+	s := PostOrder(root, S{
+		canExtend: false,
+	}, func(node *TreeNode, left S, right S) S {
+		canExtend := false
+		installLight := false
+		cameras := left.cameras + right.cameras
+		if left.canExtend && right.canExtend {
+			cameras -= 1
+			canExtend = false
+			installLight = true
+		} else if left.canExtend || right.canExtend {
+			canExtend = false
+			installLight = true
+		} else {
+			if !(left.installLight || right.installLight) {
+				cameras += 1
+				canExtend = true
+				installLight = true
+			}
+		}
+		return S{
+			canExtend:    canExtend,
+			cameras:      cameras,
+			installLight: installLight,
 		}
 	})
-	return min(state.camera, state.covered)
+	return s.cameras
 }
 
 func PostOrder[S any](
