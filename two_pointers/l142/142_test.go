@@ -8,7 +8,8 @@ func TestDetectCycle(t *testing.T) {
 		values []int
 		pos    int
 	}{
-		{"example", []int{3, 2, 0, -4}, 1}, {"head entry", []int{1, 2}, 0},
+		{"example", []int{3, 2, 0, -4}, 1},
+		{"head entry", []int{1, 2}, 0},
 		{"no cycle", []int{1}, -1}, {"self cycle", []int{1}, 0}, {"empty", nil, -1},
 		{"same values", []int{7, 7, 7, 7}, 2}, {"diagram", []int{1, 2, 3, 4, 5}, 2},
 		{"tail self cycle", []int{1, 2, 3}, 2},
