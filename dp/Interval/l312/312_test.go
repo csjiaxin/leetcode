@@ -8,6 +8,8 @@ func TestMaxCoins(t *testing.T) {
 		nums []int
 		want int
 	}{
+		{"nil input", nil, 0},
+		{"empty input", []int{}, 0},
 		{"example one", []int{3, 1, 5, 8}, 167},
 		{"example two", []int{1, 5}, 10},
 		{"single balloon", []int{5}, 5},

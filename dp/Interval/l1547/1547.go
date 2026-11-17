@@ -1,5 +1,10 @@
 package l1547
 
+import (
+	"math"
+	"sort"
+)
+
 // IntervalTable 按闭区间长度递增；step 只能读取严格更短区间。
 // base 初始化单点；空区间不在表中，由适配器自行处理。
 func IntervalTable[T any](n int, base func(i int) T, step func(l, r int, dp [][]T) T) [][]T {
@@ -20,32 +25,39 @@ func IntervalTable[T any](n int, base func(i int) T, step func(l, r int, dp [][]
 // https://leetcode.com/problems/minimum-cost-to-cut-a-stick/
 // 状态是尚待切割的切点闭区间；枚举第一次切割，段长来自外侧固定端点，不修改 cuts。
 func minCost(n int, cuts []int) int {
-	if len(cuts) == 0 {
+	m := len(cuts)
+	if m == 0 {
 		return 0
 	}
-	positions := append([]int{0}, cuts...)
-	positions = append(positions, n)
-	// 切点最多 100 个；插入排序避免模板需要额外导入。
-	for i := 1; i < len(positions); i++ {
-		for j := i; j > 0 && positions[j] < positions[j-1]; j-- {
-			positions[j], positions[j-1] = positions[j-1], positions[j]
+	positions := append([]int(nil), cuts...)
+	sort.Ints(positions)
+	// 不补边界：下标 -1 对应木棍左端 0，下标 m 对应右端 n。
+	boundary := func(i int) int {
+		if i < 0 {
+			return 0
 		}
+		if i >= m {
+			return n
+		}
+		return positions[i]
 	}
-	count := len(cuts)
-	dp := IntervalTable(count, func(i int) int { return positions[i+2] - positions[i] },
-		func(l, r int, dp [][]int) int {
-			best := int(^uint(0) >> 1)
-			for first := l; first <= r; first++ {
-				cost := positions[r+2] - positions[l]
-				if first > l {
-					cost += dp[l][first-1]
-				}
-				if first < r {
-					cost += dp[first+1][r]
-				}
-				best = min(best, cost)
+
+	// l、r 是排序后的切点下标；当前木段的端点是相邻切点 l-1、r+1。
+	dp := IntervalTable(m, func(i int) int {
+		return boundary(i+1) - boundary(i-1)
+	}, func(l, r int, dp [][]int) int {
+		best := math.MaxInt
+		for first := l; first <= r; first++ {
+			cost := boundary(r+1) - boundary(l-1)
+			if first > l {
+				cost += dp[l][first-1]
 			}
-			return best
-		})
-	return dp[0][count-1]
+			if first < r {
+				cost += dp[first+1][r]
+			}
+			best = min(best, cost)
+		}
+		return best
+	})
+	return dp[0][m-1]
 }

@@ -13,7 +13,7 @@
 | 664 | 最少打印次数；相同字符可复用一次打印 | 1 |
 | 1000 | 压到当前长度可达到的最少堆数，分割步长为 k-1 | 0 |
 
-312 常见写法是补边界后的开区间；这里明确换算成原数组闭区间，因此左外邻居是 values[l]，右外邻居是 values[r+2]。改变区间约定必须同时调整边界与空区间处理，不能只改循环符号。
+312 直接使用原数组闭区间 `[l,r]`，不创建补边界数组。固定的左外邻居是 `nums[l-1]`，右外邻居是 `nums[r+1]`；下标越界时才把邻居值视为 1。区间内部最后戳破者使用原下标 `last`，因此本次得分为 `neighbor(l-1) * nums[last] * neighbor(r+1)`。改变区间约定必须同时调整边界与空区间处理，不能只改循环符号。
 
 1000 中每次减少 k-1 堆，所以最终可合并为一堆的前提是 `(n-1)%(k-1)==0`；区间长度决定剩余堆数，只有能再合成一堆时才增加区间总和。
 
@@ -53,40 +53,48 @@ func IntervalTable[T any](n int, base func(i int) T, step func(l, r int, dp [][]
 
 [代码](l312/312.go) · [测试](l312/312_test.go)
 
-dp[l][r] 清空原下标闭区间 l..r，外邻居固定为补边界数组 values[l] 与 values[r+2]；枚举最后戳破者。
+`dp[l][r]` 清空原下标闭区间 `[l,r]`，外邻居 `nums[l-1]`、`nums[r+1]` 固定保留；越界邻居视为 1。枚举最后戳破者 `last`，此时区间内其他气球均已消失。
 
 需要模板：`IntervalTable`。
 
 <!-- solution: dp/interval/l312/312.go; templates: IntervalTable -->
 ```go
 // https://leetcode.com/problems/burst-balloons/
-// dp[l][r] 清空原下标闭区间 l..r，外邻居固定为补边界数组 values[l] 与 values[r+2]；枚举最后戳破者。
+// dp[l][r] 清空原下标闭区间 l..r，外邻居 nums[l-1]、nums[r+1] 固定保留；越界邻居视为 1。
 func maxCoins(nums []int) int {
 	n := len(nums)
 	if n == 0 {
 		return 0
 	}
-	values := make([]int, n+2)
-	values[0], values[n+1] = 1, 1
-	copy(values[1:], nums)
-	dp := IntervalTable(n, func(i int) int { return values[i] * values[i+1] * values[i+2] },
-		func(l, r int, dp [][]int) int {
-			best := 0
-			for last := l; last <= r; last++ {
-				score := values[l] * values[last+1] * values[r+2]
-				if last > l {
-					score += dp[l][last-1]
-				}
-				if last < r {
-					score += dp[last+1][r]
-				}
-				best = max(best, score)
+	// 直接使用原下标，不创建补边界数组。
+	neighbor := func(i int) int {
+		if i < 0 || i >= n {
+			return 1
+		}
+		return nums[i]
+	}
+	dp := IntervalTable(n, func(i int) int {
+		return neighbor(i-1) * nums[i] * neighbor(i+1)
+	}, func(l, r int, dp [][]int) int {
+		best := 0
+		for last := l; last <= r; last++ {
+			// last 最后戳破时，区间内其余气球已消失，只剩两个外邻居。
+			score := neighbor(l-1) * nums[last] * neighbor(r+1)
+			if last > l {
+				score += dp[l][last-1]
 			}
-			return best
-		})
+			if last < r {
+				score += dp[last+1][r]
+			}
+			best = max(best, score)
+		}
+		return best
+	})
 	return dp[0][n-1]
 }
 ```
+
+例如 `nums = [3,1,5]`，清空 `[1,1]` 的得分是 `3*1*5`；清空 `[0,2]` 时若最后戳原下标 1，则最后一步是 `1*nums[1]*1`，再加左右子区间得分。整个过程不需要下标加一或补边界数组。
 
 ### 1547
 

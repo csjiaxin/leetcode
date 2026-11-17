@@ -9,6 +9,7 @@ func TestMinCost(t *testing.T) {
 		cuts []int
 		want int
 	}{
+		{"no cuts", 1000000, nil, 0},
 		{"example one", 7, []int{1, 3, 4, 5}, 16},
 		{"example two unsorted", 9, []int{5, 6, 1, 4, 2}, 22},
 		{"single cut", 5, []int{2}, 5},
