@@ -1,39 +1,31 @@
 package main
 
-import "fmt"
-
-func min(a, b int) int {
-	if a > b {
-		return b
-	}
-	return a
-}
-
-var memo map[string]int
-
-func dfs(coins []int, l int, start int) int {
-	if l == 0 {
-		return 1
-	}
-	key := fmt.Sprintf("%d,%d", l, start)
-	if v, ok := memo[key]; ok {
-		return v
-	}
-	ans := 0
-	for i := start; i < len(coins); i++ {
-		v := coins[i]
-		if v <= l {
-			ans += dfs(coins, l-v, i)
+// MemoWays 仅适用于依赖无环的状态；缓存的零值也是合法答案。
+func MemoWays[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
+	memo := make(map[S]V)
+	var solve func(S) V
+	solve = func(s S) V {
+		if value, ok := memo[s]; ok {
+			return value
 		}
+		value := evaluate(s, solve)
+		memo[s] = value
+		return value
 	}
-	memo[key] = ans
-	return ans
-}
-func change(amount int, coins []int) int {
-	memo = map[string]int{}
-	return dfs(coins, amount, 0)
+	return solve
 }
 
-func main() {
-	fmt.Println(change(5, []int{1, 2, 5})) //4
+// 递归版固定硬币下标，只在同一下标重复选币，避免排列重复计数。
+func change(amount int, coins []int) int {
+	type state struct{ index, remaining int }
+	solve := MemoWays(func(s state, next func(state) int) int {
+		if s.remaining == 0 {
+			return 1
+		}
+		if s.index == len(coins) || s.remaining < 0 {
+			return 0
+		}
+		return next(state{s.index + 1, s.remaining}) + next(state{s.index, s.remaining - coins[s.index]})
+	})
+	return solve(state{0, amount})
 }

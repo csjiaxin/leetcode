@@ -1,8 +1,19 @@
 package l2375
 
-// https://leetcode.com/problems/construct-smallest-number-from-di-string/
-// smallestNumber returns the smallest number satisfying pattern's I/D relations,
-// using distinct digits from 1..9. The pattern has length 1..8.
-func smallestNumber(pattern string) string {
-	panic("not implemented")
+// Standalone nested-context subtemplate and problem adapter; see README.md.
+// patternStackDigits flushes an increasing pending segment at each I/end.
+func patternStackDigits(pattern string) string {
+	pending, result := []byte{}, []byte{}
+	for i := 0; i <= len(pattern); i++ {
+		pending = append(pending, byte('1'+i))
+		if i == len(pattern) || pattern[i] == 'I' {
+			for len(pending) > 0 {
+				result = append(result, pending[len(pending)-1])
+				pending = pending[:len(pending)-1]
+			}
+		}
+	}
+	return string(result)
 }
+
+func smallestNumber(pattern string) string { return patternStackDigits(pattern) }

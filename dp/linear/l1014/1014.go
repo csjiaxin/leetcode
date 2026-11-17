@@ -1,22 +1,24 @@
 package l1014
 
-import "math"
+// PrefixBest 先用严格更早的候选查询，再把当前候选加入历史最优集合。
+func PrefixBest(n int, initial int, evaluate func(i, best int), candidate func(i int) int) {
+	best := initial
+	for i := 0; i < n; i++ {
+		evaluate(i, best)
+		best = max(best, candidate(i))
+	}
+}
 
 // https://leetcode.com/problems/best-sightseeing-pair/
-// Time: O(n). Extra space: O(1).
+// 历史项是 values[i]+i；先查询再加入，确保 i<j。
 func maxScoreSightseeingPair(values []int) int {
-	L := len(values)
-	valPlusI := make([]int, L)
-
-	for i, v := range values {
-		valPlusI[i] = v + i
+	if len(values) < 2 {
+		return 0
 	}
-	ret := math.MinInt
-	maxValPlusI := valPlusI[0]
-	for j := 1; j < L; j++ {
-		val := maxValPlusI + values[j] - j
-		maxValPlusI = max(maxValPlusI, valPlusI[j])
-		ret = max(ret, val)
-	}
-	return ret
+	answer := 0
+	PrefixBest(len(values)-1, values[0], func(i, best int) {
+		j := i + 1
+		answer = max(answer, best+values[j]-j)
+	}, func(i int) int { j := i + 1; return values[j] + j })
+	return answer
 }

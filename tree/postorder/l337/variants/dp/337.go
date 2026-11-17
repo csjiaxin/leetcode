@@ -1,26 +1,36 @@
 package l337
 
-// TreeNode is a node in a binary tree.
 type TreeNode struct {
-	Val   int
-	Left  *TreeNode
-	Right *TreeNode
+	Val         int
+	Left, Right *TreeNode
 }
 
-// rob returns the maximum amount that can be robbed without robbing both
-// a house and its directly connected child.
+// https://leetcode.com/problems/house-robber-iii/
+type S struct {
+	skip, rob int
+}
+
 func rob(root *TreeNode) int {
-
-	var dfs func(node *TreeNode) (skip, take int)
-	dfs = func(node *TreeNode) (skip, take int) {
-		if node == nil {
-			return 0, 0
+	s := PostOrder(root, S{}, func(node *TreeNode, left S, right S) S {
+		return S{
+			skip: max(left.rob, left.skip) + max(right.rob, right.skip),
+			rob:  node.Val + left.skip + right.skip,
 		}
-		lskip, ltake := dfs(node.Left)
-		rskip, rtake := dfs(node.Right)
+	})
+	return max(s.rob, s.skip)
+}
 
-		return max(lskip, ltake) + max(rskip, rtake), node.Val + lskip + rskip
+func PostOrder[S any](
+	node *TreeNode,
+	empty S,
+	merge func(node *TreeNode, left, right S) S,
+) S {
+	if node == nil {
+		return empty
 	}
-	skip, take := dfs(root)
-	return max(skip, take)
+
+	left := PostOrder(node.Left, empty, merge)
+	right := PostOrder(node.Right, empty, merge)
+
+	return merge(node, left, right)
 }

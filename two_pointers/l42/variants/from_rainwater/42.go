@@ -1,35 +1,26 @@
 package main
 
-import "fmt"
-
-func trap(height []int) int {
-	n := len(height)
-	l := 0
-	r := n - 1
-	lmax := 0
-	rmax := 0
-	ret := 0
-	for l < r {
-		if height[l] < height[r] {
-			if height[l] < lmax {
-				ret += lmax - height[l]
-			} else {
-				lmax = height[l]
-			}
-			l += 1
-		} else {
-			if height[r] < rmax {
-				ret += rmax - height[r]
-			} else {
-
-				rmax = height[r]
-			}
-			r -= 1
-		}
+// Opposite 维护闭区间 [left,right]；step 必须收缩区间且不扩大边界。
+// 指针不得访问区间之外；返回收缩后的边界，必要时可再处理剩余中心。
+func Opposite(left, right int, step func(l, r int) (int, int)) (int, int) {
+	for left < right {
+		left, right = step(left, right)
 	}
-	return ret
+	return left, right
 }
 
-func main() {
-	fmt.Println(trap([]int{0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1}))
+// 旧 rainwater 示例改为同一双边结算骨架，保留独立路径。
+func trap(height []int) int {
+	leftMax, rightMax, answer := 0, 0, 0
+	Opposite(0, len(height)-1, func(l, r int) (int, int) {
+		if height[l] <= height[r] {
+			leftMax = max(leftMax, height[l])
+			answer += leftMax - height[l]
+			return l + 1, r
+		}
+		rightMax = max(rightMax, height[r])
+		answer += rightMax - height[r]
+		return l, r - 1
+	})
+	return answer
 }

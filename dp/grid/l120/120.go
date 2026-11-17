@@ -1,34 +1,40 @@
 package l120
 
-import (
-	"math"
-	"slices"
-)
+// Layers 的 transition 读取上一层，返回独立的新一层；不能覆盖 previous 的切片内容。
+func Layers[S any](count int, initial S, transition func(layer int, previous S) S) S {
+	state := initial
+	for layer := 0; layer < count; layer++ {
+		state = transition(layer, state)
+	}
+	return state
+}
 
-// minimumTotal returns the minimum top-to-bottom path sum in triangle.
-// From index j in one row, the next step may use index j or j+1 in the next row.
+// 每行从上一行相邻两个合法列转移；最终答案取末行最小值。
 func minimumTotal(triangle [][]int) int {
-	m := len(triangle)
-	n := len(triangle[m-1])
-	dp := make([][]int, m)
-
-	for i := 0; i < m; i++ {
-		dp[i] = make([]int, n)
+	if len(triangle) == 0 {
+		return 0
 	}
-	for i := 0; i < m; i++ {
-		for j := 0; j < n; j++ {
-			dp[i][j] = math.MaxInt
+	last := Layers(len(triangle), []int(nil), func(r int, previous []int) []int {
+		row := make([]int, len(triangle[r]))
+		for c, value := range triangle[r] {
+			if r == 0 {
+				row[c] = value
+				continue
+			}
+			best := int(^uint(0) >> 1)
+			if c < len(previous) {
+				best = min(best, previous[c])
+			}
+			if c > 0 {
+				best = min(best, previous[c-1])
+			}
+			row[c] = best + value
 		}
+		return row
+	})
+	answer := last[0]
+	for _, value := range last {
+		answer = min(answer, value)
 	}
-
-	dp[0][0] = triangle[0][0]
-	for j := 1; j < n; j++ {
-		dp[j][0] = dp[j-1][0] + triangle[j][0]
-	}
-	for j := 1; j < m; j++ {
-		for k := 1; k < len(triangle[j]); k++ {
-			dp[j][k] = min(dp[j-1][k], dp[j-1][k-1]) + triangle[j][k]
-		}
-	}
-	return slices.Min(dp[m-1])
+	return answer
 }

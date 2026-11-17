@@ -1,33 +1,25 @@
 package l962
 
-type Stack[T any] struct {
-	d []T
-}
-
-func New[T any]() *Stack[T] {
-	s := &Stack[T]{
-		d: []T{},
-	}
-	return s
-}
-func (s *Stack[T]) Size() int {
-	return len(s.d)
-}
-
-func (s *Stack[T]) Peek() T {
-	return s.d[len(s.d)-1]
-}
-
-func (s *Stack[T]) Pop() T {
-	v := s.d[len(s.d)-1]
-	s.d = s.d[:len(s.d)-1]
-	return v
-}
-func (s *Stack[T]) Push(v T) {
-	s.d = append(s.d, v)
-}
-
 // https://leetcode.com/problems/maximum-width-ramp/
-func maxWidthRamp(nums []int) int {
-	panic("not implemented")
+// Embedded subtemplate: see README.md for its invariant and tie policy.
+func widestRamp(nums []int) int {
+	candidates := []int{}
+	for i, value := range nums {
+		if len(candidates) == 0 || value < nums[candidates[len(candidates)-1]] {
+			candidates = append(candidates, i)
+		}
+	}
+	best := 0
+	for right := len(nums) - 1; right >= 0; right-- {
+		for len(candidates) > 0 && nums[candidates[len(candidates)-1]] <= nums[right] {
+			left := candidates[len(candidates)-1]
+			candidates = candidates[:len(candidates)-1]
+			if right-left > best {
+				best = right - left
+			}
+		}
+	}
+	return best
 }
+
+func maxWidthRamp(nums []int) int { return widestRamp(nums) }

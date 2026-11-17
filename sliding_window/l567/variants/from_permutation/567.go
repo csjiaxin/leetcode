@@ -1,29 +1,41 @@
 package l567
 
 // https://leetcode.com/problems/permutation-in-string/
-// checkInclusion reports whether s2 contains a permutation of s1.
-// Both strings contain only lowercase English letters.
-func checkInclusion(s1 string, s2 string) bool {
-	windowSize := len(s1)
-	if windowSize > len(s2) {
-		return false
+// The standalone helper below matches the named subtemplate in README.md.
+// windowFixed visits exactly the windows of length k.
+func windowFixed(n, k int, add, remove func(int), visit func(int)) {
+	if k <= 0 || k > n {
+		return
 	}
-
-	var need, window [26]int
-	for i := 0; i < windowSize; i++ {
-		need[s1[i]-'a']++
-		window[s2[i]-'a']++
-	}
-	if window == need {
-		return true
-	}
-
-	for right := windowSize; right < len(s2); right++ {
-		window[s2[right]-'a']++
-		window[s2[right-windowSize]-'a']--
-		if window == need {
-			return true
+	left := 0
+	for right := 0; right < n; right++ {
+		add(right)
+		if right-left+1 > k {
+			remove(left)
+			left++
+		}
+		if right-left+1 == k {
+			visit(left)
 		}
 	}
-	return false
+}
+
+func checkInclusion(s1 string, s2 string) bool {
+	if len(s1) == 0 {
+		return true
+	}
+	var need, count [256]int
+	for i := range s1 {
+		need[s1[i]]++
+	}
+	found := false
+	windowFixed(len(s2), len(s1),
+		func(i int) { count[s2[i]]++ },
+		func(i int) { count[s2[i]]-- },
+		func(left int) {
+			if count == need {
+				found = true
+			}
+		})
+	return found
 }

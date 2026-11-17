@@ -1,55 +1,60 @@
 package l211
 
-type wordNode struct {
-	children [26]*wordNode
-	isEnd    bool
-}
+type WordDictionary struct{ root *TrieNode[bool] }
 
-// https://leetcode.com/problems/design-add-and-search-words-data-structure/
-type WordDictionary struct {
-	root *wordNode
-}
-
-func Constructor() WordDictionary {
-	return WordDictionary{
-		root: &wordNode{},
-	}
-}
-
-func (d *WordDictionary) AddWord(word string) {
-	node := d.root
-	for i := 0; i < len(word); i++ {
-		c := word[i] - 'a'
-		if node.children[c] == nil {
-			node.children[c] = &wordNode{}
-		}
-		node = node.children[c]
-	}
-	node.isEnd = true
-}
-
-func (d *WordDictionary) Search(word string) bool {
-	N := len(word)
-	var dfs func(*wordNode, int) bool
-	dfs = func(node *wordNode, i int) bool {
+func Constructor() WordDictionary             { return WordDictionary{NewTrieNode[bool]()} }
+func (w *WordDictionary) AddWord(word string) { TrieWalk(w.root, word, true, nil).Data = true }
+func (w *WordDictionary) Search(word string) bool {
+	var visit func(*TrieNode[bool], int) bool
+	visit = func(node *TrieNode[bool], i int) bool {
 		if node == nil {
 			return false
 		}
-		if i == N {
-			return node.isEnd
+		if i == len(word) {
+			return node.Data
 		}
-		c := word[i]
-		if c != '.' {
-			return dfs(node.children[c-'a'], i+1)
+		if word[i] != '.' {
+			return visit(node.Next[word[i]], i+1)
 		}
-
-		for _, child := range node.children {
-			if child != nil && dfs(child, i+1) {
+		for _, child := range node.Next {
+			if visit(child, i+1) {
 				return true
 			}
 		}
 		return false
 	}
+	return visit(w.root, 0)
+}
 
-	return dfs(d.root, 0)
+// TrieNode 的 Data 保存题目需要的终止、计数或聚合信息。
+type TrieNode[V any] struct {
+	Next map[byte]*TrieNode[V]
+	Data V
+}
+
+func NewTrieNode[V any]() *TrieNode[V] { return &TrieNode[V]{Next: make(map[byte]*TrieNode[V])} }
+
+// TrieWalk 沿前缀走树；create 决定是否建点，onNode 可聚合沿途信息。
+func TrieWalk[V any](node *TrieNode[V], key string, create bool, onNode func(*TrieNode[V])) *TrieNode[V] {
+	if node == nil {
+		return nil
+	}
+	if onNode != nil {
+		onNode(node)
+	}
+	for i := 0; i < len(key); i++ {
+		child := node.Next[key[i]]
+		if child == nil {
+			if !create {
+				return nil
+			}
+			child = NewTrieNode[V]()
+			node.Next[key[i]] = child
+		}
+		node = child
+		if onNode != nil {
+			onNode(node)
+		}
+	}
+	return node
 }

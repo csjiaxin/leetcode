@@ -1,27 +1,35 @@
 package l494
 
-// https://leetcode.com/problems/target-sum/
-func findTargetSumWays(nums []int, target int) int {
-	total := 0
-	for _, v := range nums {
-		total += v
-	}
-	if (total+target)%2 != 0 {
-		return 0
-	}
-
-	left := (total + target) / 2
-	if left < 0 {
-		return 0
-	}
-	dp := make([]int, left+1)
-	dp[0] = 1
-
-	for _, v := range nums {
-		for volume := left; volume >= v; volume-- {
-			dp[volume] += dp[volume-v]
+// Capacity 修改调用方提供的初始表；reuse=false 倒序，true 正序。
+// 0/1 允许零重量（每项仍只处理一次）；可重复使用的重量必须为正。
+func Capacity[T any](dp []T, weights []int, reuse bool, combine func(old, from T) T) []T {
+	for _, weight := range weights {
+		if reuse {
+			for c := weight; c < len(dp); c++ {
+				dp[c] = combine(dp[c], dp[c-weight])
+			}
+		} else {
+			for c := len(dp) - 1; c >= weight; c-- {
+				dp[c] = combine(dp[c], dp[c-weight])
+			}
 		}
 	}
+	return dp
+}
 
-	return dp[left]
+// https://leetcode.com/problems/target-sum/
+// P-N=target、P+N=total，所以 P=(total+target)/2；零元素使计数翻倍。
+func findTargetSumWays(nums []int, target int) int {
+	total := 0
+	for _, value := range nums {
+		total += value
+	}
+	if target < -total || target > total || (total+target)%2 != 0 {
+		return 0
+	}
+	chosen := (total + target) / 2
+	dp := make([]int, chosen+1)
+	dp[0] = 1
+	Capacity(dp, nums, false, func(old, from int) int { return old + from })
+	return dp[chosen]
 }

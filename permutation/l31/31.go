@@ -1,28 +1,24 @@
 package l31
 
-import "slices"
-
-// https://leetcode.com/problems/next-permutation/
-// nextPermutation modifies nums in place to its next lexicographic permutation.
-// If nums is the largest permutation, it becomes the smallest permutation.
-func nextPermutation(nums []int) {
-	N := len(nums)
-	i := N - 1
-	for ; i > 0; i-- {
-		if nums[i-1] < nums[i] {
-			// i -1 , i
-			for j := N - 1; j >= i; j-- {
-				if nums[j] > nums[i-1] {
-					//swap i-1 with j
-					nums[i-1], nums[j] = nums[j], nums[i-1]
-					//reverse [i:]
-					slices.Reverse(nums[i:])
-					return
-				}
-			}
+// Standalone lexicographic/factorial subtemplate and problem adapter.
+// nextLexicographic advances one lexicographic step, or resets to the minimum.
+func nextLexicographic[T ~int | ~byte](values []T) bool {
+	pivot := len(values) - 2
+	for pivot >= 0 && values[pivot] >= values[pivot+1] {
+		pivot--
+	}
+	advanced := pivot >= 0
+	if advanced {
+		successor := len(values) - 1
+		for values[successor] <= values[pivot] {
+			successor--
 		}
+		values[pivot], values[successor] = values[successor], values[pivot]
 	}
-	if i == 0 {
-		slices.Reverse(nums)
+	for left, right := pivot+1, len(values)-1; left < right; left, right = left+1, right-1 {
+		values[left], values[right] = values[right], values[left]
 	}
+	return advanced
 }
+
+func nextPermutation(nums []int) { nextLexicographic(nums) }

@@ -1,21 +1,28 @@
 package l713
 
 // https://leetcode.com/problems/subarray-product-less-than-k/
-// numSubarrayProductLessThanK counts nonempty contiguous subarrays whose product
-// is strictly less than k. All elements are positive integers.
-func numSubarrayProductLessThanK(nums []int, k int) int {
-	window := 1
-	N := len(nums)
-	left := 0
-	ret := 0
-	for right := 0; right < N; right++ {
-		window *= nums[right]
-
-		for left <= right && window >= k {
-			window /= nums[left]
-			left += 1
+// The standalone helper below matches the named subtemplate in README.md.
+// windowAtMost counts valid suffixes; removing the left endpoint preserves validity.
+func windowAtMost(n int, add, remove func(int), invalid func() bool) int {
+	left, count := 0, 0
+	for right := 0; right < n; right++ {
+		add(right)
+		for left <= right && invalid() {
+			remove(left)
+			left++
 		}
-		ret += right - left + 1
+		count += right - left + 1
 	}
-	return ret
+	return count
+}
+
+func numSubarrayProductLessThanK(nums []int, k int) int {
+	if k <= 1 {
+		return 0
+	}
+	product := int64(1)
+	return windowAtMost(len(nums),
+		func(i int) { product *= int64(nums[i]) },
+		func(i int) { product /= int64(nums[i]) },
+		func() bool { return product >= int64(k) })
 }

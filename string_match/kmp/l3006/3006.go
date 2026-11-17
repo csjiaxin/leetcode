@@ -1,6 +1,58 @@
 package l3006
 
-// https://leetcode.com/problems/find-beautiful-indices-in-the-given-array-i/
-func beautifulIndices(s string, a string, b string, k int) []int {
-	panic("TODO: implement beautifulIndices")
+func beautifulIndices(s, a, b string, k int) []int {
+	first, second := FindAll([]byte(s), []byte(a)), FindAll([]byte(s), []byte(b))
+	answer := []int{}
+	j := 0
+	for _, i := range first {
+		for j < len(second) && second[j] < i-k {
+			j++
+		}
+		if j < len(second) && second[j] <= i+k {
+			answer = append(answer, i)
+		}
+	}
+	return answer
+}
+
+// PrefixFunction 记录每个前缀的最长相等真前后缀长度。
+func PrefixFunction[T comparable](pattern []T) []int {
+	pi := make([]int, len(pattern))
+	for i := 1; i < len(pattern); i++ {
+		j := pi[i-1]
+		for j > 0 && pattern[i] != pattern[j] {
+			j = pi[j-1]
+		}
+		if pattern[i] == pattern[j] {
+			j++
+		}
+		pi[i] = j
+	}
+	return pi
+}
+
+// FindAll 在文本中寻找模式，匹配成功后回退以允许重叠。
+func FindAll[T comparable](text, pattern []T) []int {
+	answer := []int{}
+	if len(pattern) == 0 {
+		for i := 0; i <= len(text); i++ {
+			answer = append(answer, i)
+		}
+		return answer
+	}
+	pi := PrefixFunction(pattern)
+	matched := 0
+	for i, value := range text {
+		for matched > 0 && value != pattern[matched] {
+			matched = pi[matched-1]
+		}
+		if value == pattern[matched] {
+			matched++
+		}
+		if matched == len(pattern) {
+			answer = append(answer, i-len(pattern)+1)
+			matched = pi[matched-1]
+		}
+	}
+	return answer
 }

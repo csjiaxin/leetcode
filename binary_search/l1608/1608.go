@@ -2,40 +2,29 @@ package l1608
 
 import "sort"
 
-func firstTrue(n int, check func(int) bool) int {
-	l, r := 0, n-1
-
-	for l <= r {
-		mid := l + (r-l)/2
-
-		if check(mid) {
-			r = mid - 1
-		} else {
-			l = mid + 1
-		}
+// 1608：复用本文件的边界模板；特殊结构按对应排除不变量处理。
+func specialArray(nums []int) int {
+	values := append([]int(nil), nums...)
+	sort.Ints(values)
+	count := func(x int) int {
+		return len(values) - FirstTrue(len(values), func(i int) bool { return values[i] >= x })
 	}
-
-	return l
+	x := FirstTrue(len(values)+1, func(x int) bool { return count(x) <= x })
+	if count(x) == x {
+		return x
+	}
+	return -1
 }
 
-func specialArray(nums []int) int {
-	sort.Ints(nums)
-	n := len(nums)
-
-	count := func(x int) int {
-		p := firstTrue(n, func(i int) bool {
-			return nums[i] >= x
-		})
-		return n - 1 - p + 1
+func FirstTrue(n int, predicate func(int) bool) int {
+	left, right := 0, n-1
+	for left <= right {
+		mid := left + (right-left)/2
+		if predicate(mid) {
+			right = mid - 1
+		} else {
+			left = mid + 1
+		}
 	}
-
-	candidate := firstTrue(n+1, func(x int) bool {
-		return count(x) <= x
-	})
-	if count(candidate) == candidate {
-		return candidate
-	}
-
-	return -1
-
+	return left
 }

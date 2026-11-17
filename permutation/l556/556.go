@@ -1,36 +1,39 @@
 package l556
 
-import (
-	"slices"
-	"strconv"
-)
+import "strconv"
 
-// https://leetcode.com/problems/next-greater-element-iii/
-// nextGreaterElement returns the smallest integer greater than n with the same
-// digits, or -1 if none exists within the signed 32-bit integer range.
+// Standalone lexicographic/factorial subtemplate and problem adapter.
+// nextLexicographic advances one lexicographic step, or resets to the minimum.
+func nextLexicographic[T ~int | ~byte](values []T) bool {
+	pivot := len(values) - 2
+	for pivot >= 0 && values[pivot] >= values[pivot+1] {
+		pivot--
+	}
+	advanced := pivot >= 0
+	if advanced {
+		successor := len(values) - 1
+		for values[successor] <= values[pivot] {
+			successor--
+		}
+		values[pivot], values[successor] = values[successor], values[pivot]
+	}
+	for left, right := pivot+1, len(values)-1; left < right; left, right = left+1, right-1 {
+		values[left], values[right] = values[right], values[left]
+	}
+	return advanced
+}
+
 func nextGreaterElement(n int) int {
 	digits := []byte(strconv.Itoa(n))
-	N := len(digits)
-
-	for i := N - 1; i > 0; i-- {
-		if digits[i-1] < digits[i] {
-			for j := N - 1; j >= i; j-- {
-				if digits[j] > digits[i-1] {
-					digits[i-1], digits[j] = digits[j], digits[i-1]
-					slices.Reverse(digits[i:])
-
-					// Use int64 so conversion is safe on 32-bit platforms too.
-					var ret int64
-					for _, digit := range digits {
-						ret = ret*10 + int64(digit-'0')
-						if ret > 1<<31-1 {
-							return -1
-						}
-					}
-					return int(ret)
-				}
-			}
-		}
+	if !nextLexicographic(digits) {
+		return -1
 	}
-	return -1
+	var value int64
+	for _, digit := range digits {
+		value = value*10 + int64(digit-'0')
+	}
+	if value > 1<<31-1 {
+		return -1
+	}
+	return int(value)
 }

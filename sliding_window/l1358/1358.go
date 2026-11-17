@@ -1,27 +1,25 @@
 package l1358
 
 // https://leetcode.com/problems/number-of-substrings-containing-all-three-characters/
-// numberOfSubstrings counts substrings containing a, b and c at least once each.
-// s contains only a, b and c.
-func numberOfSubstrings(s string) int {
-
-	N := len(s)
-	window := map[byte]int{}
-
-	validWindow := func() bool {
-		return window['a'] > 0 && window['b'] > 0 && window['c'] > 0
-	}
-	ret := 0
-	left := 0
-	for right := 0; right < N; right++ {
-		c := s[right]
-		window[c] += 1
-		for validWindow() {
-			ret += N - 1 - right + 1
-			window[s[left]] -= 1
-			left += 1
+// The standalone helper below matches the named subtemplate in README.md.
+// windowCoverCount counts all future right endpoints for each valid left endpoint.
+func windowCoverCount(n int, add, remove func(int), valid func() bool) int {
+	left, count := 0, 0
+	for right := 0; right < n; right++ {
+		add(right)
+		for left <= right && valid() {
+			count += n - right
+			remove(left)
+			left++
 		}
 	}
-	return ret
+	return count
+}
 
+func numberOfSubstrings(s string) int {
+	var count [3]int
+	return windowCoverCount(len(s),
+		func(i int) { count[s[i]-'a']++ },
+		func(i int) { count[s[i]-'a']-- },
+		func() bool { return count[0] > 0 && count[1] > 0 && count[2] > 0 })
 }

@@ -1,27 +1,48 @@
 package l77
 
-import "slices"
+// Standalone choose/recurse/undo subtemplate and problem adapter.
+// searchChoices restores every choice even when a successful search stops early.
+// visit may record a result; returning true requests early termination.
+func searchChoices[T any](visit func() bool, choices func() []T, choose, undo func(T)) bool {
+	if visit() {
+		return true
+	}
+	for _, choice := range choices() {
+		choose(choice)
+		found := searchChoices(visit, choices, choose, undo)
+		undo(choice)
+		if found {
+			return true
+		}
+	}
+	return false
+}
 
-// combine returns all k-element combinations of the integers from 1 through n.
 func combine(n int, k int) [][]int {
-	path := make([]int, 0)
-	ret := make([][]int, 0)
+	result := [][]int{}
 	if k < 0 || k > n {
-		return ret
+		return result
 	}
-
-	var dfs func(start int)
-	dfs = func(start int) {
+	path := []int{}
+	searchChoices(func() bool {
 		if len(path) == k {
-			ret = append(ret, slices.Clone(path))
-			return
+			result = append(result, append([]int{}, path...))
 		}
-		for i := start; i <= (n + 1 - k + len(path)); i++ {
-			path = append(path, i)
-			dfs(i + 1)
-			path = path[:len(path)-1]
-		}
-	}
-	dfs(1)
-	return ret
+		return false
+	},
+		func() []int {
+			candidates := []int{}
+			if len(path) == k {
+				return candidates
+			}
+			start := 1
+			if len(path) > 0 {
+				start = path[len(path)-1] + 1
+			}
+			for value := start; value <= n-(k-len(path))+1; value++ {
+				candidates = append(candidates, value)
+			}
+			return candidates
+		}, func(value int) { path = append(path, value) }, func(value int) { path = path[:len(path)-1] })
+	return result
 }

@@ -1,86 +1,282 @@
-# 背包：容量、选择次数与计数顺序
+# 背包：容量方向与枚举对象共同决定含义
 
-本目录合并原 coin 零钱题与 distinct_ways 中真正按目标容量转移的题。物品只能选一次还是可以重复选、求最值还是方案数、是否区分顺序，决定不同模板。
+[返回 DP 总目录](../README.md)
 
-## 1. 0/1 背包：每个输入元素最多使用一次
+先写清物品是否只能使用一次、目标是可达/数量/最值，以及是否区分选取顺序。
 
-一维压缩且物品在外层时，容量倒序：
+| 子模板 | 固定不变量 | 题目 |
+| --- | --- | --- |
+| Capacity(reuse=false) | 容量倒序，来源还没有使用当前物品；零重量每项也只更新一次 | 416、1049、494 |
+| Capacity(reuse=true) | 物品在外层、容量正序，允许反复使用当前物品 | 322 最少个数、518 组合数 |
+| TwoResources | 两个容量都倒序，每个输入字符串至多选一次 | 474 |
+| MemoWays | 下标不减或剩余金额变小，缓存完整子问题计数 | 518 递归变体 |
 
-~~~go
-for _, weight := range weights {
-    for capacity := limit; capacity >= weight; capacity-- {
-        dp[capacity] = combine(dp[capacity], dp[capacity-weight])
-    }
+例如 494 中 `P-N=target`、`P+N=total`，所以选择正号元素的总和必须为 `(total+target)/2`。先检查范围与奇偶，再用 0/1 方案计数。零元素会把计数翻倍，不能直接忽略。
+
+518 的外层是硬币，统计组合；若改为外层金额、内层枚举最后一个数字，就变成 377 的有序序列计数，需要独立模板，不能只改正序或倒序。322 用 amount+1 表示不可达，读取不可达时不继续加一。
+
+## 复制与运行约定
+
+每道题是一个独立代码组：复制下方列明的模板一次，再复制该题适配函数。题目 `.go` 文件已经包含相同模板，不依赖仓库内部导入，可直接作为单题提交。不同题目可能使用相同入口名（如 `rob`、`maxProfit`、`cherryPickup`），请分别复制，不能把全部适配器拼进同一个文件。以下代码使用 Go 1.21+ 的内置 `min/max`。
+
+## 固定模板
+
+### Capacity
+
+<!-- template: Capacity -->
+```go
+// Capacity 修改调用方提供的初始表；reuse=false 倒序，true 正序。
+// 0/1 允许零重量（每项仍只处理一次）；可重复使用的重量必须为正。
+func Capacity[T any](dp []T, weights []int, reuse bool, combine func(old, from T) T) []T {
+	for _, weight := range weights {
+		if reuse {
+			for c := weight; c < len(dp); c++ {
+				dp[c] = combine(dp[c], dp[c-weight])
+			}
+		} else {
+			for c := len(dp) - 1; c >= weight; c-- {
+				dp[c] = combine(dp[c], dp[c-weight])
+			}
+		}
+	}
+	return dp
 }
-~~~
+```
 
-这是循环骨架，combine 和初始化由状态含义决定。不变量：当前物品的转移来源仍属于处理它之前的状态，避免同一次外层循环反复选择它。
+### TwoResources
 
-| 目标 | 空容量 | 不可达容量 | 合并规则 |
-| --- | --- | --- | --- |
-| 是否可达 | true | false | 逻辑或 |
-| 方案数 | 1 | 0 | 加法 |
-| 最少数量 | 0 | 无穷大 | 对可达前驱加 1，再取 min |
-| 最大收益 | 按是否要求恰好装满初始化 | 不能一律当成 0 | 取 max |
-
-- [416](l416/416.go)：是否能达到总和的一半。
-- [1049](l1049/1049.go)：不超过一半的最大可达和；[旧多重集搜索](l1049/legacy/1049)保留为另一种历史方法。
-- [494](l494/494.go)：把正负号分配化为子集计数；应先推导总和、目标范围与奇偶条件。零元素也只能选一次，会使相应计数翻倍。[旧草稿](l494/legacy/494)仍保留。
-- [474](l474/474.go)：0 和 1 是两种资源，两个容量都倒序，每个字符串只选一次。
-
-## 2. 完全背包：允许重复使用
-
-物品在外层时，容量正序，使来源可以包含当前物品：
-
-~~~go
-for _, coin := range coins {
-    for amount := coin; amount <= target; amount++ {
-        dp[amount] = combine(dp[amount], dp[amount-coin])
-    }
+<!-- template: TwoResources -->
+```go
+// TwoResources：每项消耗两种资源，两个容量都倒序，每项只选一次。
+func TwoResources(costs [][2]int, zeroLimit, oneLimit int) [][]int {
+	dp := make([][]int, zeroLimit+1)
+	for z := range dp {
+		dp[z] = make([]int, oneLimit+1)
+	}
+	for _, cost := range costs {
+		for z := zeroLimit; z >= cost[0]; z-- {
+			for o := oneLimit; o >= cost[1]; o-- {
+				dp[z][o] = max(dp[z][o], dp[z-cost[0]][o-cost[1]]+1)
+			}
+		}
+	}
+	return dp
 }
-~~~
+```
 
-[322](l322/322.go) 求最少硬币数。dp[0]=0，其他状态初始不可达；读取无穷大时不能直接加 1。硬币面额必须满足题目中的正数条件。
+### MemoWays
 
-## 3. 组合计数与有序序列计数
-
-[518](l518/518.go) 不区分选币顺序：硬币在外层、金额正序。
-
-~~~go
-dp[0] = 1
-for _, coin := range coins {
-    for amount := coin; amount <= target; amount++ {
-        dp[amount] += dp[amount-coin]
-    }
+<!-- template: MemoWays -->
+```go
+// MemoWays 仅适用于依赖无环的状态；缓存的零值也是合法答案。
+func MemoWays[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
+	memo := make(map[S]V)
+	var solve func(S) V
+	solve = func(s S) V {
+		if value, ok := memo[s]; ok {
+			return value
+		}
+		value := evaluate(s, solve)
+		memo[s] = value
+		return value
+	}
+	return solve
 }
-~~~
+```
 
-[377](l377/377_dp) 区分顺序：目标金额在外层，枚举最后选的数字。
+## 逐题适配器
 
-~~~go
-dp[0] = 1
-for amount := 1; amount <= target; amount++ {
-    for _, value := range nums {
-        if value <= amount {
-            dp[amount] += dp[amount-value]
-        }
-    }
+### 416
+
+[代码](l416/416.go) · [测试](l416/416_test.go)
+
+0/1 可达性：每个元素最多用一次，查询总和的一半。
+
+需要模板：`Capacity`。
+
+<!-- solution: dp/knapsack/l416/416.go; templates: Capacity -->
+```go
+// https://leetcode.com/problems/partition-equal-subset-sum/
+// 0/1 可达性：每个元素最多用一次，查询总和的一半。
+func canPartition(nums []int) bool {
+	total := 0
+	for _, value := range nums {
+		total += value
+	}
+	if total%2 != 0 {
+		return false
+	}
+	dp := make([]bool, total/2+1)
+	dp[0] = true
+	Capacity(dp, nums, false, func(old, from bool) bool { return old || from })
+	return dp[total/2]
 }
-~~~
+```
 
-例如面额 1、2 凑成 3，518 的组合为 111、12；377 的序列还区分 21。不能笼统说“所有背包只需改正序/倒序”；外层枚举对象同样影响含义。
+### 1049
 
-保留的替代材料：
+[代码](l1049/1049.go) · [测试](l1049/1049_test.go)
 
-- [518 记忆化版本](l518/legacy/recursive/518.go)。
-- [377 递归片段](l377/377)与[迭代片段](l377/377_dp)。
-- [原 coin 笔记](legacy/coin.readme.md)、[原 knapsack 笔记](legacy/knapsack.readme.md)。
-- [背包问题九讲原 PDF](%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98%E4%B9%9D%E8%AE%B2V2.pdf)。
+求不超过一半的最大可达子集和，剩余差值为 total-2*chosen。
 
-## 归类边界
+需要模板：`Capacity`。
 
-原 931 是网格下降路径，已进入 [grid/l931](../grid/l931/931.go)。原 871 实际使用大顶堆贪心，位于 [heap_priority_queue](../../heap_priority_queue/l871/legacy/from_knapsack/871)。
+<!-- solution: dp/knapsack/l1049/1049.go; templates: Capacity -->
+```go
+// https://leetcode.com/problems/last-stone-weight-ii/
+// 求不超过一半的最大可达子集和，剩余差值为 total-2*chosen。
+func lastStoneWeightII(stones []int) int {
+	total := 0
+	for _, value := range stones {
+		total += value
+	}
+	dp := make([]bool, total/2+1)
+	dp[0] = true
+	Capacity(dp, stones, false, func(old, from bool) bool { return old || from })
+	for chosen := total / 2; chosen >= 0; chosen-- {
+		if dp[chosen] {
+			return total - 2*chosen
+		}
+	}
+	return 0
+}
+```
 
-650 与误命名为 1240 的相同复制/粘贴片段进入 [linear/copy_paste](../linear/README.md)，983 进入 linear，343 的未完成草稿也保留为独立包；不把这些代码硬套到容量倒序模板。
+### 494
 
-一维容量为 C、物品数为 n 时，常见时间 O(nC)、辅助空间 O(C)；474 等多资源状态还要乘其他容量维度。
+[代码](l494/494.go) · [测试](l494/494_test.go)
+
+P-N=target、P+N=total，所以 P=(total+target)/2；零元素使计数翻倍。
+
+需要模板：`Capacity`。
+
+<!-- solution: dp/knapsack/l494/494.go; templates: Capacity -->
+```go
+// https://leetcode.com/problems/target-sum/
+// P-N=target、P+N=total，所以 P=(total+target)/2；零元素使计数翻倍。
+func findTargetSumWays(nums []int, target int) int {
+	total := 0
+	for _, value := range nums {
+		total += value
+	}
+	if target < -total || target > total || (total+target)%2 != 0 {
+		return 0
+	}
+	chosen := (total + target) / 2
+	dp := make([]int, chosen+1)
+	dp[0] = 1
+	Capacity(dp, nums, false, func(old, from int) int { return old + from })
+	return dp[chosen]
+}
+```
+
+### 322
+
+[代码](l322/322.go) · [测试](l322/322_test.go)
+
+完全背包求最少个数；不可达状态不能继续加一。
+
+需要模板：`Capacity`。
+
+<!-- solution: dp/knapsack/l322/322.go; templates: Capacity -->
+```go
+// https://leetcode.com/problems/coin-change/
+// 完全背包求最少个数；不可达状态不能继续加一。
+func coinChange(coins []int, amount int) int {
+	inf := amount + 1
+	dp := make([]int, amount+1)
+	for c := 1; c <= amount; c++ {
+		dp[c] = inf
+	}
+	Capacity(dp, coins, true, func(old, from int) int {
+		if from == inf {
+			return old
+		}
+		return min(old, from+1)
+	})
+	if dp[amount] == inf {
+		return -1
+	}
+	return dp[amount]
+}
+```
+
+### 518
+
+[代码](l518/518.go) · [测试](l518/518_test.go)
+
+硬币在外层、金额正序，统计组合而不是选币排列。
+
+需要模板：`Capacity`。
+
+<!-- solution: dp/knapsack/l518/518.go; templates: Capacity -->
+```go
+// https://leetcode.com/problems/coin-change-ii/
+// 硬币在外层、金额正序，统计组合而不是选币排列。
+func change(amount int, coins []int) int {
+	dp := make([]int, amount+1)
+	dp[0] = 1
+	Capacity(dp, coins, true, func(old, from int) int { return old + from })
+	return dp[amount]
+}
+```
+
+### 474
+
+[代码](l474/474.go) · [测试](l474/474_test.go)
+
+每个字符串消耗零和一两种资源，不是单容量背包。
+
+需要模板：`TwoResources`。
+
+<!-- solution: dp/knapsack/l474/474.go; templates: TwoResources -->
+```go
+// 每个字符串消耗零和一两种资源，不是单容量背包。
+func findMaxForm(strs []string, m int, n int) int {
+	costs := make([][2]int, len(strs))
+	for i, s := range strs {
+		for _, char := range s {
+			if char == '0' {
+				costs[i][0]++
+			} else {
+				costs[i][1]++
+			}
+		}
+	}
+	return TwoResources(costs, m, n)[m][n]
+}
+```
+
+### 518 · 历史独立版本
+
+[代码](l518/legacy/recursive/518.go)
+
+递归版固定硬币下标，只在同一下标重复选币，避免排列重复计数。
+
+需要模板：`MemoWays`。
+
+<!-- solution: dp/knapsack/l518/legacy/recursive/518.go; templates: MemoWays -->
+```go
+// 递归版固定硬币下标，只在同一下标重复选币，避免排列重复计数。
+func change(amount int, coins []int) int {
+	type state struct{ index, remaining int }
+	solve := MemoWays(func(s state, next func(state) int) int {
+		if s.remaining == 0 {
+			return 1
+		}
+		if s.index == len(coins) || s.remaining < 0 {
+			return 0
+		}
+		return next(state{s.index + 1, s.remaining}) + next(state{s.index, s.remaining - coins[s.index]})
+	})
+	return solve(state{0, amount})
+}
+```
+
+## 原始说明与其他材料
+
+[改写前的完整分类笔记](legacy/README.before-template-rewrite.md)保存原说明、外部链接以及无扩展名片段的索引。上述适配器是当前实现；历史文字中的“尚未实现”等描述仅反映当时状态。原有测试保留，新增测试覆盖补全实现的关键边界。
+
+```sh
+go test ./dp/knapsack/...
+```

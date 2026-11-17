@@ -12,7 +12,7 @@
 | 权重只有 0/1 | 0-1 BFS；本库旧版本用免费边闭包＋分层 | [1368 原始片段](l1368/1368) |
 | 等权最少步数 | FIFO BFS | [BFS 模板族](../bfs/README.md) |
 
-743、1514、1631 的 `.go` 练习仍为空函数，现有测试原样保留；下文参考代码与旧变体供实现时比较。通用 Dijkstra 和 Bellman-Ford 的 Edge 类型、演示 main 现在位于独立目录，各自编译，不强行混合。
+743、1514、1631 的 `.go` 主解均已使用下方 `BestLabels` 实现，每个文件包含完整的本地 helper、标签类型和堆，不依赖仓库内部包；现有测试原样保留。下文只声明一次公共 helper，再展示各题适配函数；旧变体继续保留供比较。通用 Dijkstra 和 Bellman-Ford 的 Edge 类型、演示 main 仍位于独立目录，各自编译，不强行混合。
 
 ### 边数限制为什么需要上一轮快照
 
@@ -57,7 +57,62 @@ for step := 0; step < maxEdges; step++ {
 
 **不变量**：弹出的非过期最优标签可以确定，因为沿路径继续扩展不会变得更优。加法最短路要求非负；minimax用max扩展；概率用[0,1]乘法并改成最大堆。不能任意替换公式而不证明性质。
 
-每题代码块包含自己的堆类型和建图，独立可编译；辅助类型重复是为单题阅读方便，不要把不同题代码块直接合并。
+### 通用标签模板与变化点
+
+固定循环只负责维护最佳标签、按优先级出堆、跳过过期项，以及在严格改善时更新。每题提供起点及初值、`next(state,label,emit)` 和 `better(candidate,previous)`；`next` 为每个合法后继调用 `emit`，`better` 同时决定堆的优先级与松弛条件。
+
+这里声明一次完整 helper，后面的题目代码块只包含适配函数。复制时，将公共代码块和选定题目的函数放在同一个文件中，保留一次 `package`、一次 `import "container/heap"`，以及一套 `BestLabels`／`pathLabel`／`labelQueue` 声明。各题主解已各自附上完整副本，可独立提交。泛型需要 Go 1.18 及以上；适配函数中的内置 `max` 需要 Go 1.21 及以上。
+
+```go
+package template
+
+import "container/heap"
+
+// BestLabels 要求扩展标签不会优于当前标签；better 同时定义优先级和严格改善。
+func BestLabels[S comparable, V comparable](start S, initial V, next func(S, V, func(S, V)), better func(V, V) bool) map[S]V {
+	best := map[S]V{start: initial}
+	queue := &labelQueue[S, V]{better: better}
+	heap.Push(queue, pathLabel[S, V]{start, initial})
+	for queue.Len() > 0 {
+		current := heap.Pop(queue).(pathLabel[S, V])
+		if best[current.node] != current.value {
+			continue
+		}
+		next(current.node, current.value, func(node S, value V) {
+			previous, seen := best[node]
+			if !seen || better(value, previous) {
+				best[node] = value
+				heap.Push(queue, pathLabel[S, V]{node, value})
+			}
+		})
+	}
+	return best
+}
+
+type pathLabel[S comparable, V comparable] struct {
+	node  S
+	value V
+}
+type labelQueue[S comparable, V comparable] struct {
+	items  []pathLabel[S, V]
+	better func(V, V) bool
+}
+
+func (q labelQueue[S, V]) Len() int           { return len(q.items) }
+func (q labelQueue[S, V]) Less(i, j int) bool { return q.better(q.items[i].value, q.items[j].value) }
+func (q labelQueue[S, V]) Swap(i, j int)      { q.items[i], q.items[j] = q.items[j], q.items[i] }
+func (q *labelQueue[S, V]) Push(value any)    { q.items = append(q.items, value.(pathLabel[S, V])) }
+func (q *labelQueue[S, V]) Pop() any {
+	last := len(q.items) - 1
+	value := q.items[last]
+	q.items = q.items[:last]
+	return value
+}
+```
+
+`best` 中不存在表示尚未发现，无需把合法标签与 INF 哨兵混在一起；需要区分缺失与零标签时使用 map 的双返回值。`better` 必须定义一致的严格优先关系；沿边扩展不能使当前标签变得更优，而且对同一后继的扩展必须保持标签的优劣关系，才能安全丢弃被支配的旧标签。状态还须包含所有影响后续转移的信息。仅满足 Go 的 `comparable` 约束并不能证明这些算法前提。
+
+加法最短路使用非负边和 `a < b`，minimax 使用 `max` 与 `a < b`，概率使用 [0,1] 内的有限值相乘与 `a > b`；浮点标签不能含 NaN。加法在调用 `emit` 前检查溢出。此版本搜索到堆耗尽，返回全部可达状态的最优标签；若改为单目标提前返回，必须在跳过过期项之后判断目标。
 
 <a id="lc743"></a>
 
@@ -67,25 +122,9 @@ for step := 0; step < maxEdges; step++ {
 
 **题意**：从k发信号，求所有节点收到信号的最短时间最大值，有不可达为-1。边有向，编号1..n。
 
-**状态**：dist源为0，其余INF；candidate=d+w，用最小堆。
+**状态**：常见数组写法为dist源0、其余INF；这里的map只存已发现节点，源标签为0。candidate=d+w，用 `a < b` 同时指定最小堆和严格松弛。
 
 ```go
-package template
-
-import "container/heap"
-
-type state struct {
-	node     int
-	distance int64
-}
-type minHeap []state
-
-func (h minHeap) Len() int           { return len(h) }
-func (h minHeap) Less(i, j int) bool { return h[i].distance < h[j].distance }
-func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-func (h *minHeap) Push(x any)        { *h = append(*h, x.(state)) }
-func (h *minHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
-
 func networkDelayTime(times [][]int, n int, k int) int {
 	type edge struct {
 		to     int
@@ -95,36 +134,20 @@ func networkDelayTime(times [][]int, n int, k int) int {
 	for _, e := range times {
 		graph[e[0]-1] = append(graph[e[0]-1], edge{e[1] - 1, int64(e[2])})
 	}
-	const inf int64 = 1<<63 - 1
-	dist := make([]int64, n)
-	for i := range dist {
-		dist[i] = inf
-	}
-	dist[k-1] = 0
-	queue := &minHeap{{k - 1, 0}}
-	heap.Init(queue)
-	for queue.Len() > 0 {
-		cur := heap.Pop(queue).(state)
-		if cur.distance != dist[cur.node] {
-			continue
-		}
-		for _, e := range graph[cur.node] {
-			if e.weight > inf-cur.distance {
-				continue
-			}
-			candidate := cur.distance + e.weight
-			if candidate < dist[e.to] {
-				dist[e.to] = candidate
-				heap.Push(queue, state{e.to, candidate})
+	const limit = int64(1<<63 - 1)
+	best := BestLabels(k-1, int64(0), func(u int, distance int64, emit func(int, int64)) {
+		for _, e := range graph[u] {
+			if e.weight <= limit-distance {
+				emit(e.to, distance+e.weight)
 			}
 		}
+	}, func(a, b int64) bool { return a < b })
+	if len(best) != n {
+		return -1
 	}
 	var answer int64
-	for _, d := range dist {
-		if d == inf {
-			return -1
-		}
-		answer = max(answer, d)
+	for _, distance := range best {
+		answer = max(answer, distance)
 	}
 	return int(answer)
 }
@@ -132,7 +155,7 @@ func networkDelayTime(times [][]int, n int, k int) int {
 
 **例子**：1→2(10)、1→3(1)、3→2(1)，dist[2]从10改善为2；旧堆项10要跳过。
 
-**复杂度**：懒删除版本时间O(V+E log(E+2))，空间O(V+E)。题设非负且有限距离远小于INF。
+**复杂度**：懒删除版本时间O(V+E log(E+2))，空间O(V+E)。题设非负且有限距离在int64范围内；用 `limit-distance` 检查加法溢出，map无需INF哨兵。
 
 <a id="lc1631"></a>
 
@@ -145,62 +168,26 @@ func networkDelayTime(times [][]int, n int, k int) int {
 **变化点**：candidate=max(已有代价,当前边高度差)，不是相加；仍最小堆，因为扩展只会不减。
 
 ```go
-package template
-
-import "container/heap"
-
-type state struct {
-	row, col int
-	effort   int64
-}
-type minHeap []state
-
-func (h minHeap) Len() int           { return len(h) }
-func (h minHeap) Less(i, j int) bool { return h[i].effort < h[j].effort }
-func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-func (h *minHeap) Push(x any)        { *h = append(*h, x.(state)) }
-func (h *minHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
-
 func minimumEffortPath(heights [][]int) int {
-	rows, cols := len(heights), len(heights[0])
-	const inf int64 = 1<<63 - 1
-	dist := make([][]int64, rows)
-	for r := range dist {
-		dist[r] = make([]int64, cols)
-		for c := range dist[r] {
-			dist[r][c] = inf
-		}
+	if len(heights) == 0 || len(heights[0]) == 0 {
+		return 0
 	}
-	dist[0][0] = 0
-	queue := &minHeap{{0, 0, 0}}
-	heap.Init(queue)
+	rows, cols := len(heights), len(heights[0])
 	directions := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
-	for queue.Len() > 0 {
-		cur := heap.Pop(queue).(state)
-		r, c := cur.row, cur.col
-		if cur.effort != dist[r][c] {
-			continue
-		}
-		if r == rows-1 && c == cols-1 {
-			return int(cur.effort)
-		}
-		for _, d := range directions {
-			nr, nc := r+d[0], c+d[1]
-			if nr < 0 || nr >= rows || nc < 0 || nc >= cols {
+	best := BestLabels([2]int{0, 0}, int64(0), func(at [2]int, effort int64, emit func([2]int, int64)) {
+		for _, direction := range directions {
+			r, c := at[0]+direction[0], at[1]+direction[1]
+			if r < 0 || r >= rows || c < 0 || c >= cols {
 				continue
 			}
-			delta := int64(heights[nr][nc]) - int64(heights[r][c])
+			delta := int64(heights[r][c]) - int64(heights[at[0]][at[1]])
 			if delta < 0 {
 				delta = -delta
 			}
-			candidate := max(cur.effort, delta)
-			if candidate < dist[nr][nc] {
-				dist[nr][nc] = candidate
-				heap.Push(queue, state{nr, nc, candidate})
-			}
+			emit([2]int{r, c}, max(effort, delta))
 		}
-	}
-	return -1
+	}, func(a, b int64) bool { return a < b })
+	return int(best[[2]int{rows - 1, cols - 1}])
 }
 ```
 
@@ -216,25 +203,9 @@ func minimumEffortPath(heights [][]int) int {
 
 **题意**：无向边有成功概率，路径概率相乘，求起点到终点最大概率。
 
-**变化点**：源为1、其他为0；candidate=prob×edgeProb；更大才更新，使用最大堆。概率范围[0,1]保证扩展不增加。
+**变化点**：源为1，其他节点尚未发现；缺失的map结果读取为0，符合无路的答案约定。candidate=prob×edgeProb；用 `a > b` 表示更大才更新，同时指定最大堆。概率范围[0,1]保证扩展不增加。
 
 ```go
-package template
-
-import "container/heap"
-
-type state struct {
-	node        int
-	probability float64
-}
-type maxHeap []state
-
-func (h maxHeap) Len() int           { return len(h) }
-func (h maxHeap) Less(i, j int) bool { return h[i].probability > h[j].probability }
-func (h maxHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-func (h *maxHeap) Push(x any)        { *h = append(*h, x.(state)) }
-func (h *maxHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
-
 func maxProbability(n int, edges [][]int, succProb []float64, startNode int, endNode int) float64 {
 	type edge struct {
 		to          int
@@ -242,31 +213,15 @@ func maxProbability(n int, edges [][]int, succProb []float64, startNode int, end
 	}
 	graph := make([][]edge, n)
 	for i, e := range edges {
-		a, b := e[0], e[1]
-		graph[a] = append(graph[a], edge{b, succProb[i]})
-		graph[b] = append(graph[b], edge{a, succProb[i]})
+		graph[e[0]] = append(graph[e[0]], edge{e[1], succProb[i]})
+		graph[e[1]] = append(graph[e[1]], edge{e[0], succProb[i]})
 	}
-	best := make([]float64, n)
-	best[startNode] = 1
-	queue := &maxHeap{{startNode, 1}}
-	heap.Init(queue)
-	for queue.Len() > 0 {
-		cur := heap.Pop(queue).(state)
-		if cur.probability != best[cur.node] {
-			continue
+	best := BestLabels(startNode, 1.0, func(u int, probability float64, emit func(int, float64)) {
+		for _, e := range graph[u] {
+			emit(e.to, probability*e.probability)
 		}
-		if cur.node == endNode {
-			return cur.probability
-		}
-		for _, e := range graph[cur.node] {
-			candidate := cur.probability * e.probability
-			if candidate > best[e.to] {
-				best[e.to] = candidate
-				heap.Push(queue, state{e.to, candidate})
-			}
-		}
-	}
-	return 0
+	}, func(a, b float64) bool { return a > b })
+	return best[endNode]
 }
 ```
 
@@ -280,15 +235,15 @@ func maxProbability(n int, edges [][]int, succProb []float64, startNode int, end
 
 | 题目 | 初值 | 松弛 | 堆 |
 | --- | --- | --- | --- |
-| 743 | 源0，其余INF | d+w | 最小 |
-| 1631 | 源0，其余INF | max(d,高度差) | 最小 |
-| 1514 | 源1，其余0 | p×边概率 | 最大 |
+| 743 | 源0，其余未发现（数组版为INF） | d+w | 最小 |
+| 1631 | 源0，其余未发现（数组版为INF） | max(d,高度差) | 最小 |
+| 1514 | 源1；未发现节点查询结果为0 | p×边概率 | 最大 |
 
 - 首次入堆不代表确定，出堆先跳过过期标签，再考虑提前返回。
 - 只在严格改善时入堆，避免等值环重复扩展。
 - 743有向，1514无向，建图不能混用。
 - 普通加法版本不能处理负边；INF也不应与合法有限值混淆。
-- 每题完整堆实现各自独立，Less决定优先级，不能只改松弛而忘记改堆方向。
+- 公共helper中的 `better` 同时控制严格松弛和堆方向；各题主解都复制完整堆实现，独立提交时不依赖其他文件。
 
 已有分类：[最短路](.)。
 

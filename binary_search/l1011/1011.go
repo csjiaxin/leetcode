@@ -1,36 +1,37 @@
 package l1011
 
-import "slices"
-
-func firstTrue(l, r int, check func(int) bool) int {
-
-	for l <= r {
-		mid := l + (r-l)/2
-
-		if check(mid) {
-			r = mid - 1
-		} else {
-			l = mid + 1
+// 1011：复用本文件的边界模板；特殊结构按对应排除不变量处理。
+func shipWithinDays(weights []int, days int) int {
+	low, high := 0, 0
+	for _, weight := range weights {
+		if weight > low {
+			low = weight
 		}
+		high += weight
 	}
-
-	return l
+	return low + FirstTrue(high-low+1, func(offset int) bool {
+		capacity := low + offset
+		needed, load := 1, 0
+		for _, weight := range weights {
+			if load+weight > capacity {
+				needed++
+				load = 0
+			}
+			load += weight
+		}
+		return needed <= days
+	})
 }
 
-func shipWithinDays(weights []int, days int) int {
-	slices.Sort(weights)
-	r := slices.Max(weights)
-	N := len(weights)
-
-	p := firstTrue(1, r, func(capacity int) bool {
-
-		needOp := 0
-
-		for j := N - 1; j > 0; j-- {
-
+func FirstTrue(n int, predicate func(int) bool) int {
+	left, right := 0, n-1
+	for left <= right {
+		mid := left + (right-left)/2
+		if predicate(mid) {
+			right = mid - 1
+		} else {
+			left = mid + 1
 		}
-
-		return needOp <= days
-	})
-	return p
+	}
+	return left
 }

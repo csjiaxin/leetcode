@@ -3,51 +3,45 @@ package main
 import "fmt"
 
 type TreeNode struct {
-	Val   int
-	Left  *TreeNode
-	Right *TreeNode
+	Val         int
+	Left, Right *TreeNode
 }
 
+// https://leetcode.com/problems/unique-binary-search-trees-ii/
 func generateTrees(n int) []*TreeNode {
-	r := make([]*TreeNode, 0)
-
-	for i := 1; i <= n; i++ {
-		root := dfs(i, 1, i-1, i+1, n)
-		r = append(r, root...)
+	if n == 0 {
+		return []*TreeNode{}
 	}
-	return r
-}
-func dfs(n, ll, lm, rl, rm int) []*TreeNode {
-
-	larr := make([]*TreeNode, 0)
-	rarr := make([]*TreeNode, 0)
-	if ll <= lm {
-		for i := ll; i <= lm; i++ {
-			larr = append(larr, dfs(i, ll, i-1, i+1, lm)...)
+	solve := MemoDFS(func(interval [2]int, recur func([2]int) []*TreeNode) []*TreeNode {
+		left, right := interval[0], interval[1]
+		if left > right {
+			return []*TreeNode{nil}
 		}
-	} else {
-		larr = append(larr, nil)
-	}
-	if rl <= rm {
-		for i := rl; i <= rm; i++ {
-			rarr = append(rarr, dfs(i, rl, i-1, i+1, rm)...)
+		result := make([]*TreeNode, 0)
+		for root := left; root <= right; root++ {
+			for _, l := range recur([2]int{left, root - 1}) {
+				for _, r := range recur([2]int{root + 1, right}) {
+					result = append(result, &TreeNode{Val: root, Left: l, Right: r})
+				}
+			}
 		}
-
-	} else {
-		rarr = append(rarr, nil)
-	}
-	retarr := make([]*TreeNode, 0)
-	for _, l := range larr {
-		for _, r := range rarr {
-			node := &TreeNode{n, l, r}
-			retarr = append(retarr, node)
-		}
-	}
-	return retarr
+		return result
+	})
+	return solve([2]int{1, n})
 }
 
-func main() {
-	fmt.Println(generateTrees(1))
-	fmt.Println(generateTrees(2))
-	fmt.Println(generateTrees(3))
+func MemoDFS[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
+	memo := make(map[S]V)
+	var solve func(S) V
+	solve = func(state S) V {
+		if value, ok := memo[state]; ok {
+			return value
+		}
+		value := evaluate(state, solve)
+		memo[state] = value
+		return value
+	}
+	return solve
 }
+
+func main() { fmt.Println(len(generateTrees(1)), len(generateTrees(2)), len(generateTrees(3))) }

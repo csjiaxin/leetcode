@@ -1,46 +1,38 @@
 package stack
 
-import "strings"
-
-type frame struct {
+// Standalone nested-context subtemplate and problem adapter; see README.md.
+type decoderFrame struct {
+	prefix []byte
 	times  int
-	prefix string
 }
 
-func isDigit(r rune) bool {
-	return r >= '0' && r <= '9'
-}
-
-func decodeString(s string) string {
-	var (
-		stack   []frame
-		times   int
-		current strings.Builder
-	)
-
-	for _, c := range s {
-		if isDigit(c) {
-			times = times*10 + int(c-'0')
-		} else if c == '[' {
-			stack = append(stack, frame{
-				times:  times,
-				prefix: current.String(),
-			})
-			times = 0
-			current.Reset()
-		} else if c == ']' {
-			top := stack[len(stack)-1]
+// decodeNested restores the outer prefix and repeats a completed child.
+func decodeNested(s string) string {
+	stack := []decoderFrame{}
+	current := []byte{}
+	number := 0
+	for i := 0; i < len(s); i++ {
+		token := s[i]
+		switch {
+		case token >= '0' && token <= '9':
+			number = number*10 + int(token-'0')
+		case token == '[':
+			stack = append(stack, decoderFrame{current, number})
+			current = []byte{}
+			number = 0
+		case token == ']':
+			frame := stack[len(stack)-1]
 			stack = stack[:len(stack)-1]
-			repeated := strings.Repeat(current.String(), top.times)
-			current.Reset()
-			current.WriteString(top.prefix)
-			current.WriteString(repeated)
-		} else {
-			current.WriteRune(c)
+			inner := current
+			current = frame.prefix
+			for repeat := 0; repeat < frame.times; repeat++ {
+				current = append(current, inner...)
+			}
+		default:
+			current = append(current, token)
 		}
 	}
-	return current.String()
+	return string(current)
 }
 
-// 3[a3[b]c4[d]]
-// 3,
+func decodeString(s string) string { return decodeNested(s) }

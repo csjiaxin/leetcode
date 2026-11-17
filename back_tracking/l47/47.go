@@ -1,39 +1,46 @@
 package l47
 
-import (
-	"math"
-	"slices"
-)
+import "sort"
 
-// https://leetcode.com/problems/permutations-ii/
-// permuteUnique returns all distinct permutations in any order.
-func permuteUnique(nums []int) [][]int {
-	slices.Sort(nums)
-	N := len(nums)
-	visit := make([]bool, N)
-
-	path := make([]int, 0, N)
-	result := make([][]int, 0)
-	var dfs func()
-	dfs = func() {
-		if len(path) == N {
-			result = append(result, slices.Clone(path))
-			return
-		}
-		lastVisit := math.MinInt
-		for i := 0; i < N; i++ {
-			if visit[i] == false && nums[i] != lastVisit {
-				lastVisit = nums[i]
-				visit[i] = true
-				path = append(path, nums[i])
-
-				dfs()
-
-				visit[i] = false
-				path = path[:len(path)-1]
-			}
+// Standalone choose/recurse/undo subtemplate and problem adapter.
+// searchChoices restores every choice even when a successful search stops early.
+// visit may record a result; returning true requests early termination.
+func searchChoices[T any](visit func() bool, choices func() []T, choose, undo func(T)) bool {
+	if visit() {
+		return true
+	}
+	for _, choice := range choices() {
+		choose(choice)
+		found := searchChoices(visit, choices, choose, undo)
+		undo(choice)
+		if found {
+			return true
 		}
 	}
-	dfs()
+	return false
+}
+
+func permuteUnique(nums []int) [][]int {
+	nums = append([]int{}, nums...)
+	sort.Ints(nums)
+	result := [][]int{}
+	path := []int{}
+	used := make([]bool, len(nums))
+	searchChoices(func() bool {
+		if len(path) == len(nums) {
+			result = append(result, append([]int{}, path...))
+		}
+		return false
+	}, func() []int {
+		candidates := []int{}
+		for i := range nums {
+			if used[i] || (i > 0 && nums[i] == nums[i-1] && !used[i-1]) {
+				continue
+			}
+			candidates = append(candidates, i)
+		}
+		return candidates
+	}, func(i int) { used[i] = true; path = append(path, nums[i]) },
+		func(i int) { used[i] = false; path = path[:len(path)-1] })
 	return result
 }

@@ -1,61 +1,31 @@
 package main
 
-import "fmt"
-
-type E struct {
-	v int
-	i int
-}
-type stack []E
-
-func New() *stack {
-	s := make(stack, 0)
-	return &s
-}
-func (s *stack) Len() int {
-	return len(*s)
-}
-
-func (s *stack) Push(v E) {
-	*s = append(*s, v)
-}
-
-func (s *stack) Pop() E {
-	l := len(*s)
-	v := (*s)[l-1]
-	*s = (*s)[:l-1]
-	return v
-}
-func (s *stack) Peek() E {
-	l := len(*s)
-	v := (*s)[l-1]
-	return v
-}
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-func findLengthOfShortestSubarray(arr []int) int {
+// Standalone template plus public LeetCode adapter; README.md describes the invariant.
+// joinSortedEnds removes one middle segment, not an arbitrary subsequence.
+func joinSortedEnds(arr []int) int {
 	n := len(arr)
-	s := New()
-
-	L := 0
-	for _, v := range arr {
-		for s.Len() > 0 && s.Peek().v > v {
-			s.Pop()
-		}
-		l := 1
-		if s.Len() > 0 {
-			l += s.Peek().i
-		}
-		L = max(L, l)
-		s.Push(E{v, l})
+	if n < 2 {
+		return 0
 	}
-	return n - L
+	right := n - 1
+	for right > 0 && arr[right-1] <= arr[right] {
+		right--
+	}
+	if right == 0 {
+		return 0
+	}
+	best := right
+	for left := 0; left < right && (left == 0 || arr[left-1] <= arr[left]); left++ {
+		for right < n && arr[left] > arr[right] {
+			right++
+		}
+		if length := right - left - 1; length < best {
+			best = length
+		}
+	}
+	return best
+}
 
-}
-func main() {
-	fmt.Println(findLengthOfShortestSubarray([]int{1, 2, 3, 10, 4, 2, 3, 5}))
-}
+func findLengthOfShortestSubarray(arr []int) int { return joinSortedEnds(arr) }
+
+func main() {}

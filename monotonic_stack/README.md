@@ -1,5 +1,269 @@
 # 单调栈：最近边界与贡献结算
 
+## 同文件命名模板与适配器
+
+先复制本代码块，再复制任一题的适配器；实际题解文件同样内嵌 helper，保留官方函数签名。只使用标准库，不导入仓库本地模板包。本文所有 Go 代码块可按顺序组合成一个包；不要重复复制 helper。
+
+```go
+import "sort"
+
+// nextGreaterPositions returns the first strictly greater position, or -1.
+// A circular second pass resolves pending originals without pushing copies.
+func nextGreaterPositions(nums []int, circular bool) []int {
+	n := len(nums)
+	next := make([]int, n)
+	for i := range next {
+		next[i] = -1
+	}
+	stack := []int{}
+	rounds := n
+	if circular {
+		rounds *= 2
+	}
+	for step := 0; step < rounds; step++ {
+		current := step % n
+		for len(stack) > 0 && nums[stack[len(stack)-1]] < nums[current] {
+			previous := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			next[previous] = current
+		}
+		if step < n {
+			stack = append(stack, current)
+		}
+	}
+	return next
+}
+
+// monotonicBoundaries settles right boundaries on pop and reads left on push.
+// pop defines the strict/non-strict tie ownership for this specific problem.
+func monotonicBoundaries(nums []int, pop func(previous, current int) bool) ([]int, []int) {
+	n := len(nums)
+	left, right := make([]int, n), make([]int, n)
+	stack := []int{}
+	for i, x := range nums {
+		right[i] = n
+		for len(stack) > 0 && pop(nums[stack[len(stack)-1]], x) {
+			j := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			right[j] = i
+		}
+		left[i] = -1
+		if len(stack) > 0 {
+			left[i] = stack[len(stack)-1]
+		}
+		stack = append(stack, i)
+	}
+	return left, right
+}
+
+func histogramArea(heights []int) int {
+	left, right := monotonicBoundaries(heights, func(previous, current int) bool { return previous > current })
+	var best int64
+	for i, h := range heights {
+		area := int64(h) * int64(right[i]-left[i]-1)
+		if area > best {
+			best = area
+		}
+	}
+	return int(best)
+}
+
+// greedySubsequence keeps k elements; better may replace a worse previous value.
+func greedySubsequence[T any](values []T, k int, better func(current, previous T) bool) []T {
+	if k < 0 {
+		k = 0
+	}
+	if k > len(values) {
+		k = len(values)
+	}
+	drop := len(values) - k
+	stack := make([]T, 0, len(values))
+	for _, value := range values {
+		for drop > 0 && len(stack) > 0 && better(value, stack[len(stack)-1]) {
+			stack = stack[:len(stack)-1]
+			drop--
+		}
+		stack = append(stack, value)
+	}
+	return stack[:k]
+}
+
+// trappedLayers settles a basin bottom only when both bounding walls exist.
+func trappedLayers(heights []int) int {
+	stack := []int{}
+	water := 0
+	for right, h := range heights {
+		for len(stack) > 0 && heights[stack[len(stack)-1]] < h {
+			bottom := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			if len(stack) == 0 {
+				break
+			}
+			left := stack[len(stack)-1]
+			level := heights[left]
+			if h < level {
+				level = h
+			}
+			water += (right - left - 1) * (level - heights[bottom])
+		}
+		stack = append(stack, right)
+	}
+	return water
+}
+
+// distinctSubsequence pops a larger symbol only when another copy remains.
+func distinctSubsequence(s string) string {
+	var remaining [256]int
+	var used [256]bool
+	for i := range s {
+		remaining[s[i]]++
+	}
+	stack := []byte{}
+	for i := range s {
+		value := s[i]
+		remaining[value]--
+		if used[value] {
+			continue
+		}
+		for len(stack) > 0 && stack[len(stack)-1] > value && remaining[stack[len(stack)-1]] > 0 {
+			used[stack[len(stack)-1]] = false
+			stack = stack[:len(stack)-1]
+		}
+		used[value] = true
+		stack = append(stack, value)
+	}
+	return string(stack)
+}
+
+func suffixGreater(a, b []int) bool {
+	i := 0
+	for i < len(a) && i < len(b) && a[i] == b[i] {
+		i++
+	}
+	return i < len(a) && (i == len(b) || a[i] > b[i])
+}
+func mergeLargest(a, b []int) []int {
+	result := make([]int, 0, len(a)+len(b))
+	for len(a) > 0 || len(b) > 0 {
+		if suffixGreater(a, b) {
+			result = append(result, a[0])
+			a = a[1:]
+		} else {
+			result = append(result, b[0])
+			b = b[1:]
+		}
+	}
+	return result
+}
+
+func has132(nums []int) bool {
+	stack := []int{}
+	third := -int(^uint(0)>>1) - 1
+	for i := len(nums) - 1; i >= 0; i-- {
+		if nums[i] < third {
+			return true
+		}
+		for len(stack) > 0 && stack[len(stack)-1] < nums[i] {
+			third = stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+		}
+		stack = append(stack, nums[i])
+	}
+	return false
+}
+
+func sortedChunks(arr []int) int {
+	maxima := []int{}
+	for _, value := range arr {
+		if len(maxima) == 0 || maxima[len(maxima)-1] <= value {
+			maxima = append(maxima, value)
+			continue
+		}
+		mergedMax := maxima[len(maxima)-1]
+		for len(maxima) > 0 && maxima[len(maxima)-1] > value {
+			maxima = maxima[:len(maxima)-1]
+		}
+		maxima = append(maxima, mergedMax)
+	}
+	return len(maxima)
+}
+
+func minimumLeafTreeCost(arr []int) int {
+	stack := []int{}
+	cost := 0
+	for _, value := range arr {
+		for len(stack) > 0 && stack[len(stack)-1] <= value {
+			middle := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			neighbor := value
+			if len(stack) > 0 && stack[len(stack)-1] < neighbor {
+				neighbor = stack[len(stack)-1]
+			}
+			cost += middle * neighbor
+		}
+		stack = append(stack, value)
+	}
+	for len(stack) > 1 {
+		last := len(stack) - 1
+		cost += stack[last] * stack[last-1]
+		stack = stack[:last]
+	}
+	return cost
+}
+
+type fleetCar struct{ position, speed int }
+
+func countFleets(target int, position, speed []int) int {
+	cars := make([]fleetCar, len(position))
+	for i, p := range position {
+		cars[i] = fleetCar{p, speed[i]}
+	}
+	sort.Slice(cars, func(i, j int) bool { return cars[i].position > cars[j].position })
+	fleets := 0
+	lastArrival := -1.0
+	for _, car := range cars {
+		arrival := float64(target-car.position) / float64(car.speed)
+		if arrival > lastArrival {
+			fleets++
+			lastArrival = arrival
+		}
+	}
+	return fleets
+}
+
+type priceSpan struct{ price, span int }
+type StockSpanner struct{ pending []priceSpan }
+
+func collapseSpan(pending []priceSpan, price int) ([]priceSpan, int) {
+	span := 1
+	for len(pending) > 0 && pending[len(pending)-1].price <= price {
+		span += pending[len(pending)-1].span
+		pending = pending[:len(pending)-1]
+	}
+	return append(pending, priceSpan{price, span}), span
+}
+
+func widestRamp(nums []int) int {
+	candidates := []int{}
+	for i, value := range nums {
+		if len(candidates) == 0 || value < nums[candidates[len(candidates)-1]] {
+			candidates = append(candidates, i)
+		}
+	}
+	best := 0
+	for right := len(nums) - 1; right >= 0; right-- {
+		for len(candidates) > 0 && nums[candidates[len(candidates)-1]] <= nums[right] {
+			left := candidates[len(candidates)-1]
+			candidates = candidates[:len(candidates)-1]
+			if right-left > best {
+				best = right - left
+			}
+		}
+	}
+	return best
+}
+```
+
 [返回总目录](../algorithm_templates/README.md)
 
 [扩展练习：迁移点与边界](#extended-practice) · [保留的原分类笔记](#legacy-notes)
@@ -23,7 +287,7 @@
 遍历i → while栈顶满足弹出条件：弹出j并结算 → i入栈
 ```
 
-每个下标最多入栈、出栈一次，所以总时间O(n)。比较符号取决于“严格更大/更小”和重复值归属，不能脱离题目机械背符号。以下代码块互相独立，均不依赖其他题实现。
+每个下标最多入栈、出栈一次，所以总时间O(n)。比较符号取决于“严格更大/更小”和重复值归属，不能脱离题目机械背符号。下列适配器调用本页命名局部模板；每份实际 Go 题解也内嵌同一模板，不依赖其他题或仓库本地算法包。
 
 <a id="lc739"></a>
 
@@ -36,20 +300,15 @@
 **栈含义**：等待更高温度的下标，温度非递增。当前温度严格更大，才为旧下标确定答案。
 
 ```go
-package template
-
 func dailyTemperatures(temperatures []int) []int {
-	answer := make([]int, len(temperatures))
-	stack := []int{}
-	for i, x := range temperatures {
-		for len(stack) > 0 && temperatures[stack[len(stack)-1]] < x {
-			j := stack[len(stack)-1]
-			stack = stack[:len(stack)-1]
-			answer[j] = i - j
+	next := nextGreaterPositions(temperatures, false)
+	result := make([]int, len(next))
+	for i, j := range next {
+		if j >= 0 {
+			result[i] = j - i
 		}
-		stack = append(stack, i)
 	}
-	return answer
+	return result
 }
 ```
 
@@ -68,28 +327,20 @@ func dailyTemperatures(temperatures []int) []int {
 **变化**：仍弹出等待右侧更大值的下标，但结果存为“旧值→下一个更大值”的map，最后按nums1顺序输出。
 
 ```go
-package template
-
 func nextGreaterElement(nums1 []int, nums2 []int) []int {
-	next := make(map[int]int)
-	stack := []int{}
-	for i, x := range nums2 {
-		for len(stack) > 0 && nums2[stack[len(stack)-1]] < x {
-			j := stack[len(stack)-1]
-			stack = stack[:len(stack)-1]
-			next[nums2[j]] = x
+	next := nextGreaterPositions(nums2, false)
+	values := map[int]int{}
+	for i, j := range next {
+		values[nums2[i]] = -1
+		if j >= 0 {
+			values[nums2[i]] = nums2[j]
 		}
-		stack = append(stack, i)
 	}
-	answer := make([]int, len(nums1))
+	result := make([]int, len(nums1))
 	for i, x := range nums1 {
-		if value, ok := next[x]; ok {
-			answer[i] = value
-		} else {
-			answer[i] = -1
-		}
+		result[i] = values[x]
 	}
-	return answer
+	return result
 }
 ```
 
@@ -108,27 +359,7 @@ func nextGreaterElement(nums1 []int, nums2 []int) []int {
 **栈含义**：柱高非递减，遇更矮柱时结算旧柱j。弹出后新栈顶left限制左侧扩展，宽为i-left-1。相等柱保留，较早的柱最终覆盖完整宽度。
 
 ```go
-package template
-
-func largestRectangleArea(heights []int) int {
-	stack := []int{}
-	var answer int64
-	for i := 0; i <= len(heights); i++ {
-		for len(stack) > 0 && (i == len(heights) || heights[stack[len(stack)-1]] > heights[i]) {
-			j := stack[len(stack)-1]
-			stack = stack[:len(stack)-1]
-			left := -1
-			if len(stack) > 0 {
-				left = stack[len(stack)-1]
-			}
-			answer = max(answer, int64(heights[j])*int64(i-left-1))
-		}
-		if i < len(heights) {
-			stack = append(stack, i)
-		}
-	}
-	return int(answer)
-}
+func largestRectangleArea(heights []int) int { return histogramArea(heights) }
 ```
 
 **例子**：[2,1,2]，末尾清栈时高度1覆盖宽3，答案3。i=n强制结算，短路条件避免访问heights[n]。
@@ -146,40 +377,14 @@ func largestRectangleArea(heights []int) int {
 **贡献法**：为i找左侧最近严格小于L、右侧最近小于等于R。以i为指定最小值的区间数是(i-L)×(R-i)，贡献再乘arr[i]。
 
 ```go
-package template
-
 func sumSubarrayMins(arr []int) int {
-	n := len(arr)
-	left, right := make([]int, n), make([]int, n)
-	stack := []int{}
-	for i, x := range arr {
-		for len(stack) > 0 && arr[stack[len(stack)-1]] >= x {
-			stack = stack[:len(stack)-1]
-		}
-		left[i] = -1
-		if len(stack) > 0 {
-			left[i] = stack[len(stack)-1]
-		}
-		stack = append(stack, i)
+	left, right := monotonicBoundaries(arr, func(previous, current int) bool { return previous >= current })
+	const mod int64 = 1_000_000_007
+	var result int64
+	for i, value := range arr {
+		result = (result + int64(value)*int64(i-left[i])*int64(right[i]-i)) % mod
 	}
-	stack = stack[:0]
-	for i := n - 1; i >= 0; i-- {
-		for len(stack) > 0 && arr[stack[len(stack)-1]] > arr[i] {
-			stack = stack[:len(stack)-1]
-		}
-		right[i] = n
-		if len(stack) > 0 {
-			right[i] = stack[len(stack)-1]
-		}
-		stack = append(stack, i)
-	}
-	const mod int64 = 1000000007
-	var answer int64
-	for i, x := range arr {
-		contribution := int64(x) * int64(i-left[i]) * int64(right[i]-i)
-		answer = (answer + contribution) % mod
-	}
-	return int(answer)
+	return int(result)
 }
 ```
 
@@ -448,7 +653,7 @@ func sumSubarrayMins(arr []int) int {
 
 ## 目录归并：单调性、结算方向与重复值归属
 
-重复的 496、84、907 模板练习已分别并入 [l496/variants/template](l496/variants/template)、[l84/variants/template](l84/variants/template)、[l907/variants/template](l907/variants/template)，源码和原测试不变。503 的排列分类练习保存在 [l503/variants/from_permutation](l503/variants/from_permutation)。不同包保留各自函数名与测试，空函数仍是未完成练习。
+重复的 496、84、907 模板练习已分别并入 [l496/variants/template](l496/variants/template)、[l84/variants/template](l84/variants/template)、[l907/variants/template](l907/variants/template)，原测试和目录来源保留，实际源码现按本页局部模板实现。503 的排列分类练习保存在 [l503/variants/from_permutation](l503/variants/from_permutation)。不同包保留各自函数名与测试，各变体现使用同名模板独立实现，保留各自原测试。
 
 | 子模型 | 栈保存什么 / 什么时候可结算 | 题目入口 |
 | --- | --- | --- |
@@ -462,20 +667,7 @@ func sumSubarrayMins(arr []int) int {
 最近严格更大位置的可复用骨架如下；它不负责矩形清栈或贡献归属：
 
 ```go
-func nextGreaterIndices(nums []int) []int {
-    next := make([]int, len(nums))
-    for i := range next { next[i] = -1 }
-    stack := []int{}
-    for right, value := range nums {
-        for len(stack) > 0 && nums[stack[len(stack)-1]] < value {
-            previous := stack[len(stack)-1]
-            stack = stack[:len(stack)-1]
-            next[previous] = right
-        }
-        stack = append(stack, right)
-    }
-    return next
-}
+func nextGreaterIndices(nums []int) []int { return nextGreaterPositions(nums, false) }
 ```
 
 496 把位置结果转换为对应值；739 转换为等待距离；503 为循环数组处理第二遍，但不能把自己或相等值当作严格更大值。84/907 即使使用相似出栈循环，结算内容与相等值策略也不同。
@@ -485,4 +677,208 @@ func nextGreaterIndices(nums []int) []int {
 - 原 856 已归入 [stack/l856](../stack/l856)，原练习在其 `variants/from_monotonic_stack`。嵌套层的分数累加没有单调值不变量。
 - 原 239 已归入 [sliding_window/l239](../sliding_window/l239)。它需要淘汰过期队首，是单调队列，不能只用栈顶操作表达窗口失效。
 
-本次仅归并目录和学习入口，不补完现有 panic、空函数或错误答案；原测试仍独立验证原源码。迁移清单见 [reorganization.json](../two_pointers/reorganization.json)。
+当前实际 Go 文件已按本页局部模板实现，独立变体仍运行各自原测试；不以排除练习文件制造通过。迁移清单见 [reorganization.json](../two_pointers/reorganization.json)。
+
+
+## 逐题模板适配器补全
+
+下列函数使用本页已声明的同名子模板；不是将不同不变量强行改为同一弹栈或移动条件。
+
+### 42
+
+```go
+func trap(height []int) int { return trappedLayers(height) }
+```
+
+### 85
+
+```go
+func maximalRectangle(matrix [][]byte) int {
+	if len(matrix) == 0 {
+		return 0
+	}
+	heights := make([]int, len(matrix[0]))
+	best := 0
+	for _, row := range matrix {
+		for j, value := range row {
+			if value == '1' {
+				heights[j]++
+			} else {
+				heights[j] = 0
+			}
+		}
+		if area := histogramArea(heights); area > best {
+			best = area
+		}
+	}
+	return best
+}
+```
+
+### 316
+
+```go
+func removeDuplicateLetters(s string) string { return distinctSubsequence(s) }
+```
+
+### 321
+
+```go
+func maxNumber(nums1 []int, nums2 []int, k int) []int {
+	best := []int{}
+	for take := 0; take <= k; take++ {
+		if take > len(nums1) || k-take > len(nums2) {
+			continue
+		}
+		a := greedySubsequence(nums1, take, func(current, previous int) bool { return current > previous })
+		b := greedySubsequence(nums2, k-take, func(current, previous int) bool { return current > previous })
+		candidate := mergeLargest(a, b)
+		if suffixGreater(candidate, best) {
+			best = candidate
+		}
+	}
+	return best
+}
+```
+
+### 402
+
+```go
+func removeKdigits(num string, k int) string {
+	digits := greedySubsequence([]byte(num), len(num)-k, func(current, previous byte) bool { return current < previous })
+	start := 0
+	for start < len(digits) && digits[start] == '0' {
+		start++
+	}
+	if start == len(digits) {
+		return "0"
+	}
+	return string(digits[start:])
+}
+```
+
+### 456
+
+```go
+func find132pattern(nums []int) bool { return has132(nums) }
+```
+
+### 503
+
+```go
+func nextGreaterElements(nums []int) []int {
+	next := nextGreaterPositions(nums, true)
+	result := make([]int, len(next))
+	for i, j := range next {
+		result[i] = -1
+		if j >= 0 {
+			result[i] = nums[j]
+		}
+	}
+	return result
+}
+```
+
+### 768
+
+```go
+func maxChunksToSorted(arr []int) int { return sortedChunks(arr) }
+```
+
+### 853
+
+```go
+func carFleet(target int, position []int, speed []int) int {
+	return countFleets(target, position, speed)
+}
+```
+
+### 901
+
+```go
+func Constructor() StockSpanner { return StockSpanner{} }
+func (s *StockSpanner) Next(price int) int {
+	var span int
+	s.pending, span = collapseSpan(s.pending, price)
+	return span
+}
+```
+
+### 962
+
+```go
+func maxWidthRamp(nums []int) int { return widestRamp(nums) }
+```
+
+### 1130
+
+```go
+func mctFromLeafValues(arr []int) int { return minimumLeafTreeCost(arr) }
+```
+
+### 2104
+
+```go
+func subArrayRanges(nums []int) int64 {
+	minLeft, minRight := monotonicBoundaries(nums, func(previous, current int) bool { return previous >= current })
+	maxLeft, maxRight := monotonicBoundaries(nums, func(previous, current int) bool { return previous <= current })
+	var result int64
+	for i, value := range nums {
+		minima := int64(i-minLeft[i]) * int64(minRight[i]-i)
+		maxima := int64(i-maxLeft[i]) * int64(maxRight[i]-i)
+		result += int64(value) * (maxima - minima)
+	}
+	return result
+}
+```
+
+### 1856
+
+```go
+func maxSumMinProduct(nums []int) int {
+	prefix := make([]int64, len(nums)+1)
+	for i, value := range nums {
+		prefix[i+1] = prefix[i] + int64(value)
+	}
+	left, right := monotonicBoundaries(nums, func(previous, current int) bool { return previous >= current })
+	var best int64
+	for i, value := range nums {
+		product := int64(value) * (prefix[right[i]] - prefix[left[i]+1])
+		if product > best {
+			best = product
+		}
+	}
+	return int(best % 1_000_000_007)
+}
+```
+
+### 2281
+
+```go
+func totalStrength(strength []int) int {
+	const mod int64 = 1_000_000_007
+	n := len(strength)
+	prefix := make([]int64, n+1)
+	prefixOfPrefix := make([]int64, n+2)
+	for i, value := range strength {
+		prefix[i+1] = (prefix[i] + int64(value)) % mod
+	}
+	for i, value := range prefix {
+		prefixOfPrefix[i+1] = (prefixOfPrefix[i] + value) % mod
+	}
+	left, right := monotonicBoundaries(strength, func(previous, current int) bool { return previous >= current })
+	var result int64
+	for i, value := range strength {
+		sumRight := (prefixOfPrefix[right[i]+1] - prefixOfPrefix[i+1] + mod) % mod
+		sumLeft := (prefixOfPrefix[i+1] - prefixOfPrefix[left[i]+1] + mod) % mod
+		weighted := (int64(i-left[i])*sumRight - int64(right[i]-i)*sumLeft) % mod
+		if weighted < 0 {
+			weighted += mod
+		}
+		result = (result + int64(value)*weighted) % mod
+	}
+	return int(result)
+}
+```
+
+1856 依赖正数，边界内尽量扩展可最大化区间和，先比较 int64 真实乘积再取模。2281 使用同一最小值归属边界，再用前缀和的前缀和求左右端点选择的总区间和；减法结果要规范到非负模值，不与 907 的单纯区间个数贡献混淆。

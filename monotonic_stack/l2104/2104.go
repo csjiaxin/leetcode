@@ -1,70 +1,37 @@
 package l2104
 
-type Stack[T any] struct {
-	d []T
-}
-
-func New[T any]() *Stack[T] {
-	s := &Stack[T]{
-		d: []T{},
-	}
-	return s
-}
-func (s *Stack[T]) Size() int {
-	return len(s.d)
-}
-
-func (s *Stack[T]) Peek() T {
-	return s.d[len(s.d)-1]
-}
-
-func (s *Stack[T]) Pop() T {
-	v := s.d[len(s.d)-1]
-	s.d = s.d[:len(s.d)-1]
-	return v
-}
-func (s *Stack[T]) Push(v T) {
-	s.d = append(s.d, v)
-}
-
-type E struct {
-	idx   int
-	value int
-}
-
 // https://leetcode.com/problems/sum-of-subarray-ranges/
-func subArrayRanges(nums []int) int64 {
-	sumExtremes := func(maximum bool) int64 {
-		idxStack := New[E]()
-		var ret int64
-
-		handleCurrent := func(pop E, right int) {
-			left := -1
-			if idxStack.Size() > 0 {
-				left = idxStack.Peek().idx
-			}
-			currentIdx := pop.idx
-			currentValue := pop.value
-			leftNums := currentIdx - 1 - left
-			rightNums := right - 1 - currentIdx
-			area := int64(leftNums+1) * int64(rightNums+1) * int64(currentValue)
-			ret += area
+// Embedded subtemplate: see README.md for its invariant and tie policy.
+// monotonicBoundaries settles right boundaries on pop and reads left on push.
+// pop defines the strict/non-strict tie ownership for this specific problem.
+func monotonicBoundaries(nums []int, pop func(previous, current int) bool) ([]int, []int) {
+	n := len(nums)
+	left, right := make([]int, n), make([]int, n)
+	stack := []int{}
+	for i, x := range nums {
+		right[i] = n
+		for len(stack) > 0 && pop(nums[stack[len(stack)-1]], x) {
+			j := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			right[j] = i
 		}
-		for i, v := range nums {
-			for idxStack.Size() > 0 && ((maximum && idxStack.Peek().value < v) ||
-				(!maximum && idxStack.Peek().value > v)) {
-				pop := idxStack.Pop()
-				handleCurrent(pop, i)
-			}
-			idxStack.Push(E{idx: i, value: v})
+		left[i] = -1
+		if len(stack) > 0 {
+			left[i] = stack[len(stack)-1]
 		}
-
-		for idxStack.Size() > 0 {
-			pop := idxStack.Pop()
-			handleCurrent(pop, len(nums))
-		}
-		return ret
+		stack = append(stack, i)
 	}
+	return left, right
+}
 
-	return sumExtremes(true) - sumExtremes(false)
+func subArrayRanges(nums []int) int64 {
+	minLeft, minRight := monotonicBoundaries(nums, func(previous, current int) bool { return previous >= current })
+	maxLeft, maxRight := monotonicBoundaries(nums, func(previous, current int) bool { return previous <= current })
+	var result int64
+	for i, value := range nums {
+		minima := int64(i-minLeft[i]) * int64(minRight[i]-i)
+		maxima := int64(i-maxLeft[i]) * int64(maxRight[i]-i)
+		result += int64(value) * (maxima - minima)
+	}
+	return result
 }

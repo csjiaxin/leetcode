@@ -1,28 +1,34 @@
 package l516
 
-// https://leetcode.com/problems/longest-palindromic-subsequence/
 func longestPalindromeSubseq(s string) int {
-	n := len(s)
-	if n == 0 {
+	if len(s) == 0 {
 		return 0
 	}
+	dp := IntervalTable(len(s), 0, func(i int) int { return 1 }, func(l, r, withoutLeft, withoutRight, inside int) int {
+		if s[l] == s[r] {
+			return inside + 2
+		}
+		return max(withoutLeft, withoutRight)
+	})
+	return dp[0][len(s)-1]
+}
 
-	// dp[i][j] is the longest palindromic subsequence length in s[i:j+1].
-	dp := make([][]int, n)
+// IntervalTable 按区间长度填表；insideEmpty 是空内部区间的单位值。
+func IntervalTable[T any](n int, insideEmpty T, base func(i int) T, step func(l, r int, withoutLeft, withoutRight, inside T) T) [][]T {
+	dp := make([][]T, n)
 	for i := range dp {
-		dp[i] = make([]int, n)
-		dp[i][i] = 1
+		dp[i] = make([]T, n)
+		dp[i][i] = base(i)
 	}
-
-	// Fill from shorter inner intervals to longer outer intervals.
-	for i := n - 2; i >= 0; i-- {
-		for j := i + 1; j < n; j++ {
-			if s[i] == s[j] {
-				dp[i][j] = dp[i+1][j-1] + 2
-			} else {
-				dp[i][j] = max(dp[i+1][j], dp[i][j-1])
+	for length := 2; length <= n; length++ {
+		for l := 0; l+length <= n; l++ {
+			r := l + length - 1
+			inside := insideEmpty
+			if length > 2 {
+				inside = dp[l+1][r-1]
 			}
+			dp[l][r] = step(l, r, dp[l+1][r], dp[l][r-1], inside)
 		}
 	}
-	return dp[0][n-1]
+	return dp
 }

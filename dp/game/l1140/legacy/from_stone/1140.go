@@ -1,48 +1,50 @@
 package main
 
-import "fmt"
-
-func max(a, b int) int {
-	if a < b {
-		return b
+// MemoGame 仅缓存无环状态的求值；每次调用创建独立缓存。
+func MemoGame[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
+	memo := make(map[S]V)
+	var solve func(S) V
+	solve = func(state S) V {
+		if value, ok := memo[state]; ok {
+			return value
+		}
+		value := evaluate(state, solve)
+		memo[state] = value
+		return value
 	}
-	return a
+	return solve
 }
 
-var presum []int
-var demo [][]int
-
+// 历史记忆化版本保留为独立包，统一使用同一无环求值骨架。
 func stoneGameII(piles []int) int {
 	n := len(piles)
-	presum = make([]int, n+1)
-	demo = make([][]int, n+1)
-	for i := 0; i <= n; i++ {
-		demo[i] = make([]int, n+1)
-		for j := 0; j <= n; j++ {
-			demo[i][j] = -1
+	suffix := make([]int, n+1)
+	for i := n - 1; i >= 0; i-- {
+		suffix[i] = suffix[i+1] + piles[i]
+	}
+	type state struct{ start, m int }
+	diff := MemoGame(func(s state, solve func(state) int) int {
+		if s.start == n {
+			return 0
 		}
-	}
-	presum[n-1] = piles[n-1]
-	for i := n - 2; i >= 0; i-- {
-		presum[i] = piles[i] + presum[i+1]
-	}
-	return dfs(piles, 1, 0)
-}
-func dfs(p []int, m, at int) int {
-	if at+2*m >= len(p) {
-		return presum[at]
-	}
-	if demo[at][m] >= 0 {
-		return demo[at][m]
-	}
-	ret := 0
-	for x := 1; x <= 2*m; x++ {
-		ret = max(ret, presum[at]-dfs(p, max(m, x), at+x))
-	}
-	demo[at][m] = ret
-	return ret
-}
-
-func main() {
-	fmt.Println(stoneGameII([]int{2, 7, 9, 4, 4}))
+		// 原题全为正数，能全拿时直接结束。
+		if 2*s.m >= n-s.start {
+			return suffix[s.start]
+		}
+		best, initialized := 0, false
+		for x := 1; x <= 2*s.m && s.start+x <= n; x++ {
+			nextM := s.m
+			if x > nextM {
+				nextM = x
+			}
+			taken := suffix[s.start] - suffix[s.start+x]
+			candidate := taken - solve(state{s.start + x, nextM})
+			if !initialized || candidate > best {
+				best, initialized = candidate, true
+			}
+		}
+		return best
+	})
+	// 总分固定：先手分数 = (总分 + 先手分差) / 2。
+	return (suffix[0] + diff(state{0, 1})) / 2
 }

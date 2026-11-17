@@ -1,40 +1,30 @@
 package l1190
 
-import "strings"
-
-func reverseString(s string) string {
-	r := []rune(s)
-	for i, j := 0, len(r)-1; i < j; i, j = i+1, j-1 {
-		r[i], r[j] = r[j], r[i]
-	}
-	return string(r)
-}
-
-func reverseParentheses(s string) string {
-
-	var (
-		stack   []string
-		current strings.Builder
-	)
-
-	for _, c := range s {
-		if c == '(' {
-			stack = append(stack, current.String())
-			current.Reset()
-		} else if c == ')' {
-			// layer := len(stack)
-			inner := stack[len(stack)-1]
+// Standalone nested-context subtemplate and problem adapter; see README.md.
+// reverseNestedPairs jumps between paired delimiters and reverses traversal.
+func reverseNestedPairs(s string) string {
+	pair := make([]int, len(s))
+	stack := []int{}
+	for i := range s {
+		if s[i] == '(' {
+			stack = append(stack, i)
+		} else if s[i] == ')' {
+			j := stack[len(stack)-1]
 			stack = stack[:len(stack)-1]
-			current_string := reverseString(current.String())
-			// if layer%2 == 1 {
-			// 	current_string = reverseString(current_string)
-			// }
-			current.Reset()
-			current.WriteString(inner)
-			current.WriteString(current_string)
-		} else {
-			current.WriteRune(c)
+			pair[i] = j
+			pair[j] = i
 		}
 	}
-	return current.String()
+	result := make([]byte, 0, len(s))
+	for i, direction := 0, 1; i >= 0 && i < len(s); i += direction {
+		if s[i] == '(' || s[i] == ')' {
+			i = pair[i]
+			direction = -direction
+		} else {
+			result = append(result, s[i])
+		}
+	}
+	return string(result)
 }
+
+func reverseParentheses(s string) string { return reverseNestedPairs(s) }

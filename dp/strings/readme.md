@@ -1,6 +1,6 @@
 # 双序列前缀 DP：LCS、编辑距离、匹配计数与答案构造
 
-本系列复用现有的 `dp/strings`，七道题共用 [template.go](template.go) 中的 `Table[T]`。已有的 1143、72 继续使用原目录和函数签名，其余题目按仓库的 `l题号/题号.go` 约定组织。
+本系列复用现有的 `dp/strings`。七道双前缀题使用同一套 `Table[T]`，各题主文件内均有一份完整本地实现；[template.go](template.go) 保留为参考实现与测试入口，不是题解的运行时依赖。5、516、1312 另外使用本页第 8 节的闭区间 `IntervalTable`。题目目录和函数签名保持原样。
 
 建议顺序：**1143 → 1035 → 583 → 72 → 97 → 115 → 1092**。
 
@@ -48,7 +48,7 @@ i       left         →         当前 dp[i][j]
 
 ## 3. 固定代码模板
 
-完整实现见 [template.go](template.go)，模板需要 Go 1.18+ 的泛型语法；运行本仓库时使用根目录 `go.mod` 指定的 Go 版本。
+参考实现见 [template.go](template.go)，下方完整声明也已内联到各双前缀题的主文件中。模板需要 Go 1.18+ 的泛型语法；运行本仓库时使用根目录 `go.mod` 指定的 Go 版本。
 
 ```go
 func Table[T any](
@@ -93,11 +93,11 @@ func Table[T any](
 
 定义 `dp[i][j]` 为两个前缀的最长公共子序列长度。任一前缀为空时长度为 0。
 
-```go
-import prefixdp "leetcode/dp/strings"
+下面的文档示例直接调用第 3 节定义的本地 `Table`。把两个代码块放在同一文件即可使用；实际题解同样内联模板，无需导入仓库中的包。
 
+```go
 func longestCommonSubsequence(text1, text2 string) int {
-    dp := prefixdp.Table[int](len(text1), len(text2),
+    dp := Table[int](len(text1), len(text2),
         func(i, j int) int { return 0 },
         func(i, j, up, left, diagonal int) int {
             if text1[i-1] == text2[j-1] {
@@ -199,7 +199,7 @@ go test -v ./dp/strings/l115
 
 测试包括官方示例、空前缀、重复字符、顺序约束，以及计数与构造类的边界。公共模板还验证空维度和三个前驱的传递；1092 另用小规模穷举对照最短长度及子序列关系。
 
-本地代码通过 `leetcode/dp/strings` 导入公共模板。提交到 LeetCode 时，把 `template.go` 中的 `Table` 函数复制到题解同一个文件，删除本地导入，并将 `prefixdp.Table` 改为 `Table`；保留题目要求的函数签名。
+每题主 `{题号}.go` 已包含题解及其完整本地模板。提交主解法到 LeetCode 时，保留题目函数和辅助模板、去掉仓库包声明即可，无需再导入或复制外部模板。同一包只保留一份模板定义；例如 l516 的多个源文件不应重复声明 `IntervalTable`。若单独选择其他变体，只需带上它实际使用的辅助函数。
 
 ## 7. 其他已有字符串 DP 资料
 
@@ -222,14 +222,85 @@ go test -v ./dp/strings/l115
 | 通配符匹配 | 普通字符/问号走对角；星号选择匹配零个或继续消费文本字符 | [44](https://leetcode.com/problems/wildcard-matching/) |
 | 正则匹配 | 星号作用于前一个模式元素，需要考虑 `dp[i][j-2]` 和继续匹配该元素 | [10](https://leetcode.com/problems/regular-expression-matching/) |
 
-回文子序列与最少插入的闭区间骨架：
+### 闭区间模板：按长度填表
 
-```text
-初始化长度为 1 的区间
-for length = 2..n:
-    for 每个 [l,r] 且 r-l+1=length:
-        若 s[l]==s[r]：从内部区间继承或加 2
-        否则：从 [l+1,r]、[l,r-1] 选择最优并计入操作代价
+5、516、1312 使用同一份本地 `IntervalTable`。它与前缀 `Table` 的依赖不同：需要去掉左端、去掉右端和内部区间，而不是上、左、左上。下面先声明一次模板，再给出三题适配；组合模板与任一适配即可形成独立示例。示例的内置 min/max 需要 Go 1.21+。
+
+```go
+// IntervalTable 按区间长度填表；insideEmpty 是空内部区间的单位值。
+func IntervalTable[T any](n int, insideEmpty T, base func(i int) T, step func(l, r int, withoutLeft, withoutRight, inside T) T) [][]T {
+	dp := make([][]T, n)
+	for i := range dp {
+		dp[i] = make([]T, n)
+		dp[i][i] = base(i)
+	}
+	for length := 2; length <= n; length++ {
+		for l := 0; l+length <= n; l++ {
+			r := l + length - 1
+			inside := insideEmpty
+			if length > 2 {
+				inside = dp[l+1][r-1]
+			}
+			dp[l][r] = step(l, r, dp[l+1][r], dp[l][r-1], inside)
+		}
+	}
+	return dp
+}
+```
+
+`insideEmpty` 是长度为 2 时的空内部区间：回文判定取 true，长度/操作数取 0；`base` 负责单字符。回调接收的三个状态分别是 dp[l+1][r]、dp[l][r-1]、dp[l+1][r-1]。外层按长度递增，保证依赖已完成。
+
+#### 5：最长连续回文子串
+
+```go
+func longestPalindrome(s string) string {
+	if len(s) == 0 {
+		return ""
+	}
+	start, best := 0, 1
+	IntervalTable(len(s), true, func(i int) bool { return true }, func(l, r int, withoutLeft, withoutRight, inside bool) bool {
+		valid := s[l] == s[r] && inside
+		if valid && r-l+1 > best {
+			start, best = l, r-l+1
+		}
+		return valid
+	})
+	return s[start : start+best]
+}
+```
+
+#### 516：最长回文子序列
+
+```go
+func longestPalindromeSubseq(s string) int {
+	if len(s) == 0 {
+		return 0
+	}
+	dp := IntervalTable(len(s), 0, func(i int) int { return 1 }, func(l, r, withoutLeft, withoutRight, inside int) int {
+		if s[l] == s[r] {
+			return inside + 2
+		}
+		return max(withoutLeft, withoutRight)
+	})
+	return dp[0][len(s)-1]
+}
+```
+
+#### 1312：最少插入成为回文
+
+```go
+func minInsertions(s string) int {
+	if len(s) == 0 {
+		return 0
+	}
+	dp := IntervalTable(len(s), 0, func(i int) int { return 0 }, func(l, r, withoutLeft, withoutRight, inside int) int {
+		if s[l] == s[r] {
+			return inside
+		}
+		return min(withoutLeft, withoutRight) + 1
+	})
+	return dp[0][len(s)-1]
+}
 ```
 
 516 的单字符答案为 1、空内部区间为 0；1312 的单字符和空区间均不需要插入。不能只复用遍历顺序而沿用错误的单位元或代价。

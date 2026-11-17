@@ -29,7 +29,20 @@
 
 公式来自集合相减；滑窗实现另有条件：删掉左端元素不能让约束变坏。种数、奇数数目、非负数组的和满足要求，任意负数数组的和不满足。
 
-**通用的是循环步骤，不需要 add/remove/valid 回调。** 每次 atMost 调用都建立独立窗口；k<0 返回 0。下面每题都有独立、完整的实现，不依赖其他章节代码。代码仅在文档中，练习文件保持原样。
+**通用循环固定为 windowAtMost；状态由题目适配器维护。** 每次 atMost 调用建立独立窗口，k<0 返回0。先复制下列 helper，再复制任一适配器；实际 Go 题解也在本地文件内嵌相同 helper，不导入其他题目。
+
+```go
+// windowAtMost counts valid suffixes; removing the left endpoint preserves validity.
+func windowAtMost(n int, add, remove func(int), invalid func() bool) int {
+ left, count := 0, 0
+ for right := 0; right < n; right++ {
+  add(right)
+  for left <= right && invalid() { remove(left); left++ }
+  count += right-left+1
+ }
+ return count
+}
+```
 
 <a id="lc992"></a>
 
@@ -42,35 +55,16 @@
 **状态与不变量**：freq 保存窗口内频次，distinct 保存不同数的数量。收缩后 distinct<=limit；频次从0变1时增加种数，从1变0时减少种数。
 
 ```go
-package template
-
 func subarraysWithKDistinct(nums []int, k int) int {
-	atMost := func(limit int) int64 {
-		if limit < 0 {
-			return 0
-		}
-		freq := make(map[int]int)
-		left, distinct := 0, 0
-		var answer int64
-		for right, x := range nums {
-			if freq[x] == 0 {
-				distinct++
-			}
-			freq[x]++
-			for distinct > limit {
-				y := nums[left]
-				freq[y]--
-				if freq[y] == 0 {
-					delete(freq, y)
-					distinct--
-				}
-				left++
-			}
-			answer += int64(right - left + 1)
-		}
-		return answer
-	}
-	return int(atMost(k) - atMost(k-1))
+ atMost := func(limit int) int {
+  if limit < 0 { return 0 }
+  count := map[int]int{}
+  return windowAtMost(len(nums),
+   func(i int) { count[nums[i]]++ },
+   func(i int) { count[nums[i]]--; if count[nums[i]] == 0 { delete(count, nums[i]) } },
+   func() bool { return len(count) > limit })
+ }
+ return atMost(k)-atMost(k-1)
 }
 ```
 
@@ -89,30 +83,16 @@ func subarraysWithKDistinct(nums []int, k int) int {
 **状态**：只需 odd，不再需要频次表。奇数贡献1，偶数贡献0；加入和移除时维护 odd。
 
 ```go
-package template
-
 func numberOfSubarrays(nums []int, k int) int {
-	atMost := func(limit int) int64 {
-		if limit < 0 {
-			return 0
-		}
-		left, odd := 0, 0
-		var answer int64
-		for right, x := range nums {
-			if x%2 != 0 {
-				odd++
-			}
-			for odd > limit {
-				if nums[left]%2 != 0 {
-					odd--
-				}
-				left++
-			}
-			answer += int64(right - left + 1)
-		}
-		return answer
-	}
-	return int(atMost(k) - atMost(k-1))
+ atMost := func(limit int) int {
+  if limit < 0 { return 0 }
+  odd := 0
+  return windowAtMost(len(nums),
+   func(i int) { odd += nums[i]&1 },
+   func(i int) { odd -= nums[i]&1 },
+   func() bool { return odd > limit })
+ }
+ return atMost(k)-atMost(k-1)
 }
 ```
 
@@ -131,26 +111,16 @@ func numberOfSubarrays(nums []int, k int) int {
 **状态**：sum 是窗口和。非负元素确保删左端不会增加和，因此可以用至多和的窗口。
 
 ```go
-package template
-
 func numSubarraysWithSum(nums []int, goal int) int {
-	atMost := func(limit int) int64 {
-		if limit < 0 {
-			return 0
-		}
-		left, sum := 0, 0
-		var answer int64
-		for right, x := range nums {
-			sum += x
-			for sum > limit {
-				sum -= nums[left]
-				left++
-			}
-			answer += int64(right - left + 1)
-		}
-		return answer
-	}
-	return int(atMost(goal) - atMost(goal-1))
+ atMost := func(limit int) int {
+  if limit < 0 { return 0 }
+  sum := 0
+  return windowAtMost(len(nums),
+   func(i int) { sum += nums[i] },
+   func(i int) { sum -= nums[i] },
+   func() bool { return sum > limit })
+ }
+ return atMost(goal)-atMost(goal-1)
 }
 ```
 
@@ -171,8 +141,8 @@ func numSubarraysWithSum(nums []int, goal int) int {
 - 求的是数量，累加所有合法后缀，不是维护最长长度。
 - 每次 atMost 都重置 left 和状态，不能沿用第一次的状态。
 - 窗口清空时 left=right+1，贡献为0，不计空子数组。
-- 计数中间值用 int64；上述题目答案在 LeetCode int 范围内，最后转 int。
-- 所有独立代码块可单独复制，不能把多个 `package template` 合到同一文件。
+- 当前三题约束下计数不超过有符号32位整数，模板用 int；若扩展更大的输入规模，应同时将累计值和返回表示改为 int64。
+- 本页所有 Go 代码块可按顺序组合到同一包：helper 仅声明一次，逐题适配器调用它。
 
 <a id="extended-practice"></a>
 

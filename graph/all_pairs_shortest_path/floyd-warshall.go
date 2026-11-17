@@ -2,60 +2,74 @@ package main
 
 import "fmt"
 
-func FloydWarshall(
-	n int,
-	edges []Edge,
-) ([][]int64, [][]bool, error) {
+type Edge struct {
+	From, To int
+	Weight   int64
+}
+
+// FloydWarshall 返回有向图全源最短距离及可达性；边端点须在 [0,n) 内。
+func FloydWarshall(n int, edges []Edge) ([][]int64, [][]bool, error) {
+	if n < 0 {
+		return nil, nil, fmt.Errorf("n must be nonnegative")
+	}
 	dist := make([][]int64, n)
 	reachable := make([][]bool, n)
-
-	for i := 0; i < n; i++ {
+	for i := range dist {
 		dist[i] = make([]int64, n)
 		reachable[i] = make([]bool, n)
-		reachable[i][i] = true // Distance to itself is zero.
+		reachable[i][i] = true
 	}
-
-	// Initialize direct edges; keep the smallest parallel edge.
 	for _, edge := range edges {
 		u, v := edge.From, edge.To
-
+		if u < 0 || u >= n || v < 0 || v >= n {
+			return nil, nil, fmt.Errorf("edge endpoint out of range")
+		}
 		if !reachable[u][v] || edge.Weight < dist[u][v] {
 			dist[u][v] = edge.Weight
 			reachable[u][v] = true
 		}
 	}
+	if !FloydClosure(dist, reachable, checkedAdd, func(a, b int64) bool { return a < b }) {
+		return nil, nil, fmt.Errorf("distance overflow")
+	}
+	for i := range dist {
+		if dist[i][i] < 0 {
+			return nil, nil, fmt.Errorf("negative cycle detected")
+		}
+	}
+	return dist, reachable, nil
+}
 
-	// k must be the outer loop.
-	for k := 0; k < n; k++ {
-		for i := 0; i < n; i++ {
+// FloydClosure 按允许的中间节点递增；extend 失败时停止并返回 false。
+func FloydClosure[T any](value [][]T, reachable [][]bool, extend func(T, T) (T, bool), better func(T, T) bool) bool {
+	for k := range value {
+		for i := range value {
 			if !reachable[i][k] {
 				continue
 			}
-
-			for j := 0; j < n; j++ {
+			for j := range value {
 				if !reachable[k][j] {
 					continue
 				}
-
-				candidate, ok := checkedAdd(dist[i][k], dist[k][j])
+				candidate, ok := extend(value[i][k], value[k][j])
 				if !ok {
-					return nil, nil, fmt.Errorf("distance overflow")
+					return false
 				}
-
-				if !reachable[i][j] || candidate < dist[i][j] {
-					dist[i][j] = candidate
+				if !reachable[i][j] || better(candidate, value[i][j]) {
+					value[i][j] = candidate
 					reachable[i][j] = true
 				}
 			}
 		}
 	}
+	return true
+}
 
-	// A negative distance back to itself implies a negative cycle.
-	for i := 0; i < n; i++ {
-		if dist[i][i] < 0 {
-			return nil, nil, fmt.Errorf("negative cycle detected")
-		}
+func checkedAdd(a, b int64) (int64, bool) {
+	const highest = int64(1<<63 - 1)
+	const lowest = int64(-1 << 63)
+	if b > 0 && a > highest-b || b < 0 && a < lowest-b {
+		return 0, false
 	}
-
-	return dist, reachable, nil
+	return a + b, true
 }

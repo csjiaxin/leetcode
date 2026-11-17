@@ -11,7 +11,7 @@
 | 扩展状态 BFS | 只合并完整状态相同的搜索分支 | 1293 的剩余消除次数、864 的钥匙集合、847 的访问集合、1129 的边颜色、1654 的上一跳方向 |
 | 其余建模与可达性 | 需要分别说明步数含义与重复扩展范围 | 130、1020、1311、1345、815、301 |
 
-题目 `.go` 文件保留为待实现练习，已有测试不等于实现已完成；下文代码块是参考解答。130、1020 的另一套已完成实现归入 [DFS 网格连通块](../dfs/grid/readme.md)，二者的接口与输入修改约定独立保留。[934 的 DFS＋BFS 旧笔记](l934/variants/dfs_bfs/934)也保留。
+本目录24道题的 `.go` 文件均使用下方通用 BFS 辅助函数，每个主解文件都复制完整 helper，可独立提交，不依赖仓库内部包；已有测试保持原样。130、1020 的另一套已完成实现归入 [DFS 网格连通块](../dfs/grid/readme.md)，二者的接口与输入修改约定独立保留。[934 的 DFS＋BFS 旧笔记](l934/variants/dfs_bfs/934)也保留。
 
 [返回仓库目录](../README.md)
 
@@ -68,39 +68,65 @@ DFS 先把一条路走深，因此“第一次找到”不一定最短；它可�
 
 先写清四项：**状态是什么 → 起点有哪些 → 一步如何生成邻居 → 何时完成**。随后填入同一个循环。
 
-下面是显式邻接表图的可执行 Go 骨架，不强行封装回调。节点为 `0..len(graph)-1`，起点和目标均为合法节点；每条边代价为1。
+下面把固定的 FIFO 循环封装为泛型 `bfs`，各题只提供起点、邻居函数和可选的停止回调。`S` 必须可比较，坐标和扩展状态可用数组／结构体，字符串可直接作键；`dist` 同时保存距离和访问状态，整个搜索期间复用同一张表。显式邻接表示例中节点为 `0..len(graph)-1`，起点和目标均为合法节点；每条边代价为1。
 
 ```go
 package template
 
+// bfs visits each complete state once, at its minimum distance from any start.
+// A true stop result ends the search before expanding that state; nil explores all.
+func bfs[S comparable](starts []S, neighbors func(S) []S, stop func(S, int) bool) map[S]int {
+	dist := make(map[S]int, len(starts))
+	queue := make([]S, 0, len(starts))
+	for _, start := range starts {
+		if _, seen := dist[start]; seen {
+			continue
+		}
+		dist[start] = 0
+		queue = append(queue, start)
+	}
+	for head := 0; head < len(queue); head++ {
+		current := queue[head]
+		distance := dist[current]
+		if stop != nil && stop(current, distance) {
+			break
+		}
+		for _, next := range neighbors(current) {
+			if _, seen := dist[next]; seen {
+				continue
+			}
+			dist[next] = distance + 1
+			queue = append(queue, next)
+		}
+	}
+	return dist
+}
+
 func shortestDistance(graph [][]int, starts []int, target int) int {
-    dist := make([]int, len(graph))
-    for i := range dist { dist[i] = -1 }
-    queue := []int{}
-    for _, s := range starts {
-        if dist[s] != -1 { continue } // 起点也要去重
-        dist[s] = 0
-        queue = append(queue, s)
-    }
-    for head := 0; head < len(queue); head++ {
-        current := queue[head]
-        if current == target { return dist[current] }
-        for _, next := range graph[current] {
-            if dist[next] != -1 { continue }
-            dist[next] = dist[current] + 1 // 入队前标记
-            queue = append(queue, next)
-        }
-    }
-    return -1
+	answer := -1
+	bfs(starts, func(node int) []int {
+		return graph[node]
+	}, func(node, distance int) bool {
+		if node == target {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
 }
 ```
 
 | 固定部分 | 每道题改变的部分 |
 | --- | --- |
-| 队列先进先出、按 head 消费 | 队列元素的类型 |
-| 首次发现时标记并入队 | 用数组、map，还是扩展状态表去重 |
+| 队列先进先出、按 head 消费 | 状态类型 `S`，以及起点 `starts` |
+| 首次发现时标记并入队 | 用数组／结构体／字符串表达完整的可比较状态 |
 | 下一步距离为当前距离+1 | 枚举相邻格、旋转密码、修改字符等 |
-| 处理到目标或队列耗尽 | 目标是一个状态、全部感染，还是整张距离表 |
+| 处理到目标或队列耗尽 | `stop(state,distance)` 判断目标；传 `nil` 得到整张距离表 |
+
+`neighbors(state)` 只返回合法的一步后继；helper 在入队前统一去重并赋值。`stop` 在出队后、生成邻居前执行，返回 `true` 立即停止；`nil` 会遍历全部可达状态。提前停止时返回的 `dist` 只包含已发现的状态。求单个目标的题目在回调中保存答案，避免搜索余下的状态。1311 只生成到指定层；301 收集第一个有合法括号串的整层，此后不再生成更深状态，遇到已入队的下一层立即结束。
+
+README 中只声明一次 helper，下面的题解代码块与其放在同一包中即可运行；各练习主文件已各自附上完整副本，符合独立提交要求。Go 泛型需要 Go 1.18 及以上。
 
 同样可以按层计数，替代为每个状态单独存距离：
 
@@ -200,7 +226,7 @@ while 队列非空:
 
 双向 BFS 通常每次扩展节点较少的一整层，减少探索量，但并不消除状态空间的最坏复杂度。不要只靠“两边碰到了”替代正确的层次、距离和去重管理。
 
-**本节模板负责理解通用流程；下列三题保留独立实现，便于对照状态、初始化和答案单位。**
+**下列三题均调用同一个 `bfs`，对照的变化点只有状态、源、邻居与答案单位；其余练习的完整调用见各题 `.go` 文件。**
 
 <a id="lc1091"></a>
 
@@ -210,48 +236,36 @@ while 队列非空:
 
 **题意**：0可通行、1阻塞，可走八方向，求左上到右下路径上的格子数，无路为-1。
 
-**状态**：dist=-1表示未发现，源距离为1，因为路径计格子而不是边。
+**状态**：格子坐标；helper 统一把源距离设为0，map 中不存在表示未发现。因为答案计格子数，在到达终点时返回边数加1。
 
 ```go
 package template
 
 func shortestPathBinaryMatrix(grid [][]int) int {
 	n := len(grid)
-	if grid[0][0] != 0 || grid[n-1][n-1] != 0 {
+	if n == 0 || len(grid[0]) == 0 || grid[0][0] != 0 || grid[n-1][n-1] != 0 {
 		return -1
 	}
-	dist := make([][]int, n)
-	for i := range dist {
-		dist[i] = make([]int, n)
-		for j := range dist[i] {
-			dist[i][j] = -1
-		}
-	}
-	queue := [][2]int{{0, 0}}
-	dist[0][0] = 1
-	for head := 0; head < len(queue); head++ {
-		r, c := queue[head][0], queue[head][1]
-		if r == n-1 && c == n-1 {
-			return dist[r][c]
-		}
+	answer := -1
+	bfs([][2]int{{0, 0}}, func(cell [2]int) [][2]int {
+		next := make([][2]int, 0, 8)
 		for dr := -1; dr <= 1; dr++ {
 			for dc := -1; dc <= 1; dc++ {
-				if dr == 0 && dc == 0 {
-					continue
+				r, c := cell[0]+dr, cell[1]+dc
+				if (dr != 0 || dc != 0) && r >= 0 && r < n && c >= 0 && c < n && grid[r][c] == 0 {
+					next = append(next, [2]int{r, c})
 				}
-				nr, nc := r+dr, c+dc
-				if nr < 0 || nr >= n || nc < 0 || nc >= n {
-					continue
-				}
-				if grid[nr][nc] != 0 || dist[nr][nc] != -1 {
-					continue
-				}
-				dist[nr][nc] = dist[r][c] + 1
-				queue = append(queue, [2]int{nr, nc})
 			}
 		}
-	}
-	return -1
+		return next
+	}, func(cell [2]int, distance int) bool {
+		if cell == [2]int{n-1, n-1} {
+			answer = distance + 1 // This problem counts cells, including the start.
+			return true
+		}
+		return false
+	})
+	return answer
 }
 ```
 
@@ -267,44 +281,44 @@ func shortestPathBinaryMatrix(grid [][]int) int {
 
 **题意**：每分钟腐烂橘子感染四邻的新鲜橘子，求全部腐烂所需时间，无解-1，无新鲜0。
 
-**状态**：所有腐烂橘子同时为源，记录fresh；每次处理固定一层，感染新格时立即改成2，兼作访问标记。
+**状态**：所有腐烂橘子同时为源，记录fresh；helper 给出最少感染距离，最后出队的距离就是分钟数。生成新感染格时立即改成2并减少fresh。
 
 ```go
 package template
 
 func orangesRotting(grid [][]int) int {
+	if len(grid) == 0 || len(grid[0]) == 0 {
+		return 0
+	}
 	rows, cols := len(grid), len(grid[0])
-	queue := [][2]int{}
+	starts := [][2]int{}
 	fresh := 0
-	for r := 0; r < rows; r++ {
-		for c := 0; c < cols; c++ {
-			if grid[r][c] == 2 {
-				queue = append(queue, [2]int{r, c})
-			}
-			if grid[r][c] == 1 {
+	for r := range grid {
+		for c, orange := range grid[r] {
+			if orange == 2 {
+				starts = append(starts, [2]int{r, c})
+			} else if orange == 1 {
 				fresh++
 			}
 		}
 	}
 	directions := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
-	minutes, head := 0, 0
-	for head < len(queue) && fresh > 0 {
-		end := len(queue)
-		for head < end {
-			r, c := queue[head][0], queue[head][1]
-			head++
-			for _, d := range directions {
-				nr, nc := r+d[0], c+d[1]
-				if nr < 0 || nr >= rows || nc < 0 || nc >= cols || grid[nr][nc] != 1 {
-					continue
-				}
-				grid[nr][nc] = 2
+	minutes := 0
+	bfs(starts, func(cell [2]int) [][2]int {
+		next := make([][2]int, 0, 4)
+		for _, direction := range directions {
+			r, c := cell[0]+direction[0], cell[1]+direction[1]
+			if r >= 0 && r < rows && c >= 0 && c < cols && grid[r][c] == 1 {
+				grid[r][c] = 2 // Mark when discovered, not when later removed.
 				fresh--
-				queue = append(queue, [2]int{nr, nc})
+				next = append(next, [2]int{r, c})
 			}
 		}
-		minutes++
-	}
+		return next
+	}, func(_ [2]int, distance int) bool {
+		minutes = distance
+		return false
+	})
 	if fresh > 0 {
 		return -1
 	}
@@ -324,38 +338,43 @@ func orangesRotting(grid [][]int) int {
 
 **题意**：为每个格子求到最近0的四方向距离，题设至少有一个0。
 
-**状态**：所有0以距离0入队，其他格子为-1；多源BFS得到最近源距离，不需要对每个1单独搜索。
+**状态**：所有0以距离0入队，map 中不存在表示未发现；多源BFS得到最近源距离，最后按坐标填入结果矩阵，不需要对每个1单独搜索。
 
 ```go
 package template
 
 func updateMatrix(mat [][]int) [][]int {
+	if len(mat) == 0 || len(mat[0]) == 0 {
+		return mat
+	}
 	rows, cols := len(mat), len(mat[0])
-	dist := make([][]int, rows)
-	queue := [][2]int{}
-	for r := 0; r < rows; r++ {
-		dist[r] = make([]int, cols)
-		for c := 0; c < cols; c++ {
-			dist[r][c] = -1
-			if mat[r][c] == 0 {
-				dist[r][c] = 0
-				queue = append(queue, [2]int{r, c})
+	starts := [][2]int{}
+	for r := range mat {
+		for c, value := range mat[r] {
+			if value == 0 {
+				starts = append(starts, [2]int{r, c})
 			}
 		}
 	}
 	directions := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
-	for head := 0; head < len(queue); head++ {
-		r, c := queue[head][0], queue[head][1]
-		for _, d := range directions {
-			nr, nc := r+d[0], c+d[1]
-			if nr < 0 || nr >= rows || nc < 0 || nc >= cols || dist[nr][nc] != -1 {
-				continue
+	dist := bfs(starts, func(cell [2]int) [][2]int {
+		next := make([][2]int, 0, 4)
+		for _, direction := range directions {
+			r, c := cell[0]+direction[0], cell[1]+direction[1]
+			if r >= 0 && r < rows && c >= 0 && c < cols {
+				next = append(next, [2]int{r, c})
 			}
-			dist[nr][nc] = dist[r][c] + 1
-			queue = append(queue, [2]int{nr, nc})
+		}
+		return next
+	}, nil)
+	answer := make([][]int, rows)
+	for r := range answer {
+		answer[r] = make([]int, cols)
+		for c := range answer[r] {
+			answer[r][c] = dist[[2]int{r, c}]
 		}
 	}
-	return dist
+	return answer
 }
 ```
 
@@ -369,7 +388,7 @@ func updateMatrix(mat [][]int) [][]int {
 
 | 题目 | 源点 | 邻居 | 距离单位 |
 | --- | --- | --- | --- |
-| 1091 | 左上角 | 八方向 | 格子数，源为1 |
+| 1091 | 左上角 | 八方向 | 格子数，helper 源为0，结果加1 |
 | 994 | 所有腐烂橘子 | 四方向 | 分钟，源为0 |
 | 542 | 所有0 | 四方向 | 边数，源为0 |
 
@@ -383,7 +402,7 @@ func updateMatrix(mat [][]int) [][]int {
 
 ## 扩展练习：迁移点与边界
 
-共24道练习，按状态建模分类，而不只按题目的表面故事分类。每题都有 LeetCode 原题与本地目录链接。新增目录只放**空函数声明**，沿用仓库的练习方式，不提前填写答案；带返回值的空函数尚不能编译，需独立完成后再测试。已有三题的代码与测试保持不变。
+共24道练习，按状态建模分类，而不只按题目的表面故事分类。每题都有 LeetCode 原题与本地目录链接。24个主解文件均已用同一 helper 实现；每个文件保留题目原函数签名和完整本地 helper，不导入仓库内部包。已有三题的测试保持不变，其他题目未新增测试。
 
 ### A. 基础网格与按层距离（4题）
 
@@ -450,10 +469,10 @@ func updateMatrix(mat [][]int) [][]int {
 
 1. 一次操作是否真的代价相同？
 2. 状态里是否包含所有影响未来的信息？
-3. 初始队列是单源还是多源，源距离为0还是1？
+3. 初始队列是单源还是多源，helper 的源距离0如何换算成题目答案单位？
 4. 邻居如何生成，何时判断合法，何时标记访问？
 5. 求一个目标距离、整张距离表，还是某层所有答案？
 6. 队列耗尽时该返回什么，起点本身满足目标时呢？
 7. 复杂度按完整状态数与实际邻居生成成本计算了吗？
 
-**练习提示**：新题目录暂未添加测试，不要把“空函数无法编译”当成模板问题。先独立实现，再为起点即终点、不可达、重复到达、多源竞争和扩展状态补测试。已存在的三题可在实现完成后使用 `go test ./graph/bfs/l1091 ./graph/bfs/l994 ./graph/bfs/l542`。
+**练习提示**：复盘时重点检查起点即终点、不可达、重复到达、多源竞争和扩展状态。可用 `go test ./graph/bfs/...` 编译全部题目并运行已有测试；无测试目录编译通过不等于其所有边界都已获测试覆盖。

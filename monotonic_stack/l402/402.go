@@ -1,56 +1,35 @@
 package l402
 
-import "strings"
-
-type Stack[T any] struct {
-	d []T
-}
-
-func New[T any]() *Stack[T] {
-	s := &Stack[T]{
-		d: []T{},
-	}
-	return s
-}
-func (s *Stack[T]) Size() int {
-	return len(s.d)
-}
-
-func (s *Stack[T]) Peek() T {
-	return s.d[len(s.d)-1]
-}
-
-func (s *Stack[T]) Pop() T {
-	v := s.d[len(s.d)-1]
-	s.d = s.d[:len(s.d)-1]
-	return v
-}
-func (s *Stack[T]) Push(v T) {
-	s.d = append(s.d, v)
-}
-
 // https://leetcode.com/problems/remove-k-digits/
-func removeKdigits(num string, k int) string {
-	stack := New[rune]()
-	for _, c := range num {
-		for stack.Size() > 0 && stack.Peek() > c && k > 0 {
-			stack.Pop()
-			k--
+// Embedded subtemplate: see README.md for its invariant and tie policy.
+// greedySubsequence keeps k elements; better may replace a worse previous value.
+func greedySubsequence[T any](values []T, k int, better func(current, previous T) bool) []T {
+	if k < 0 {
+		k = 0
+	}
+	if k > len(values) {
+		k = len(values)
+	}
+	drop := len(values) - k
+	stack := make([]T, 0, len(values))
+	for _, value := range values {
+		for drop > 0 && len(stack) > 0 && better(value, stack[len(stack)-1]) {
+			stack = stack[:len(stack)-1]
+			drop--
 		}
-		stack.Push(c)
+		stack = append(stack, value)
 	}
+	return stack[:k]
+}
 
-	for ; k > 0; k-- {
-		stack.Pop()
+func removeKdigits(num string, k int) string {
+	digits := greedySubsequence([]byte(num), len(num)-k, func(current, previous byte) bool { return current < previous })
+	start := 0
+	for start < len(digits) && digits[start] == '0' {
+		start++
 	}
-	ret := ""
-	for stack.Size() > 0 {
-		popped := stack.Pop()
-		ret = string(popped) + ret
-	}
-	ret = strings.TrimLeft(ret, "0")
-	if ret == "" {
+	if start == len(digits) {
 		return "0"
 	}
-	return ret
+	return string(digits[start:])
 }

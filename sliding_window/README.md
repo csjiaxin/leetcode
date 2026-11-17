@@ -4,6 +4,112 @@
 
 [扩展练习：迁移点与边界](#extended-practice) · [保留的原分类笔记](#legacy-notes)
 
+## 同文件局部模板（先复制，再复制任一题适配器）
+
+所有下文 Go 适配器共用本代码块；不需要任何 import。最长与最短的答案时机、定长与 atMost 的计数方式分别命名，不用一个反转含义的 valid 回调混用。
+
+```go
+// windowLongest maintains a valid suffix after removing invalid left endpoints.
+func windowLongest(n int, add, remove func(int), invalid func() bool) int {
+	left, best := 0, 0
+	for right := 0; right < n; right++ {
+		add(right)
+		for left <= right && invalid() {
+			remove(left)
+			left++
+		}
+		if length := right - left + 1; length > best {
+			best = length
+		}
+	}
+	return best
+}
+
+// windowShortest records valid windows before shrinking; length n+1 means absent.
+func windowShortest(n int, add, remove func(int), valid func() bool) (int, int) {
+	left, start, length := 0, 0, n+1
+	for right := 0; right < n; right++ {
+		add(right)
+		for left <= right && valid() {
+			if right-left+1 < length {
+				start, length = left, right-left+1
+			}
+			remove(left)
+			left++
+		}
+	}
+	return start, length
+}
+
+// windowFixed visits exactly the windows of length k.
+func windowFixed(n, k int, add, remove func(int), visit func(int)) {
+	if k <= 0 || k > n {
+		return
+	}
+	left := 0
+	for right := 0; right < n; right++ {
+		add(right)
+		if right-left+1 > k {
+			remove(left)
+			left++
+		}
+		if right-left+1 == k {
+			visit(left)
+		}
+	}
+}
+
+// windowAtMost counts valid suffixes; removing the left endpoint preserves validity.
+func windowAtMost(n int, add, remove func(int), invalid func() bool) int {
+	left, count := 0, 0
+	for right := 0; right < n; right++ {
+		add(right)
+		for left <= right && invalid() {
+			remove(left)
+			left++
+		}
+		count += right - left + 1
+	}
+	return count
+}
+
+// windowCoverCount counts all future right endpoints for each valid left endpoint.
+func windowCoverCount(n int, add, remove func(int), valid func() bool) int {
+	left, count := 0, 0
+	for right := 0; right < n; right++ {
+		add(right)
+		for left <= right && valid() {
+			count += n - right
+			remove(left)
+			left++
+		}
+	}
+	return count
+}
+
+// windowMaximum uses a decreasing deque of indices with explicit expiration.
+func windowMaximum(nums []int, k int) []int {
+	result := []int{}
+	if k <= 0 || k > len(nums) {
+		return result
+	}
+	deque := []int{}
+	for right, value := range nums {
+		if len(deque) > 0 && deque[0] <= right-k {
+			deque = deque[1:]
+		}
+		for len(deque) > 0 && nums[deque[len(deque)-1]] <= value {
+			deque = deque[:len(deque)-1]
+		}
+		deque = append(deque, right)
+		if right+1 >= k {
+			result = append(result, nums[deque[0]])
+		}
+	}
+	return result
+}
+```
+
 ## 目录
 
 - [1. 核心思路](#core)
@@ -24,7 +130,7 @@
 最短满足：加入右端 → while 满足则先记录答案、再移除左端
 ```
 
-每个元素最多加入、移除一次，内层while不使总复杂度变为平方。下面不再封装 add/remove/valid，每题直接写循环；各代码块独立，练习文件不改动。
+每个元素最多加入、移除一次，内层while不使总复杂度变为平方。下列六个局部模板分别固定移动规则，逐题仅适配 add/remove 和条件。每份实际 Go 题解也在同一文件内嵌对应模板，可独立提交，不导入仓库本地包。
 
 <a id="lc3"></a>
 
@@ -37,20 +143,23 @@
 **状态与修复**：窗口加入新字符前无重复，所以只可能新字符重复。只要它频次>1，就不断移除左端，恢复合法后更新长度。
 
 ```go
-package template
-
 func lengthOfLongestSubstring(s string) int {
-	var freq [256]int
-	left, answer := 0, 0
-	for right := 0; right < len(s); right++ {
-		freq[s[right]]++
-		for freq[s[right]] > 1 {
-			freq[s[left]]--
-			left++
-		}
-		answer = max(answer, right-left+1)
-	}
-	return answer
+	var count [256]int
+	duplicates := 0
+	return windowLongest(len(s),
+		func(i int) {
+			count[s[i]]++
+			if count[s[i]] == 2 {
+				duplicates++
+			}
+		},
+		func(i int) {
+			if count[s[i]] == 2 {
+				duplicates--
+			}
+			count[s[i]]--
+		},
+		func() bool { return duplicates > 0 })
 }
 ```
 
@@ -69,23 +178,20 @@ func lengthOfLongestSubstring(s string) int {
 **状态**：zeros为窗口0的数目。zeros<=k时整段可翻成1，违规时收缩，合法后更新。
 
 ```go
-package template
-
 func longestOnes(nums []int, k int) int {
-	left, zeros, answer := 0, 0, 0
-	for right, x := range nums {
-		if x == 0 {
-			zeros++
-		}
-		for zeros > k {
-			if nums[left] == 0 {
+	zeros := 0
+	return windowLongest(len(nums),
+		func(i int) {
+			if nums[i] == 0 {
+				zeros++
+			}
+		},
+		func(i int) {
+			if nums[i] == 0 {
 				zeros--
 			}
-			left++
-		}
-		answer = max(answer, right-left+1)
-	}
-	return answer
+		},
+		func() bool { return zeros > k })
 }
 ```
 
@@ -104,23 +210,16 @@ func longestOnes(nums []int, k int) int {
 **状态与不变量**：sum为窗口和；满足时先记录长度再收缩。正数保证移除左端只会减少和。
 
 ```go
-package template
-
 func minSubArrayLen(target int, nums []int) int {
-	left, answer := 0, len(nums)+1
 	var sum int64
-	for right, x := range nums {
-		sum += int64(x)
-		for sum >= int64(target) {
-			answer = min(answer, right-left+1)
-			sum -= int64(nums[left])
-			left++
-		}
-	}
-	if answer == len(nums)+1 {
+	_, length := windowShortest(len(nums),
+		func(i int) { sum += int64(nums[i]) },
+		func(i int) { sum -= int64(nums[i]) },
+		func() bool { return sum >= int64(target) })
+	if length == len(nums)+1 {
 		return 0
 	}
-	return answer
+	return length
 }
 ```
 
@@ -139,44 +238,35 @@ func minSubArrayLen(target int, nums []int) int {
 **状态**：need、window记录频次；required是目标字符种数，formed是已满足次数要求的种数。只有跨过频次临界点才修改formed。
 
 ```go
-package template
-
 func minWindow(s string, t string) string {
 	if len(t) == 0 || len(t) > len(s) {
 		return ""
 	}
-	var need, window [256]int
-	required := 0
-	for i := 0; i < len(t); i++ {
-		if need[t[i]] == 0 {
-			required++
-		}
+	var need, count [256]int
+	missing := len(t)
+	for i := range t {
 		need[t[i]]++
 	}
-	left, formed := 0, 0
-	bestStart, bestLength := 0, len(s)+1
-	for right := 0; right < len(s); right++ {
-		c := s[right]
-		window[c]++
-		if need[c] > 0 && window[c] == need[c] {
-			formed++
-		}
-		for formed == required {
-			if right-left+1 < bestLength {
-				bestStart, bestLength = left, right-left+1
+	start, length := windowShortest(len(s),
+		func(i int) {
+			c := s[i]
+			if count[c] < need[c] {
+				missing--
 			}
-			c = s[left]
-			if need[c] > 0 && window[c] == need[c] {
-				formed--
+			count[c]++
+		},
+		func(i int) {
+			c := s[i]
+			count[c]--
+			if count[c] < need[c] {
+				missing++
 			}
-			window[c]--
-			left++
-		}
-	}
-	if bestLength == len(s)+1 {
+		},
+		func() bool { return missing == 0 })
+	if length == len(s)+1 {
 		return ""
 	}
-	return s[bestStart : bestStart+bestLength]
+	return s[start : start+length]
 }
 ```
 
@@ -224,7 +314,7 @@ func minWindow(s string, t string) string {
 
 适用：长度固定为 k 的区间和、字符频次匹配。
 
-```go
+```text
 left := 0
 for right := 0; right < len(nums); right++ {
     // 加入 nums[right]。
@@ -250,7 +340,7 @@ for right := 0; right < len(nums); right++ {
 
 模式：先扩展，条件不合法时持续收缩，恢复合法后更新最大长度。
 
-```go
+```text
 left, best := 0, 0
 for right := 0; right < len(nums); right++ {
     // 加入 nums[right]。
@@ -273,7 +363,7 @@ for right := 0; right < len(nums); right++ {
 
 模式：扩展到满足条件后，持续收缩，直到不满足。答案在移除左端之前更新。
 
-```go
+```text
 left := 0
 for right := 0; right < len(nums); right++ {
     // 加入 nums[right]。
@@ -298,7 +388,7 @@ for right := 0; right < len(nums); right++ {
 
 收缩后，若 `[left,right]` 合法，且删除左侧元素不会破坏合法性，则所有以 right 结尾、起点在 left..right 之间的窗口都合法：
 
-```go
+```text
 answer += right - left + 1
 ```
 
@@ -321,7 +411,7 @@ exactly(k) = atMost(k) - atMost(k-1)
 
 当 `[left,right]` 已覆盖 a、b、c，保持 left 不变，右端点继续向右都有效，所以一次加入：
 
-```go
+```text
 answer += len(s) - right
 ```
 
@@ -336,7 +426,7 @@ answer += len(s) - right
 3. 当前下标入队。
 4. 窗口达到长度 k 后，队首就是最大值。
 
-时间 O(n)，辅助空间 O(k)。已有实现见 `../monotonic_stack/l239/`，本轮不重复生成模板。
+时间 O(n)，辅助空间 O(k)。实际实现见 [l239](l239)，使用本页独立的 windowMaximum 单调队列模板。
 
 ## 7. 常见错误
 
@@ -351,7 +441,7 @@ answer += len(s) - right
 
 ## 8. 目录与练习路线
 
-本轮核心练习均有 `l题号/题号.go` 和 `l题号/题号_test.go`，函数模板使用 `panic("not implemented")`，测试留待实现后运行。
+本轮核心题目均有 `l题号/题号.go` 和 `l题号/题号_test.go`，实际实现及各来源变体均使用本页命名模板，并运行各自原测试。
 
 ```text
 l643 → l567 → l438             定长窗口
@@ -360,7 +450,7 @@ l209 → l76                    最短满足窗口
 l713 → l1358 → l992            子数组计数
 ```
 
-原有 `1004.go`、`1358.go`、`567.go` 保留不动。它们各有独立的 main 及重复辅助函数，不适合直接一起编译；练习时单独测试 `l题号/` 目录。`567` 和 `438` 在 permutation 目录也有模板，这里按滑动窗口专题独立保留。
+原演示与练习现按题号归并，各来源保留独立包；567、438 的 permutation 来源在各题 variants/from_permutation 中，实际实现也使用同一 windowFixed 模板。
 
 无根目录 go.mod 时，可从仓库根目录按文件运行，例如：
 
@@ -426,6 +516,211 @@ go test -run '^$' sliding_window/l643/*.go
 | 438、567 | 各题的 `variants/from_two_pointers`、`variants/from_permutation` |
 | 992 | `variants/from_two_pointers`、`variants/from_at_most` |
 
-[567/variants/from_permutation](l567/variants/from_permutation) 保留了一份已实现的定长频次窗口；[567 主练习](l567) 的原未完成状态和测试也保持独立。`*_template` 的空函数并未补齐，也未排除在编译之外。[at_most/README.md](at_most/README.md) 继续作为公式专题笔记，但题目代码已归入统一题号目录。
+[567/variants/from_permutation](l567/variants/from_permutation) 保留了一份已实现的定长频次窗口；[567 主练习](l567) 现同样使用 windowFixed；各变体与原测试保持独立。所有 `variants` 现按相同子模板独立实现，并保留各自原测试。[at_most/README.md](at_most/README.md) 继续作为公式专题笔记，但题目代码已归入统一题号目录。
 
-单测应按当前具体包运行，例如 `go test ./sliding_window/l3`；`go test ./sliding_window/...` 仍会如实包含未完成练习的编译或运行失败，不能把“目录已整理”理解为“题目全部完成”。迁移清单见 [reorganization.json](../two_pointers/reorganization.json)。
+单测按当前包或整个专题运行：`go test ./sliding_window/...`。目录归并与算法实现验证是两个独立步骤。迁移清单见 [reorganization.json](../two_pointers/reorganization.json)。
+
+
+## 其他题的同模板适配器
+
+以下适配器使用上方已经声明的同名模板；分别复制到对应题的同一文件即可。
+
+### 239：maxSlidingWindow
+
+```go
+func maxSlidingWindow(nums []int, k int) []int { return windowMaximum(nums, k) }
+```
+
+### 424：characterReplacement
+
+```go
+func characterReplacement(s string, k int) int {
+	var count [26]int
+	length := 0
+	return windowLongest(len(s),
+		func(i int) { count[s[i]-'A']++; length++ },
+		func(i int) { count[s[i]-'A']--; length-- },
+		func() bool {
+			highest := 0
+			for _, c := range count {
+				if c > highest {
+					highest = c
+				}
+			}
+			return length-highest > k
+		})
+}
+```
+
+### 438：findAnagrams
+
+```go
+func findAnagrams(s string, p string) []int {
+	result := []int{}
+	if len(p) == 0 {
+		return result
+	}
+	var need, count [256]int
+	for i := range p {
+		need[p[i]]++
+	}
+	windowFixed(len(s), len(p),
+		func(i int) { count[s[i]]++ },
+		func(i int) { count[s[i]]-- },
+		func(left int) {
+			if count == need {
+				result = append(result, left)
+			}
+		})
+	return result
+}
+```
+
+### 567：checkInclusion
+
+```go
+func checkInclusion(s1 string, s2 string) bool {
+	if len(s1) == 0 {
+		return true
+	}
+	var need, count [256]int
+	for i := range s1 {
+		need[s1[i]]++
+	}
+	found := false
+	windowFixed(len(s2), len(s1),
+		func(i int) { count[s2[i]]++ },
+		func(i int) { count[s2[i]]-- },
+		func(left int) {
+			if count == need {
+				found = true
+			}
+		})
+	return found
+}
+```
+
+### 643：findMaxAverage
+
+```go
+func findMaxAverage(nums []int, k int) float64 {
+	if k <= 0 || k > len(nums) {
+		return 0
+	}
+	var sum, best int64
+	first := true
+	windowFixed(len(nums), k,
+		func(i int) { sum += int64(nums[i]) },
+		func(i int) { sum -= int64(nums[i]) },
+		func(left int) {
+			if first || sum > best {
+				best = sum
+				first = false
+			}
+		})
+	return float64(best) / float64(k)
+}
+```
+
+### 713：numSubarrayProductLessThanK
+
+```go
+func numSubarrayProductLessThanK(nums []int, k int) int {
+	if k <= 1 {
+		return 0
+	}
+	product := int64(1)
+	return windowAtMost(len(nums),
+		func(i int) { product *= int64(nums[i]) },
+		func(i int) { product /= int64(nums[i]) },
+		func() bool { return product >= int64(k) })
+}
+```
+
+### 904：totalFruit
+
+```go
+func totalFruit(nums []int) int {
+	count := map[int]int{}
+	return windowLongest(len(nums),
+		func(i int) { count[nums[i]]++ },
+		func(i int) {
+			count[nums[i]]--
+			if count[nums[i]] == 0 {
+				delete(count, nums[i])
+			}
+		},
+		func() bool { return len(count) > 2 })
+}
+```
+
+### 930：numSubarraysWithSum
+
+```go
+func numSubarraysWithSum(nums []int, goal int) int {
+	atMost := func(limit int) int {
+		if limit < 0 {
+			return 0
+		}
+		sum := 0
+		return windowAtMost(len(nums),
+			func(i int) { sum += nums[i] },
+			func(i int) { sum -= nums[i] },
+			func() bool { return sum > limit })
+	}
+	return atMost(goal) - atMost(goal-1)
+}
+```
+
+### 992：subarraysWithKDistinct
+
+```go
+func subarraysWithKDistinct(nums []int, k int) int {
+	atMost := func(limit int) int {
+		if limit < 0 {
+			return 0
+		}
+		count := map[int]int{}
+		return windowAtMost(len(nums),
+			func(i int) { count[nums[i]]++ },
+			func(i int) {
+				count[nums[i]]--
+				if count[nums[i]] == 0 {
+					delete(count, nums[i])
+				}
+			},
+			func() bool { return len(count) > limit })
+	}
+	return atMost(k) - atMost(k-1)
+}
+```
+
+### 1248：numberOfSubarrays
+
+```go
+func numberOfSubarrays(nums []int, k int) int {
+	atMost := func(limit int) int {
+		if limit < 0 {
+			return 0
+		}
+		odd := 0
+		return windowAtMost(len(nums),
+			func(i int) { odd += nums[i] & 1 },
+			func(i int) { odd -= nums[i] & 1 },
+			func() bool { return odd > limit })
+	}
+	return atMost(k) - atMost(k-1)
+}
+```
+
+### 1358：numberOfSubstrings
+
+```go
+func numberOfSubstrings(s string) int {
+	var count [3]int
+	return windowCoverCount(len(s),
+		func(i int) { count[s[i]-'a']++ },
+		func(i int) { count[s[i]-'a']-- },
+		func() bool { return count[0] > 0 && count[1] > 0 && count[2] > 0 })
+}
+```

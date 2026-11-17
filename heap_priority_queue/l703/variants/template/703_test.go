@@ -11,7 +11,7 @@ func TestKthLargest(t *testing.T) {
 		k                int
 		nums, adds, want []int
 	}{
-		{"example", 3, []int{4, 5, 8, 2}, []int{3, 5, 10, 9, 4}, []int{4, 5, 8, 8, 8}},
+		{"example", 3, []int{4, 5, 8, 2}, []int{3, 5, 10, 9, 4}, []int{4, 5, 5, 8, 8}},
 		{"empty initial", 1, nil, []int{3, 1, 5}, []int{3, 3, 5}},
 		{"one short initial", 3, []int{1, 2}, []int{3, 4}, []int{1, 2}},
 		{"duplicates", 2, []int{5, 5}, []int{5, 4, 6}, []int{5, 5, 5}},

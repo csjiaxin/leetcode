@@ -16,6 +16,7 @@ func MemoGame[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
 }
 
 // https://leetcode.com/problems/stone-game-iii/
+// 状态单调变小；下面的适配器完整定义终止条件、合法动作与当前行动者收益。
 func stoneGameIII(stoneValue []int) string {
 	diff := MemoGame(func(start int, solve func(int) int) int {
 		if start == len(stoneValue) {

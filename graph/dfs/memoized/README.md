@@ -7,21 +7,37 @@
 **不变量**：缓存命中意味着该状态的所有后继已经处理，缓存的是完整答案，不是“曾经来过”。
 
 ```go
-memo := make([]int, n)
-done := make([]bool, n)
-var dfs func(int) int
-dfs = func(u int) int {
-    if done[u] { return memo[u] }
-    answer := base(u)
-    for _, v := range next(u) {
-        answer = combine(answer, dfs(v))
-    }
-    memo[u], done[u] = answer, true
-    return answer
+func MemoDFS[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
+	memo := make(map[S]V)
+	var solve func(S) V
+	solve = func(state S) V {
+		if value, ok := memo[state]; ok {
+			return value
+		}
+		value := evaluate(state, solve)
+		memo[state] = value
+		return value
+	}
+	return solve
 }
 ```
 
-`base/next/combine` 是题目需要填写的部分。若图可能有环，还需要访问中状态检测；仅在返回时置 done 不能阻止递归环。
+在 DAG 中求从 start 出发的最长节点数，只提供状态转移：
+
+```go
+func longestFrom(graph [][]int, start int) int {
+    solve := MemoDFS(func(u int, recur func(int) int) int {
+        answer := 1
+        for _, v := range graph[u] {
+            answer = max(answer, 1+recur(v))
+        }
+        return answer
+    })
+    return solve(start)
+}
+```
+
+初始化、合法后继与合并规则放在 evaluate 回调中；以 map 的 ok 判断缓存存在性，合法零值不会被误认为未计算。模板与适配放在同一包，实际题解需要的辅助函数保留本地副本。若图可能有环，还需要另外设计状态求解或访问中检测；仅在返回时缓存不能阻止递归环。
 
 | 题目 | 原始代码 | 依赖无环的原因与聚合 |
 | --- | --- | --- |

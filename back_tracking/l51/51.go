@@ -1,60 +1,73 @@
 package l51
 
-// https://leetcode.com/problems/n-queens/
-// solveNQueens returns all valid n-queens boards in any order.
-func solveNQueens(n int) [][]string {
-    ret := [][]string{}
-    positions := make([]int, n)
-
-	//表示当前递归路径中，这一列是否已经有皇后。
-    cols := make([]bool, n)
-    diag1 := make([]bool, 2*n-1)
-    diag2 := make([]bool, 2*n-1)
-
-    var dfs func(row int)
-    dfs = func(row int) {
-        if row == n {
-            // 所有行都放好了，生成一个独立的棋盘。
-            board := make([]string, n)
-            for r, c := range positions {
-                line := make([]byte, n)
-                for i := range line {
-                    line[i] = '.'
-                }
-                line[c] = 'Q'
-                board[r] = string(line)
-            }
-
-            ret = append(ret, board)
-            return
-        }
-
-        for col := 0; col < n; col++ {
-            d1 := row - col + n - 1
-            d2 := row + col
-
-            if cols[col] || diag1[d1] || diag2[d2] {
-                continue
-            }
-
-            // 选择。
-            positions[row] = col
-            cols[col] = true
-            diag1[d1] = true
-            diag2[d2] = true
-
-            // 探索。
-            dfs(row + 1)
-
-            // 撤销选择。
-            cols[col] = false
-            diag1[d1] = false
-            diag2[d2] = false
-        }
-    }
-
-    dfs(0)
-    return ret
+// Standalone choose/recurse/undo subtemplate and problem adapter.
+// searchChoices restores every choice even when a successful search stops early.
+// visit may record a result; returning true requests early termination.
+func searchChoices[T any](visit func() bool, choices func() []T, choose, undo func(T)) bool {
+	if visit() {
+		return true
+	}
+	for _, choice := range choices() {
+		choose(choice)
+		found := searchChoices(visit, choices, choose, undo)
+		undo(choice)
+		if found {
+			return true
+		}
+	}
+	return false
 }
 
+func solveNQueens(n int) [][]string {
+	result := [][]string{}
+	if n < 0 {
+		return result
+	}
+	if n == 0 {
+		return [][]string{{}}
+	}
+	columns := make([]bool, n)
+	down, up := make([]bool, 2*n-1), make([]bool, 2*n-1)
+	path := []int{}
+	searchChoices(func() bool {
+		if len(path) == n {
+			board := make([]string, n)
+			for row, col := range path {
+				line := make([]byte, n)
+				for i := range line {
+					line[i] = '.'
+				}
+				line[col] = 'Q'
+				board[row] = string(line)
+			}
+			result = append(result, board)
+		}
+		return false
+	}, func() []int {
+		choices := []int{}
+		row := len(path)
+		if row == n {
+			return choices
+		}
+		for col := 0; col < n; col++ {
+			if !columns[col] && !down[row-col+n-1] && !up[row+col] {
+				choices = append(choices, col)
+			}
+		}
+		return choices
+	}, func(col int) {
+		row := len(path)
+		columns[col] = true
+		down[row-col+n-1] = true
+		up[row+col] = true
+		path = append(path, col)
+	},
+		func(col int) {
+			row := len(path) - 1
+			columns[col] = false
+			down[row-col+n-1] = false
+			up[row+col] = false
+			path = path[:row]
+		})
+	return result
 }

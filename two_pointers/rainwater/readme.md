@@ -68,7 +68,7 @@ rightMax[i] = max(height[i...n-1])
 
 ### 3.3 单调栈：按凹槽层计算
 
-维护高度单调不增的柱子下标；当前柱子更高时，弹出凹槽底部。如果弹出后栈空，说明没有左边界，不能结算。
+维护高度单调不增的柱子下标；当前柱子更高时，弹出凹槽底部。如果弹出后栈空，说明没有左边界，不能结算。下面的 trappedLayers 是本子模型的命名模板，trap 只作适配；与 monotonic_stack/l42 的实际实现一致，不能替换为计算容器面积的模板。
 
 ```text
 左边界          右边界
@@ -82,27 +82,22 @@ rightMax[i] = max(height[i...n-1])
 ```
 
 ```go
-func trap(height []int) int {
-	stack := make([]int, 0, len(height))
-	water := 0
-	for right, h := range height {
-		for len(stack) > 0 && h > height[stack[len(stack)-1]] {
-			bottom := stack[len(stack)-1]
-			stack = stack[:len(stack)-1]
-			if len(stack) == 0 {
-				break
-			}
-			left := stack[len(stack)-1]
-			level := height[left]
-			if h < level {
-				level = h
-			}
-			water += (right - left - 1) * (level - height[bottom])
-		}
-		stack = append(stack, right)
-	}
-	return water
+// trappedLayers settles a basin bottom only when both bounding walls exist.
+func trappedLayers(heights []int) int {
+ stack:=[]int{};water:=0
+ for right,h:=range heights {
+  for len(stack)>0 && heights[stack[len(stack)-1]]<h {
+   bottom:=stack[len(stack)-1];stack=stack[:len(stack)-1]
+   if len(stack)==0 {break}
+   left:=stack[len(stack)-1];level:=heights[left];if h<level {level=h}
+   water+=(right-left-1)*(level-heights[bottom])
+  }
+  stack=append(stack,right)
+ }
+ return water
 }
+
+func trap(height []int) int {return trappedLayers(height)}
 ```
 
 每个下标最多入栈、出栈一次，时间 O(n)，额外空间 O(n)。
@@ -134,7 +129,7 @@ func trap(height []int) int {
 3. 查看未访问的四邻格；地面低于边界时累加水量。
 4. 邻格按新的有效高度入堆，入堆时标记访问。
 
-```go
+```text
 // 从堆中弹出边界 cell 后，对未访问邻格执行：
 water += max(0, cell.height-heightMap[nr][nc])
 nextHeight := max(cell.height, heightMap[nr][nc])

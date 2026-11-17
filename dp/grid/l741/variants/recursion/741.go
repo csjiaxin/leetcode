@@ -1,59 +1,49 @@
 package l741
 
+// MemoGrid 仅适用于依赖无环的状态；缓存的零值也是合法答案。
+func MemoGrid[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
+	memo := make(map[S]V)
+	var solve func(S) V
+	solve = func(s S) V {
+		if value, ok := memo[s]; ok {
+			return value
+		}
+		value := evaluate(s, solve)
+		memo[s] = value
+		return value
+	}
+	return solve
+}
+
+// 递归变体使用两个同步移动者的三维状态，非法状态不进入得分相加。
 func cherryPickup(grid [][]int) int {
-	m := len(grid)
-	n := len(grid[0])
-
-	var valid func(i, j int) bool
-	valid = func(i, j int) bool {
-		return i >= 0 && i < m && j >= 0 && j < n
-
+	if len(grid) == 0 || len(grid[0]) == 0 {
+		return 0
 	}
-	memo := make([][][]int, m)
-	for i := 0; i < m; i++ {
-		memo[i] = make([][]int, n)
-		for j := 0; j < n; j++ {
-			memo[i][j] = make([]int, m)
-
-			for k := 0; k < m; k++ {
-				memo[i][j][k] = -2
-			}
+	m, n := len(grid), len(grid[0])
+	const invalid = -1 << 30
+	type state struct{ r1, c1, r2 int }
+	solve := MemoGrid(func(s state, next func(state) int) int {
+		c2 := s.r1 + s.c1 - s.r2
+		if s.r1 < 0 || s.r1 >= m || s.c1 < 0 || s.c1 >= n || s.r2 < 0 || s.r2 >= m || c2 < 0 || c2 >= n {
+			return invalid
 		}
-	}
-
-	var dfs func(r1, c1, r2 int) int
-	dfs = func(r1, c1, r2 int) int {
-		c2 := r1 + c1 - r2
-		if !valid(r1, c1) || !valid(r2, c2) {
-			return -1
+		if grid[s.r1][s.c1] == -1 || grid[s.r2][c2] == -1 {
+			return invalid
 		}
-		if grid[r1][c1] < 0 || grid[r2][c2] < 0 {
-			return -1
+		if s.r1 == m-1 && s.c1 == n-1 {
+			return grid[s.r1][s.c1]
 		}
-		if r1 == m-1 && c1 == n-1 {
-			return grid[r1][c1]
+		best := max(next(state{s.r1 + 1, s.c1, s.r2 + 1}), next(state{s.r1 + 1, s.c1, s.r2}),
+			next(state{s.r1, s.c1 + 1, s.r2 + 1}), next(state{s.r1, s.c1 + 1, s.r2}))
+		if best == invalid {
+			return invalid
 		}
-		val := memo[r1][c1][r2]
-
-		if val == -2 {
-			current := grid[r1][c1]
-			if r2 != r1 {
-				current += grid[r2][c2]
-			}
-
-			result := max(dfs(r1+1, c1, r2+1),
-				dfs(r1+1, c1, r2),
-				dfs(r1, c1+1, r2+1),
-				dfs(r1, c1+1, r2))
-
-			if result < 0 {
-				val = result
-			} else {
-				val = result + current
-			}
+		reward := grid[s.r1][s.c1]
+		if s.r1 != s.r2 {
+			reward += grid[s.r2][c2]
 		}
-		memo[r1][c1][r2] = val
-		return val
-	}
-	return max(dfs(0, 0, 0), 0)
+		return reward + best
+	})
+	return max(0, solve(state{0, 0, 0}))
 }

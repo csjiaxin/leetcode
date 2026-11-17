@@ -1,44 +1,72 @@
 package l79
 
-// exist reports whether word can be formed by horizontally or vertically
-// adjacent cells in board. Each cell may be used at most once per word.
-func exist(board [][]byte, word string) bool {
-	m := len(board)
-	n := len(board[0])
-	visit := make([][]bool, m)
-	for i := 0; i < m; i++ {
-		visit[i] = make([]bool, n)
+// Standalone choose/recurse/undo subtemplate and problem adapter.
+// searchChoices restores every choice even when a successful search stops early.
+// visit may record a result; returning true requests early termination.
+func searchChoices[T any](visit func() bool, choices func() []T, choose, undo func(T)) bool {
+	if visit() {
+		return true
 	}
-	L := len(word)
-	dir4 := [][]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
-	var dfs func(i, j int, wordidx int) bool
-	dfs = func(i, j int, wordidx int) bool {
-		if word[wordidx] != board[i][j] {
-			return false
-		}
-		visit[i][j] = true
-		if wordidx == L-1 {
+	for _, choice := range choices() {
+		choose(choice)
+		found := searchChoices(visit, choices, choose, undo)
+		undo(choice)
+		if found {
 			return true
-		}
-		for _, d := range dir4 {
-			ni := i + d[0]
-			nj := j + d[1]
-			if ni >= 0 && ni < m && nj >= 0 && nj < n && visit[ni][nj] == false {
-				if dfs(ni, nj, wordidx+1) {
-					return true
-				}
-			}
-		}
-		visit[i][j] = false
-
-		return false
-	}
-	for i := 0; i < m; i++ {
-		for j := 0; j < n; j++ {
-			if dfs(i, j, 0) {
-				return true
-			}
 		}
 	}
 	return false
+}
+
+type boardCell struct{ row, col int }
+
+func exist(board [][]byte, word string) bool {
+	if len(word) == 0 {
+		return true
+	}
+	if len(board) == 0 || len(board[0]) == 0 {
+		return false
+	}
+	rows, cols := len(board), len(board[0])
+	var frequency [256]int
+	for _, row := range board {
+		for _, value := range row {
+			frequency[value]++
+		}
+	}
+	for i := range word {
+		frequency[word[i]]--
+		if frequency[word[i]] < 0 {
+			return false
+		}
+	}
+	visited := make([][]bool, rows)
+	for i := range visited {
+		visited[i] = make([]bool, cols)
+	}
+	path := []boardCell{}
+	return searchChoices(func() bool { return len(path) == len(word) },
+		func() []boardCell {
+			choices := []boardCell{}
+			add := func(row, col int) {
+				if row >= 0 && row < rows && col >= 0 && col < cols && !visited[row][col] && board[row][col] == word[len(path)] {
+					choices = append(choices, boardCell{row, col})
+				}
+			}
+			if len(path) == 0 {
+				for row := 0; row < rows; row++ {
+					for col := 0; col < cols; col++ {
+						add(row, col)
+					}
+				}
+			} else {
+				last := path[len(path)-1]
+				add(last.row-1, last.col)
+				add(last.row+1, last.col)
+				add(last.row, last.col-1)
+				add(last.row, last.col+1)
+			}
+			return choices
+		}, func(cell boardCell) { visited[cell.row][cell.col] = true; path = append(path, cell) },
+		func(cell boardCell) { visited[cell.row][cell.col] = false; path = path[:len(path)-1] })
 }

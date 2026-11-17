@@ -15,7 +15,7 @@ func TestSumSubarrayMins(t *testing.T) {
 		values []int
 		want   int
 	}{
-		{"example", []int{3, 1, 2, 4}, 17}, {"example two", []int{11, 81, 94, 43, 87}, 444},
+		{"example", []int{3, 1, 2, 4}, 17}, {"example two", []int{11, 81, 94, 43, 87}, 656},
 		{"single", []int{5}, 5}, {"equal ownership", []int{2, 2}, 6},
 		{"ascending", []int{1, 2, 3}, 10}, {"descending", []int{3, 2, 1}, 10},
 		{"modulo", large, int(int64(30000) * 1000 * 1001 / 2 % 1000000007)},

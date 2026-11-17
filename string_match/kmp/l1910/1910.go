@@ -1,6 +1,73 @@
 package l1910
 
-// https://leetcode.com/problems/remove-all-occurrences-of-a-substring/
 func removeOccurrences(s string, part string) string {
-	panic("TODO: implement removeOccurrences")
+	if len(part) == 0 {
+		return s
+	}
+	pi := PrefixFunction([]byte(part))
+	stack := make([]byte, 0, len(s))
+	states := make([]int, 0, len(s))
+	matched := 0
+	for i := range s {
+		value := s[i]
+		for matched > 0 && value != part[matched] {
+			matched = pi[matched-1]
+		}
+		if value == part[matched] {
+			matched++
+		}
+		stack = append(stack, value)
+		states = append(states, matched)
+		if matched == len(part) {
+			stack = stack[:len(stack)-len(part)]
+			states = states[:len(states)-len(part)]
+			matched = 0
+			if len(states) > 0 {
+				matched = states[len(states)-1]
+			}
+		}
+	}
+	return string(stack)
+}
+
+// PrefixFunction 记录每个前缀的最长相等真前后缀长度。
+func PrefixFunction[T comparable](pattern []T) []int {
+	pi := make([]int, len(pattern))
+	for i := 1; i < len(pattern); i++ {
+		j := pi[i-1]
+		for j > 0 && pattern[i] != pattern[j] {
+			j = pi[j-1]
+		}
+		if pattern[i] == pattern[j] {
+			j++
+		}
+		pi[i] = j
+	}
+	return pi
+}
+
+// FindAll 在文本中寻找模式，匹配成功后回退以允许重叠。
+func FindAll[T comparable](text, pattern []T) []int {
+	answer := []int{}
+	if len(pattern) == 0 {
+		for i := 0; i <= len(text); i++ {
+			answer = append(answer, i)
+		}
+		return answer
+	}
+	pi := PrefixFunction(pattern)
+	matched := 0
+	for i, value := range text {
+		for matched > 0 && value != pattern[matched] {
+			matched = pi[matched-1]
+		}
+		if value == pattern[matched] {
+			matched++
+		}
+		if matched == len(pattern) {
+			answer = append(answer, i-len(pattern)+1)
+			matched = pi[matched-1]
+		}
+	}
+	return answer
 }

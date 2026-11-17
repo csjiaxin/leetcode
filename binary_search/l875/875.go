@@ -1,33 +1,35 @@
 package l875
 
-import "slices"
-
-func firstTrue(l, r int, check func(int) bool) int {
-
-	for l <= r {
-		mid := l + (r-l)/2
-
-		if check(mid) {
-			r = mid - 1
-		} else {
-			l = mid + 1
+// 875：复用本文件的边界模板；特殊结构按对应排除不变量处理。
+func minEatingSpeed(piles []int, h int) int {
+	highest := 0
+	for _, pile := range piles {
+		if pile > highest {
+			highest = pile
 		}
 	}
-
-	return l
+	return 1 + FirstTrue(highest, func(offset int) bool {
+		speed := offset + 1
+		hours := int64(0)
+		for _, pile := range piles {
+			hours += int64((pile-1)/speed + 1)
+			if hours > int64(h) {
+				return false
+			}
+		}
+		return true
+	})
 }
 
-func minEatingSpeed(piles []int, h int) int {
-	r := slices.Max(piles) + 1
-
-	p := firstTrue(1, r, func(speed int) bool {
-
-		needOp := 0
-		for _, n := range piles {
-			needOp += (n + speed - 1) / speed
+func FirstTrue(n int, predicate func(int) bool) int {
+	left, right := 0, n-1
+	for left <= right {
+		mid := left + (right-left)/2
+		if predicate(mid) {
+			right = mid - 1
+		} else {
+			left = mid + 1
 		}
-		return needOp <= h
-	})
-	return p
-
+	}
+	return left
 }

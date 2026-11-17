@@ -1,35 +1,22 @@
 package l714
 
-import "math"
-
-type E struct {
-	holdStock int
-	noStock   int
+// UnlimitedTrade 支持卖出时扣手续费，及卖出后冷冻一天的独立限制。
+func UnlimitedTrade(prices []int, fee int, cooldown bool) int {
+	cash, hold := 0, -int(^uint(0)>>1)/4
+	beforeYesterday := 0
+	for _, price := range prices {
+		oldCash, oldHold := cash, hold
+		buyFrom := oldCash
+		if cooldown {
+			buyFrom = beforeYesterday
+		}
+		cash = max(oldCash, oldHold+price-fee)
+		hold = max(oldHold, buyFrom-price)
+		beforeYesterday = oldCash
+	}
+	return cash
 }
 
 // https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/
-func maxProfit(prices []int, fee int) int {
-	n := len(prices)
-
-	dp := make([]E, n)
-	for i := 0; i < n; i++ {
-		dp[i].holdStock = math.MinInt
-		dp[i].noStock = math.MinInt
-	}
-
-	dp[0] = E{
-		holdStock: -prices[0],
-		noStock:   0,
-	}
-
-	for j := 1; j < n; j++ {
-		le := dp[j-1]
-		e := E{
-			holdStock: max(le.noStock-prices[j], le.holdStock),
-			noStock:   max(le.holdStock+prices[j], le.noStock),
-		}
-		dp[j] = e
-	}
-
-	return dp[n-1].noStock
-}
+// 手续费每笔只扣一次，统一放在卖出时。
+func maxProfit(prices []int, fee int) int { return UnlimitedTrade(prices, fee, false) }

@@ -1,33 +1,26 @@
 package l856
 
-type Stack[T any] struct {
-	d []T
-}
-
-func New[T any]() *Stack[T] {
-	s := &Stack[T]{
-		d: []T{},
+// Standalone nested-context subtemplate and problem adapter; see README.md.
+// parenthesesFold stores each open layer's sum of completed children.
+func parenthesesFold(s string, wrap func(int) int) int {
+	stack := []int{0}
+	for _, token := range s {
+		if token == '(' {
+			stack = append(stack, 0)
+			continue
+		}
+		inner := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		stack[len(stack)-1] += wrap(inner)
 	}
-	return s
-}
-func (s *Stack[T]) Size() int {
-	return len(s.d)
+	return stack[0]
 }
 
-func (s *Stack[T]) Peek() T {
-	return s.d[len(s.d)-1]
-}
-
-func (s *Stack[T]) Pop() T {
-	v := s.d[len(s.d)-1]
-	s.d = s.d[:len(s.d)-1]
-	return v
-}
-func (s *Stack[T]) Push(v T) {
-	s.d = append(s.d, v)
-}
-
-// https://leetcode.com/problems/score-of-parentheses/
 func scoreOfParentheses(s string) int {
-	panic("not implemented")
+	return parenthesesFold(s, func(inner int) int {
+		if inner == 0 {
+			return 1
+		}
+		return 2 * inner
+	})
 }

@@ -1,15 +1,15 @@
 # 拓扑排序：依赖顺序与DAG动态规划
 
-## 当前共享实现与目录
+## 本地模板与参考实现
 
-六题共用 [template/kahn.go](template/kahn.go)，原包的 Kahn／ZeroIndegree 只保留兼容封装。[共享测试](template/kahn_test.go)验证全部前置到齐才出队、重边计数、入参切片所有权、环阻塞与显式种子。
+207 与六题主线的每个主文件均内联完整的 Kahn／ZeroIndegree，没有仓库包导入或跨包薄封装。[template/kahn.go](template/kahn.go) 保留为参考实现；[参考测试](template/kahn_test.go)验证全部前置到齐才出队、重边计数、入参切片所有权、环阻塞与显式种子。
 
 | 代码 | 使用方式 |
 | --- | --- |
 | [普通 Kahn](indegree_kahn.go) / [三色 DFS](dfs.go) | 直接返回完整拓扑序；DFS 结果需要反转后序 |
-| [六题共享 Kahn](template/kahn.go) | 固定调度，按题目设置 next、onPop、relax 与 DP 初值 |
+| [Kahn 参考模板](template/kahn.go) | 固定调度，按题目设置 next、onPop、relax 与 DP 初值；各题内有完整副本 |
 | 210、329、1462、1857、2050、2115 | 题目实现和原测试完整保留 |
-| [207](l207/207.go) | 待实现练习；参考解答在下文 |
+| [207](l207/207.go) | 本地 Kahn 适配，只检查处理数量 |
 | [2192](l2192/2192) | 祖先集合传播的原始无扩展名笔记 |
 | [1203](l1203/1203) | 分组拓扑的原始无扩展名笔记 |
 
@@ -17,7 +17,7 @@
 
 本轮主线：[210](https://leetcode.com/problems/course-schedule-ii/) → [2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) → [1462](https://leetcode.com/problems/course-schedule-iv/) → [2050](https://leetcode.com/problems/parallel-courses-iii/) → [1857](https://leetcode.com/problems/largest-color-value-in-a-directed-graph/) → [329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/)。
 
-直接阅读[第 6 节：共同模板与六题适配](#dag-dp)。本文所有题解代码都调用同一份 `Kahn`／`ZeroIndegree` 模板；复制单题示例时，需同时复制第 6.1 节模板。六题本地实现与测试已完成，输入均不修改；每题包保留独立模板，便于单独提交。
+直接阅读[第 6 节：共同模板与六题适配](#dag-dp)。文档只声明一次 `Kahn`／`ZeroIndegree`，随后各题给出适配函数；组合第 6.1 节声明与任一适配即可编译。实际每题主文件已经包含完整本地模板，复制该文件提交时不需要额外仓库依赖，同一包不要重复定义模板。
 
 [返回仓库首页](../../README.md)
 

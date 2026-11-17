@@ -1,45 +1,32 @@
 package l33
 
+// 33：复用本文件的边界模板；特殊结构按对应排除不变量处理。
 func search(nums []int, target int) int {
-
-	N := len(nums)
-	if N == 0 {
+	if len(nums) == 0 {
 		return -1
 	}
-	last := nums[N-1]
-
-	inbetween := func(x int) bool {
-		return x >= target && x <= last
+	n := len(nums)
+	pivot := FirstTrue(n, func(i int) bool { return nums[i] <= nums[n-1] })
+	left, right := 0, pivot
+	if target <= nums[n-1] {
+		left, right = pivot, n
 	}
-	notInBetween := func(x int) bool {
-		return x <= last || x >= target
-	}
-	bs := func(check func(x int) bool) int {
-		l, r := 0, len(nums)-1
-
-		for l <= r {
-			mid := l + (r-l)/2
-
-			if check(nums[mid]) {
-				r = mid - 1
-			} else {
-				l = mid + 1
-			}
-
-		}
-		return l
-	}
-	idx := N - 1
-	if target < last {
-		idx = bs(inbetween)
-	} else if target > last {
-		idx = bs(notInBetween)
-	}
-	if idx >= N {
-		return -1
-	}
-	if nums[idx] == target {
-		return idx
+	index := left + FirstTrue(right-left, func(i int) bool { return nums[left+i] >= target })
+	if index < right && nums[index] == target {
+		return index
 	}
 	return -1
+}
+
+func FirstTrue(n int, predicate func(int) bool) int {
+	left, right := 0, n-1
+	for left <= right {
+		mid := left + (right-left)/2
+		if predicate(mid) {
+			right = mid - 1
+		} else {
+			left = mid + 1
+		}
+	}
+	return left
 }

@@ -16,6 +16,7 @@ func MemoGame[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
 }
 
 // https://leetcode.com/problems/predict-the-winner/
+// 状态单调变小；下面的适配器完整定义终止条件、合法动作与当前行动者收益。
 func predictTheWinner(nums []int) bool {
 	type interval struct{ left, right int }
 	diff := MemoGame(func(s interval, solve func(interval) int) int {

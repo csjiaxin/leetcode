@@ -1,58 +1,29 @@
 package l316
 
-type Stack[T any] struct {
-	d []T
-}
-
-func New[T any]() *Stack[T] {
-	s := &Stack[T]{
-		d: []T{},
-	}
-	return s
-}
-func (s *Stack[T]) Size() int {
-	return len(s.d)
-}
-
-func (s *Stack[T]) Peek() T {
-	return s.d[len(s.d)-1]
-}
-
-func (s *Stack[T]) Pop() T {
-	v := s.d[len(s.d)-1]
-	s.d = s.d[:len(s.d)-1]
-	return v
-}
-func (s *Stack[T]) Push(v T) {
-	s.d = append(s.d, v)
-}
-
 // https://leetcode.com/problems/remove-duplicate-letters/
-func removeDuplicateLetters(s string) string {
-	stack := New[rune]()
-	remainning := map[rune]int{}
-	instack := map[rune]bool{}
-	for _, c := range s {
-		remainning[c] += 1
+// Embedded subtemplate: see README.md for its invariant and tie policy.
+// distinctSubsequence pops a larger symbol only when another copy remains.
+func distinctSubsequence(s string) string {
+	var remaining [256]int
+	var used [256]bool
+	for i := range s {
+		remaining[s[i]]++
 	}
-	for _, c := range s {
-		for stack.Size() > 0 && !instack[c] && stack.Peek() > c && remainning[stack.Peek()] > 1 {
-			popped := stack.Pop()
-			instack[popped] = false
-			remainning[popped] -= 1
+	stack := []byte{}
+	for i := range s {
+		value := s[i]
+		remaining[value]--
+		if used[value] {
+			continue
 		}
-		if !instack[c] {
-			stack.Push(c)
-			instack[c] = true
-		} else {
-			remainning[c] -= 1
+		for len(stack) > 0 && stack[len(stack)-1] > value && remaining[stack[len(stack)-1]] > 0 {
+			used[stack[len(stack)-1]] = false
+			stack = stack[:len(stack)-1]
 		}
+		used[value] = true
+		stack = append(stack, value)
 	}
-
-	ret := ""
-	for stack.Size() > 0 {
-		popped := stack.Pop()
-		ret = string(popped) + ret
-	}
-	return ret
+	return string(stack)
 }
+
+func removeDuplicateLetters(s string) string { return distinctSubsequence(s) }

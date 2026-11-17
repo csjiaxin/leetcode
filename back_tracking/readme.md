@@ -1,5 +1,32 @@
 # 回溯：通用解题思路、模板与 LeetCode 题单
 
+## 同文件命名模板与适配器
+
+先复制本代码块，再复制任一题的适配器；实际题解文件同样内嵌 helper，保留官方函数签名。只使用标准库，不导入仓库本地模板包。本文所有 Go 代码块可按顺序组合成一个包；不要重复复制 helper。
+
+```go
+import "sort"
+
+// searchChoices restores every choice even when a successful search stops early.
+// visit may record a result; returning true requests early termination.
+func searchChoices[T any](visit func() bool, choices func() []T, choose, undo func(T)) bool {
+	if visit() {
+		return true
+	}
+	for _, choice := range choices() {
+		choose(choice)
+		found := searchChoices(visit, choices, choose, undo)
+		undo(choice)
+		if found {
+			return true
+		}
+	}
+	return false
+}
+
+type boardCell struct{ row, col int }
+```
+
 > 回溯不是背诵一种函数，而是：**把答案表示为一连串选择，在搜索树上尝试，失败或完成后恢复状态。**
 >
 > 本文只整理思路与参考代码，不修改题目目录中的实现。题目链接均使用 leetcode.com。
@@ -75,11 +102,11 @@
         撤销选择：恢复共享状态
 ```
 
-不建议为了“通用”强行封装很多回调。保留相同控制流程，每道题直接写清状态和判断，更容易理解。
+本页只封装选择/递归/撤销的控制流程 searchChoices；候选生成、终止条件和状态仍由逐题适配器明确给出。不同剪枝条件不混为一个判断。
 
 ### Go 的两条关键规则
 
-```go
+```text
 // path 是切片，需要复制；不能直接把可复用的 path 存进答案。
 answer = append(answer, append([]int{}, path...))
 
@@ -113,19 +140,20 @@ path = path[:len(path)-1]
 
 ```go
 func subsets(nums []int) [][]int {
-    answer := [][]int{}
-    path := []int{}
-    var dfs func(int)
-    dfs = func(start int) {
-        answer = append(answer, append([]int{}, path...))
-        for i := start; i < len(nums); i++ {
-            path = append(path, nums[i])
-            dfs(i + 1)
-            path = path[:len(path)-1]
-        }
-    }
-    dfs(0)
-    return answer
+	result := [][]int{}
+	path := []int{}
+	starts := []int{0}
+	searchChoices(func() bool { result = append(result, append([]int{}, path...)); return false },
+		func() []int {
+			candidates := []int{}
+			for i := starts[len(starts)-1]; i < len(nums); i++ {
+				candidates = append(candidates, i)
+			}
+			return candidates
+		},
+		func(i int) { path = append(path, nums[i]); starts = append(starts, i+1) },
+		func(i int) { path = path[:len(path)-1]; starts = starts[:len(starts)-1] })
+	return result
 }
 ```
 
@@ -142,24 +170,32 @@ func subsets(nums []int) [][]int {
 
 ```go
 func combine(n int, k int) [][]int {
-    answer := [][]int{}
-    if k < 0 || k > n { return answer }
-    path := []int{}
-    var dfs func(int)
-    dfs = func(start int) {
-        if len(path) == k {
-            answer = append(answer, append([]int{}, path...))
-            return
-        }
-        need := k - len(path)
-        for i := start; i <= n-need+1; i++ {
-            path = append(path, i)
-            dfs(i + 1)
-            path = path[:len(path)-1]
-        }
-    }
-    dfs(1)
-    return answer
+	result := [][]int{}
+	if k < 0 || k > n {
+		return result
+	}
+	path := []int{}
+	searchChoices(func() bool {
+		if len(path) == k {
+			result = append(result, append([]int{}, path...))
+		}
+		return false
+	},
+		func() []int {
+			candidates := []int{}
+			if len(path) == k {
+				return candidates
+			}
+			start := 1
+			if len(path) > 0 {
+				start = path[len(path)-1] + 1
+			}
+			for value := start; value <= n-(k-len(path))+1; value++ {
+				candidates = append(candidates, value)
+			}
+			return candidates
+		}, func(value int) { path = append(path, value) }, func(value int) { path = path[:len(path)-1] })
+	return result
 }
 ```
 
@@ -195,4 +231,291 @@ dfs(状态):
 
 关键不变量：进入和退出一次递归调用时，父层可观察到的 path/used/约束必须相同。保存答案时复制切片，避免后续撤销覆盖旧答案。剪枝必须证明后续不可能形成合法答案；全局去重和同层去重不能混淆。
 
-本次不改算法实现：原 51 多余闭合大括号的语法错误、526 与 46 变体的未实现 panic 均保留，不能声称整个目录测试已通过。字典序下一个排列仍归 [permutation](../permutation/readme.md)，无需为只找一个相邻排列枚举 n! 个结果。完整映射见 [reorganization.json](../two_pointers/reorganization.json)。
+本次已将实际算法统一为本页 searchChoices 适配器，并修复 51 的历史多余括号及各独立变体的未完成函数；原测试均保留。字典序下一个排列仍归 [permutation](../permutation/readme.md)，无需为只找一个相邻排列枚举 n! 个结果。完整映射见 [reorganization.json](../two_pointers/reorganization.json)。
+
+
+## 逐题模板适配器补全
+
+下列函数使用本页已声明的同名子模板；不是将不同不变量强行改为同一弹栈或移动条件。
+
+### 39
+
+```go
+func combinationSum(candidates []int, target int) [][]int {
+	nums := append([]int{}, candidates...)
+	sort.Ints(nums)
+	result := [][]int{}
+	path := []int{}
+	starts := []int{0}
+	sum := 0
+	searchChoices(func() bool {
+		if sum == target {
+			result = append(result, append([]int{}, path...))
+		}
+		return false
+	},
+		func() []int {
+			choices := []int{}
+			if sum >= target {
+				return choices
+			}
+			for i := starts[len(starts)-1]; i < len(nums) && sum+nums[i] <= target; i++ {
+				choices = append(choices, i)
+			}
+			return choices
+		}, func(i int) { path = append(path, nums[i]); sum += nums[i]; starts = append(starts, i) },
+		func(i int) { path = path[:len(path)-1]; sum -= nums[i]; starts = starts[:len(starts)-1] })
+	return result
+}
+```
+
+### 46
+
+```go
+func permute(nums []int) [][]int {
+	result := [][]int{}
+	path := []int{}
+	used := make([]bool, len(nums))
+	searchChoices(func() bool {
+		if len(path) == len(nums) {
+			result = append(result, append([]int{}, path...))
+		}
+		return false
+	}, func() []int {
+		candidates := []int{}
+		for i := range nums {
+			if !used[i] {
+				candidates = append(candidates, i)
+			}
+		}
+		return candidates
+	}, func(i int) { used[i] = true; path = append(path, nums[i]) },
+		func(i int) { used[i] = false; path = path[:len(path)-1] })
+	return result
+}
+```
+
+### 47
+
+```go
+func permuteUnique(nums []int) [][]int {
+	nums = append([]int{}, nums...)
+	sort.Ints(nums)
+	result := [][]int{}
+	path := []int{}
+	used := make([]bool, len(nums))
+	searchChoices(func() bool {
+		if len(path) == len(nums) {
+			result = append(result, append([]int{}, path...))
+		}
+		return false
+	}, func() []int {
+		candidates := []int{}
+		for i := range nums {
+			if used[i] || (i > 0 && nums[i] == nums[i-1] && !used[i-1]) {
+				continue
+			}
+			candidates = append(candidates, i)
+		}
+		return candidates
+	}, func(i int) { used[i] = true; path = append(path, nums[i]) },
+		func(i int) { used[i] = false; path = path[:len(path)-1] })
+	return result
+}
+```
+
+### 51
+
+```go
+func solveNQueens(n int) [][]string {
+	result := [][]string{}
+	if n < 0 {
+		return result
+	}
+	if n == 0 {
+		return [][]string{{}}
+	}
+	columns := make([]bool, n)
+	down, up := make([]bool, 2*n-1), make([]bool, 2*n-1)
+	path := []int{}
+	searchChoices(func() bool {
+		if len(path) == n {
+			board := make([]string, n)
+			for row, col := range path {
+				line := make([]byte, n)
+				for i := range line {
+					line[i] = '.'
+				}
+				line[col] = 'Q'
+				board[row] = string(line)
+			}
+			result = append(result, board)
+		}
+		return false
+	}, func() []int {
+		choices := []int{}
+		row := len(path)
+		if row == n {
+			return choices
+		}
+		for col := 0; col < n; col++ {
+			if !columns[col] && !down[row-col+n-1] && !up[row+col] {
+				choices = append(choices, col)
+			}
+		}
+		return choices
+	}, func(col int) {
+		row := len(path)
+		columns[col] = true
+		down[row-col+n-1] = true
+		up[row+col] = true
+		path = append(path, col)
+	},
+		func(col int) {
+			row := len(path) - 1
+			columns[col] = false
+			down[row-col+n-1] = false
+			up[row+col] = false
+			path = path[:row]
+		})
+	return result
+}
+```
+
+### 79
+
+```go
+func exist(board [][]byte, word string) bool {
+	if len(word) == 0 {
+		return true
+	}
+	if len(board) == 0 || len(board[0]) == 0 {
+		return false
+	}
+	rows, cols := len(board), len(board[0])
+	var frequency [256]int
+	for _, row := range board {
+		for _, value := range row {
+			frequency[value]++
+		}
+	}
+	for i := range word {
+		frequency[word[i]]--
+		if frequency[word[i]] < 0 {
+			return false
+		}
+	}
+	visited := make([][]bool, rows)
+	for i := range visited {
+		visited[i] = make([]bool, cols)
+	}
+	path := []boardCell{}
+	return searchChoices(func() bool { return len(path) == len(word) },
+		func() []boardCell {
+			choices := []boardCell{}
+			add := func(row, col int) {
+				if row >= 0 && row < rows && col >= 0 && col < cols && !visited[row][col] && board[row][col] == word[len(path)] {
+					choices = append(choices, boardCell{row, col})
+				}
+			}
+			if len(path) == 0 {
+				for row := 0; row < rows; row++ {
+					for col := 0; col < cols; col++ {
+						add(row, col)
+					}
+				}
+			} else {
+				last := path[len(path)-1]
+				add(last.row-1, last.col)
+				add(last.row+1, last.col)
+				add(last.row, last.col-1)
+				add(last.row, last.col+1)
+			}
+			return choices
+		}, func(cell boardCell) { visited[cell.row][cell.col] = true; path = append(path, cell) },
+		func(cell boardCell) { visited[cell.row][cell.col] = false; path = path[:len(path)-1] })
+}
+```
+
+### 90
+
+```go
+func subsetsWithDup(nums []int) [][]int {
+	nums = append([]int{}, nums...)
+	sort.Ints(nums)
+	result := [][]int{}
+	path := []int{}
+	starts := []int{0}
+	searchChoices(func() bool { result = append(result, append([]int{}, path...)); return false },
+		func() []int {
+			candidates := []int{}
+			start := starts[len(starts)-1]
+			for i := start; i < len(nums); i++ {
+				if i == start || nums[i] != nums[i-1] {
+					candidates = append(candidates, i)
+				}
+			}
+			return candidates
+		}, func(i int) { path = append(path, nums[i]); starts = append(starts, i+1) },
+		func(i int) { path = path[:len(path)-1]; starts = starts[:len(starts)-1] })
+	return result
+}
+```
+
+### 131
+
+```go
+func partition(s string) [][]string {
+	result := [][]string{}
+	path := []string{}
+	starts := []int{0}
+	searchChoices(func() bool {
+		if starts[len(starts)-1] == len(s) {
+			result = append(result, append([]string{}, path...))
+		}
+		return false
+	},
+		func() []int {
+			ends := []int{}
+			start := starts[len(starts)-1]
+			for end := start + 1; end <= len(s); end++ {
+				valid := true
+				for l, r := start, end-1; l < r; l, r = l+1, r-1 {
+					if s[l] != s[r] {
+						valid = false
+						break
+					}
+				}
+				if valid {
+					ends = append(ends, end)
+				}
+			}
+			return ends
+		}, func(end int) {
+			start := starts[len(starts)-1]
+			path = append(path, s[start:end])
+			starts = append(starts, end)
+		},
+		func(end int) { path = path[:len(path)-1]; starts = starts[:len(starts)-1] })
+	return result
+}
+```
+
+### 526
+
+```go
+func countArrangement(n int) int {
+ // Visit the most constrained positions first; position order does not change the count.
+ possible:=make([][]int,n)
+ for position:=1;position<=n;position++ {for value:=1;value<=n;value++ {if value%position==0||position%value==0 {possible[position-1]=append(possible[position-1],value)}}}
+ sort.Slice(possible,func(i,j int)bool{return len(possible[i])<len(possible[j])})
+ used:=make([]bool,n+1);depth,count:=0,0
+ searchChoices(func()bool {if depth==n {count++};return false},
+ func()[]int {
+  choices:=[]int{};if depth==n {return choices}
+  for _,value:=range possible[depth] {if !used[value] {choices=append(choices,value)}}
+  return choices
+ },func(value int){used[value]=true;depth++},func(value int){used[value]=false;depth--})
+ return count
+}
+```

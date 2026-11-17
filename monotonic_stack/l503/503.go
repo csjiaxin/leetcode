@@ -1,33 +1,42 @@
 package l503
 
-type Stack[T any] struct {
-	d []T
-}
-
-func New[T any]() *Stack[T] {
-	s := &Stack[T]{
-		d: []T{},
-	}
-	return s
-}
-func (s *Stack[T]) Size() int {
-	return len(s.d)
-}
-
-func (s *Stack[T]) Peek() T {
-	return s.d[len(s.d)-1]
-}
-
-func (s *Stack[T]) Pop() T {
-	v := s.d[len(s.d)-1]
-	s.d = s.d[:len(s.d)-1]
-	return v
-}
-func (s *Stack[T]) Push(v T) {
-	s.d = append(s.d, v)
-}
-
 // https://leetcode.com/problems/next-greater-element-ii/
+// Embedded subtemplate: see README.md for its invariant and tie policy.
+// nextGreaterPositions returns the first strictly greater position, or -1.
+// A circular second pass resolves pending originals without pushing copies.
+func nextGreaterPositions(nums []int, circular bool) []int {
+	n := len(nums)
+	next := make([]int, n)
+	for i := range next {
+		next[i] = -1
+	}
+	stack := []int{}
+	rounds := n
+	if circular {
+		rounds *= 2
+	}
+	for step := 0; step < rounds; step++ {
+		current := step % n
+		for len(stack) > 0 && nums[stack[len(stack)-1]] < nums[current] {
+			previous := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			next[previous] = current
+		}
+		if step < n {
+			stack = append(stack, current)
+		}
+	}
+	return next
+}
+
 func nextGreaterElements(nums []int) []int {
-	panic("not implemented")
+	next := nextGreaterPositions(nums, true)
+	result := make([]int, len(next))
+	for i, j := range next {
+		result[i] = -1
+		if j >= 0 {
+			result[i] = nums[j]
+		}
+	}
+	return result
 }

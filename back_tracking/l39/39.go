@@ -1,26 +1,48 @@
 package l39
 
-import "slices"
+import "sort"
 
-// combinationSum returns all unique combinations of distinct positive candidates
-// that sum to target. Each candidate may be chosen an unlimited number of times.
-func combinationSum(candidates []int, target int) [][]int {
-	slices.Sort(candidates)
-	ret := make([][]int, 0)
-	path := []int{}
-
-	var dfs func(left int, start int)
-	dfs = func(left int, start int) {
-		if left == 0 {
-			ret = append(ret, slices.Clone(path))
-			return
-		}
-		for i := start; i < len(candidates) && candidates[i] <= left; i++ {
-			path = append(path, candidates[i])
-			dfs(left-candidates[i], i)
-			path = path[:len(path)-1]
+// Standalone choose/recurse/undo subtemplate and problem adapter.
+// searchChoices restores every choice even when a successful search stops early.
+// visit may record a result; returning true requests early termination.
+func searchChoices[T any](visit func() bool, choices func() []T, choose, undo func(T)) bool {
+	if visit() {
+		return true
+	}
+	for _, choice := range choices() {
+		choose(choice)
+		found := searchChoices(visit, choices, choose, undo)
+		undo(choice)
+		if found {
+			return true
 		}
 	}
-	dfs(target, 0)
-	return ret
+	return false
+}
+
+func combinationSum(candidates []int, target int) [][]int {
+	nums := append([]int{}, candidates...)
+	sort.Ints(nums)
+	result := [][]int{}
+	path := []int{}
+	starts := []int{0}
+	sum := 0
+	searchChoices(func() bool {
+		if sum == target {
+			result = append(result, append([]int{}, path...))
+		}
+		return false
+	},
+		func() []int {
+			choices := []int{}
+			if sum >= target {
+				return choices
+			}
+			for i := starts[len(starts)-1]; i < len(nums) && sum+nums[i] <= target; i++ {
+				choices = append(choices, i)
+			}
+			return choices
+		}, func(i int) { path = append(path, nums[i]); sum += nums[i]; starts = append(starts, i) },
+		func(i int) { path = path[:len(path)-1]; sum -= nums[i]; starts = starts[:len(starts)-1] })
+	return result
 }

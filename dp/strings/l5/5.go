@@ -1,29 +1,36 @@
 package l5
 
-import "math"
-
-// https://leetcode.com/problems/longest-palindromic-substring/
 func longestPalindrome(s string) string {
-	L := len(s)
-	dp := make([][]bool, L)
-	val := math.MinInt
-	valStr := ""
-	for i := 0; i < len(dp); i++ {
-		dp[i] = make([]bool, L)
-		dp[i][i] = true
-		val = 1
-		valStr = s[i : i+1]
+	if len(s) == 0 {
+		return ""
 	}
-	for i := len(dp) - 1; i >= 0; i-- {
-		for j := i + 1; j < len(dp[0]); j++ {
+	start, best := 0, 1
+	IntervalTable(len(s), true, func(i int) bool { return true }, func(l, r int, withoutLeft, withoutRight, inside bool) bool {
+		valid := s[l] == s[r] && inside
+		if valid && r-l+1 > best {
+			start, best = l, r-l+1
+		}
+		return valid
+	})
+	return s[start : start+best]
+}
 
-			dp[i][j] = s[i] == s[j] && (j-i == 1 || dp[i+1][j-1])
-			if dp[i][j] && j-i+1 > val {
-				val = j - i + 1
-				valStr = s[i : j+1]
+// IntervalTable 按区间长度填表；insideEmpty 是空内部区间的单位值。
+func IntervalTable[T any](n int, insideEmpty T, base func(i int) T, step func(l, r int, withoutLeft, withoutRight, inside T) T) [][]T {
+	dp := make([][]T, n)
+	for i := range dp {
+		dp[i] = make([]T, n)
+		dp[i][i] = base(i)
+	}
+	for length := 2; length <= n; length++ {
+		for l := 0; l+length <= n; l++ {
+			r := l + length - 1
+			inside := insideEmpty
+			if length > 2 {
+				inside = dp[l+1][r-1]
 			}
+			dp[l][r] = step(l, r, dp[l+1][r], dp[l][r-1], inside)
 		}
 	}
-
-	return valStr
+	return dp
 }

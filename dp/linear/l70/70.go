@@ -1,19 +1,23 @@
 package l70
 
-// climbStairs returns the number of distinct ways to climb n stairs,
-// taking either one or two steps at a time.
+// PrefixTable 的 dp[0] 是空前缀；step(i, dp[:i]) 只能读取已完成状态。
+func PrefixTable[T any](n int, empty T, step func(i int, previous []T) T) []T {
+	dp := make([]T, n+1)
+	dp[0] = empty
+	for i := 1; i <= n; i++ {
+		dp[i] = step(i, dp[:i])
+	}
+	return dp
+}
+
+// 空阶梯有一种走法；每次来自前一或前两级。
 func climbStairs(n int) int {
-	dp := make([]int, n)
-	if n == 1 {
-		return 1
-	}
-	if n == 2 {
-		return 2
-	}
-	dp[0] = 1
-	dp[1] = 2
-	for j := 2; j < n; j++ {
-		dp[j] = dp[j-1] + dp[j-2]
-	}
-	return dp[n-1]
+	dp := PrefixTable(n, 1, func(i int, old []int) int {
+		ways := old[i-1]
+		if i >= 2 {
+			ways += old[i-2]
+		}
+		return ways
+	})
+	return dp[n]
 }

@@ -1,33 +1,21 @@
 package l768
 
-type Stack[T any] struct {
-	d []T
-}
-
-func New[T any]() *Stack[T] {
-	s := &Stack[T]{
-		d: []T{},
-	}
-	return s
-}
-func (s *Stack[T]) Size() int {
-	return len(s.d)
-}
-
-func (s *Stack[T]) Peek() T {
-	return s.d[len(s.d)-1]
-}
-
-func (s *Stack[T]) Pop() T {
-	v := s.d[len(s.d)-1]
-	s.d = s.d[:len(s.d)-1]
-	return v
-}
-func (s *Stack[T]) Push(v T) {
-	s.d = append(s.d, v)
-}
-
 // https://leetcode.com/problems/max-chunks-to-make-sorted-ii/
-func maxChunksToSorted(arr []int) int {
-	panic("not implemented")
+// Embedded subtemplate: see README.md for its invariant and tie policy.
+func sortedChunks(arr []int) int {
+	maxima := []int{}
+	for _, value := range arr {
+		if len(maxima) == 0 || maxima[len(maxima)-1] <= value {
+			maxima = append(maxima, value)
+			continue
+		}
+		mergedMax := maxima[len(maxima)-1]
+		for len(maxima) > 0 && maxima[len(maxima)-1] > value {
+			maxima = maxima[:len(maxima)-1]
+		}
+		maxima = append(maxima, mergedMax)
+	}
+	return len(maxima)
 }
+
+func maxChunksToSorted(arr []int) int { return sortedChunks(arr) }

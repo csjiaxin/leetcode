@@ -1,33 +1,28 @@
 package l1130
 
-type Stack[T any] struct {
-	d []T
-}
-
-func New[T any]() *Stack[T] {
-	s := &Stack[T]{
-		d: []T{},
-	}
-	return s
-}
-func (s *Stack[T]) Size() int {
-	return len(s.d)
-}
-
-func (s *Stack[T]) Peek() T {
-	return s.d[len(s.d)-1]
-}
-
-func (s *Stack[T]) Pop() T {
-	v := s.d[len(s.d)-1]
-	s.d = s.d[:len(s.d)-1]
-	return v
-}
-func (s *Stack[T]) Push(v T) {
-	s.d = append(s.d, v)
-}
-
 // https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/
-func mctFromLeafValues(arr []int) int {
-	panic("not implemented")
+// Embedded subtemplate: see README.md for its invariant and tie policy.
+func minimumLeafTreeCost(arr []int) int {
+	stack := []int{}
+	cost := 0
+	for _, value := range arr {
+		for len(stack) > 0 && stack[len(stack)-1] <= value {
+			middle := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			neighbor := value
+			if len(stack) > 0 && stack[len(stack)-1] < neighbor {
+				neighbor = stack[len(stack)-1]
+			}
+			cost += middle * neighbor
+		}
+		stack = append(stack, value)
+	}
+	for len(stack) > 1 {
+		last := len(stack) - 1
+		cost += stack[last] * stack[last-1]
+		stack = stack[:last]
+	}
+	return cost
 }
+
+func mctFromLeafValues(arr []int) int { return minimumLeafTreeCost(arr) }

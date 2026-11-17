@@ -1,16 +1,22 @@
 package l28
 
-func buildPrefix(pattern string) []int {
-	N := len(pattern)
-	pi := make([]int, N)
+func strStr(haystack string, pattern string) int {
+	positions := FindAll([]byte(haystack), []byte(pattern))
+	if len(positions) == 0 {
+		return -1
+	}
+	return positions[0]
+}
 
-	for i := 1; i < N; i++ {
-		c := pattern[i]
+// PrefixFunction 记录每个前缀的最长相等真前后缀长度。
+func PrefixFunction[T comparable](pattern []T) []int {
+	pi := make([]int, len(pattern))
+	for i := 1; i < len(pattern); i++ {
 		j := pi[i-1]
-		for j > 0 && c != pattern[j] {
+		for j > 0 && pattern[i] != pattern[j] {
 			j = pi[j-1]
 		}
-		if pattern[j] == c {
+		if pattern[i] == pattern[j] {
 			j++
 		}
 		pi[i] = j
@@ -18,22 +24,28 @@ func buildPrefix(pattern string) []int {
 	return pi
 }
 
-// https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/
-func strStr(haystack string, pattern string) int {
-	pi := buildPrefix(pattern)
-	j := 0
-
-	for i := 0; i < len(haystack); i++ {
-		c := haystack[i]
-		for j > 0 && pattern[j] != c {
-			j = pi[j-1]
+// FindAll 在文本中寻找模式，匹配成功后回退以允许重叠。
+func FindAll[T comparable](text, pattern []T) []int {
+	answer := []int{}
+	if len(pattern) == 0 {
+		for i := 0; i <= len(text); i++ {
+			answer = append(answer, i)
 		}
-		if c == pattern[j] {
-			j++
+		return answer
+	}
+	pi := PrefixFunction(pattern)
+	matched := 0
+	for i, value := range text {
+		for matched > 0 && value != pattern[matched] {
+			matched = pi[matched-1]
 		}
-		if j == len(pattern) {
-			return i - len(pattern) + 1
+		if value == pattern[matched] {
+			matched++
+		}
+		if matched == len(pattern) {
+			answer = append(answer, i-len(pattern)+1)
+			matched = pi[matched-1]
 		}
 	}
-	return -1
+	return answer
 }

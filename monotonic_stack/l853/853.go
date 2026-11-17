@@ -1,33 +1,29 @@
 package l853
 
-type Stack[T any] struct {
-	d []T
-}
-
-func New[T any]() *Stack[T] {
-	s := &Stack[T]{
-		d: []T{},
-	}
-	return s
-}
-func (s *Stack[T]) Size() int {
-	return len(s.d)
-}
-
-func (s *Stack[T]) Peek() T {
-	return s.d[len(s.d)-1]
-}
-
-func (s *Stack[T]) Pop() T {
-	v := s.d[len(s.d)-1]
-	s.d = s.d[:len(s.d)-1]
-	return v
-}
-func (s *Stack[T]) Push(v T) {
-	s.d = append(s.d, v)
-}
+import "sort"
 
 // https://leetcode.com/problems/car-fleet/
+// Embedded subtemplate: see README.md for its invariant and tie policy.
+type fleetCar struct{ position, speed int }
+
+func countFleets(target int, position, speed []int) int {
+	cars := make([]fleetCar, len(position))
+	for i, p := range position {
+		cars[i] = fleetCar{p, speed[i]}
+	}
+	sort.Slice(cars, func(i, j int) bool { return cars[i].position > cars[j].position })
+	fleets := 0
+	lastArrival := -1.0
+	for _, car := range cars {
+		arrival := float64(target-car.position) / float64(car.speed)
+		if arrival > lastArrival {
+			fleets++
+			lastArrival = arrival
+		}
+	}
+	return fleets
+}
+
 func carFleet(target int, position []int, speed []int) int {
-	panic("not implemented")
+	return countFleets(target, position, speed)
 }

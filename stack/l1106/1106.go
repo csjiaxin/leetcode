@@ -1,65 +1,52 @@
 package l1106
 
-type frame struct {
-	val  bool
-	sign rune
+// Standalone nested-context subtemplate and problem adapter; see README.md.
+type booleanFrame struct {
+	operator          byte
+	anyTrue, anyFalse bool
 }
 
-func update(stack []frame, val bool) {
-	end := len(stack) - 1
-	top := stack[end]
-
-	if top.sign == '|' {
-		top.val = top.val || val
-	} else if top.sign == '&' {
-		top.val = top.val && val
-	} else {
-		top.val = !val
+// evaluateBoolean folds each operator's direct children, never skipping syntax.
+func evaluateBoolean(expression string) bool {
+	stack := []booleanFrame{}
+	operator := byte(0)
+	result := false
+	feed := func(value bool) {
+		if len(stack) == 0 {
+			result = value
+			return
+		}
+		frame := &stack[len(stack)-1]
+		frame.anyTrue = frame.anyTrue || value
+		frame.anyFalse = frame.anyFalse || !value
 	}
-
-	stack[end] = top
-}
-
-// https://leetcode.com/problems/parsing-a-boolean-expression/
-func parseBoolExpr(expression string) bool {
-
-	var (
-		stack        []frame
-		current_sign rune
-	)
-
-	for _, c := range expression {
-		if c == '(' {
-			e := frame{
-				val:  false,
-				sign: current_sign,
-			}
-			if current_sign == '&' {
-				e.val = true
-			}
-			stack = append(stack, e)
-		} else if c == ')' {
-			inner := stack[len(stack)-1]
+	for i := range expression {
+		token := expression[i]
+		switch token {
+		case '!', '&', '|':
+			operator = token
+		case '(':
+			stack = append(stack, booleanFrame{operator: operator})
+		case 't':
+			feed(true)
+		case 'f':
+			feed(false)
+		case ')':
+			frame := stack[len(stack)-1]
 			stack = stack[:len(stack)-1]
-			if len(stack) == 0 {
-				return inner.val
+			value := false
+			switch frame.operator {
+			case '!':
+				value = frame.anyFalse
+			case '&':
+				value = !frame.anyFalse
+			case '|':
+				value = frame.anyTrue
 			}
-			update(stack, inner.val)
-
-		} else if c == '!' || c == '&' || c == '|' {
-			current_sign = c
-		} else if c == 'f' {
-			if len(stack) == 0 {
-				return false
-			}
-			update(stack, false)
-		} else if c == 't' {
-			if len(stack) == 0 {
-				return true
-			}
-			update(stack, true)
-
+			feed(value)
 		}
 	}
-	return false
+	return result
 }
+
+func parseBoolExpr(expression string) bool { return evaluateBoolean(expression) }

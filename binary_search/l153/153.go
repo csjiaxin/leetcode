@@ -1,27 +1,21 @@
 package l153
 
+// 153：复用本文件的边界模板；特殊结构按对应排除不变量处理。
 func findMin(nums []int) int {
-	N := len(nums)
-	target := nums[N-1]
-	lessEqual := func(x int) bool {
-		return x <= target
-	}
-	bs := func(check func(x int) bool) int {
-		l, r := 0, len(nums)-1
+	last := nums[len(nums)-1]
+	index := FirstTrue(len(nums), func(i int) bool { return nums[i] <= last })
+	return nums[index]
+}
 
-		for l <= r {
-			mid := l + (r-l)/2
-
-			if check(nums[mid]) {
-				r = mid - 1
-			} else {
-				l = mid + 1
-			}
-
+func FirstTrue(n int, predicate func(int) bool) int {
+	left, right := 0, n-1
+	for left <= right {
+		mid := left + (right-left)/2
+		if predicate(mid) {
+			right = mid - 1
+		} else {
+			left = mid + 1
 		}
-		return l
 	}
-
-	l := bs(lessEqual)
-	return nums[l]
+	return left
 }

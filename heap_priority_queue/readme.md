@@ -1,503 +1,1349 @@
-# Top K堆与双堆：按题目独立实现
+# 优先队列：统一 Queue 与候选状态适配
 
-## 合并后的模板入口
+[返回模板总目录](../algorithm_templates/README.md)
 
-`l215_template`、`l295_template`、`l347_template`、`l703_template`、`l973_template` 已分别合并到同题的 `variants/template` 子包。各版本保留独立源码与测试，空练习不会被替换成主实现的测试结果。
+Queue 的 less(a,b) 表示 a 的优先级更高，Peek/Pop 的前提是堆非空。固定容量 Top K、双堆平衡、有序来源归并、事件调度及图松弛共享候选容器，各自保留合法性和更新顺序。
 
-所有已接入的运行实现复用 [泛型优先队列](internal/pqueue/queue.go)：`New(less)`、`Push`、`Peek`、`Pop`。`less(a,b)` 表示 a 的优先级高于 b；Peek/Pop 前需保证非空。
+Top K 入堆后超额弹出最差候选；调度先释放结束事件；双堆维护大小及顺序；最短路弹出后丢弃过期状态。912 是原地堆排序，单列 siftDown 子模板；不能把 container/heap 的堆序和排序数组的顺序混淆。
 
-| 子系列 | 固定骨架 / 不变量 | 代表题 |
-| --- | --- | --- |
-| 固定容量 Top K | 入堆；大小超过 k 则移除最差候选；堆中保留当前最优 k 个 | 215、703、347、973 |
-| 双堆中位数 | 小的一半用最大堆，大的一半用最小堆；维持大小差和有序边界 | 295、480 |
-| 多路归并 | 每条有序来源只放一个当前候选；弹出后推进其来源 | 23、373、378、632 |
-| 资源与调度 | 释放已完成资源，再按策略选择可用资源；同时间事件顺序明确 | 1834、1882、2402 |
-| 动态最优候选 | 先加入所有可选候选，再取当前最优并更新后继 | 1642、630、871、767 |
-| 图上的优先扩展 | 弹出候选后检查是否过期，按题目路径代价松弛 | 743、1514、1631、407 |
+## 复制约定
 
-共同的是候选集的优先取出操作。Top K、调度、最短路径的合法性和更新顺序各有规则，下面的各节分别给出可直接迁移的模板。图状态的推导另见 [图算法](../graph/README.md)。
+每题 `.go` 文件已内嵌所需模板，无需导入仓库的算法包。文档将固定模板只列一次，逐题展示适配器；每个适配器与它列出的模板组成一个独立代码组。不同题的同名 Constructor、类型或入口请分别使用。将列出的标准库 import 放在文件顶部，再放模板与适配器；复制提交时优先直接使用对应题目的完整 `.go`。
 
----
+本组使用 Go 1.21+ 的 min/max 和 Go 1.18+ 的泛型。平台已提供的 ListNode 等类型沿用平台定义。
 
-[返回总目录](../algorithm_templates/README.md)
+## 固定模板
 
-[扩展练习：迁移点与边界](#extended-practice) · [保留的原分类笔记](#legacy-notes)
+### Queue
 
-## 目录
+<!-- template: Queue -->
+```go
+type heapData[T any] struct {
+	items []T
+	less  func(T, T) bool
+}
 
-- [1. 核心思路](#core)
-- [2. 215：数组第K大](#lc215)
-- [3. 703：数据流第K大](#lc703)
-- [4. 347：前K个高频元素](#lc347)
-- [5. 973：最近K个点](#lc973)
-- [6. 295：数据流中位数（双堆对照）](#lc295)
-- [7. 对比与易错点](#pitfalls)
+func (d heapData[T]) Len() int           { return len(d.items) }
+func (d heapData[T]) Less(i, j int) bool { return d.less(d.items[i], d.items[j]) }
+func (d heapData[T]) Swap(i, j int)      { d.items[i], d.items[j] = d.items[j], d.items[i] }
+func (d *heapData[T]) Push(x any)        { d.items = append(d.items, x.(T)) }
+func (d *heapData[T]) Pop() any {
+	n := len(d.items) - 1
+	x := d.items[n]
+	var zero T
+	d.items[n] = zero
+	d.items = d.items[:n]
+	return x
+}
 
-<a id="core"></a>
+// Queue must not be copied after use. less(a,b) means a has higher priority.
+// Peek and Pop require a nonempty queue.
+type Queue[T any] struct{ d heapData[T] }
 
-## 1. 核心思路
-
-保留最好的K个候选，堆顶是其中最差者，方便淘汰：最大K个用最小堆，最小K个用最大堆。
-
-```text
-加入新候选 → 大小超过K则弹出最差 → 剩余候选始终是已见最好的K个
+// NewQueue copies the initial values and builds the heap in O(n).
+func NewQueue[T any](less func(T, T) bool, values ...T) *Queue[T] {
+	q := &Queue[T]{d: heapData[T]{items: append([]T(nil), values...), less: less}}
+	heap.Init(&q.d)
+	return q
+}
+func (q *Queue[T]) Len() int { return q.d.Len() }
+func (q *Queue[T]) Peek() T  { return q.d.items[0] }
+func (q *Queue[T]) Push(x T) { heap.Push(&q.d, x) }
+func (q *Queue[T]) Pop() T   { return heap.Pop(&q.d).(T) }
 ```
 
-重复值按出现次数计排名；堆内切片不是有序结果。295需要两个堆平衡，不能直接套固定K；放在本篇用于对照。
+### HeapSort
 
-以下每题包含自己的container/heap辅助类型，代码块相互独立。Less决定堆方向，接口Pop只移除末尾，由heap.Pop负责堆顶交换。
-
-<a id="lc215"></a>
-
-## 2. [215. 数组中的第K个最大元素](https://leetcode.com/problems/kth-largest-element-in-an-array/)
-
-[练习](l215/variants/template/215.go) · [测试](l215/variants/template/215_test.go)
-
-**题意**：返回多重集合意义的第k大，不是第k个不同值，题设1<=k<=n。
-
-**状态**：保留最大k个，最小堆顶即第k大。
-
+<!-- template: HeapSort -->
 ```go
-package template
-
-import "container/heap"
-
-type minHeap []int
-
-func (h minHeap) Len() int           { return len(h) }
-func (h minHeap) Less(i, j int) bool { return h[i] < h[j] }
-func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-func (h *minHeap) Push(x any)        { *h = append(*h, x.(int)) }
-func (h *minHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
-
-func findKthLargest(nums []int, k int) int {
-	h := &minHeap{}
-	for _, x := range nums {
-		heap.Push(h, x)
-		if h.Len() > k {
-			heap.Pop(h)
+func siftDown(a []int, root, end int) {
+	for root < end/2 {
+		child := 2*root + 1
+		if child+1 < end && a[child+1] > a[child] {
+			child++
 		}
+		if a[root] >= a[child] {
+			return
+		}
+		a[root], a[child] = a[child], a[root]
+		root = child
 	}
-	return (*h)[0]
 }
 ```
 
-**例子**：[5,5,4]、k=2，答案5，不去重。
+## 题目索引
 
-**复杂度**：时间O(n log(k+1))，空间O(k)。也可快速选择，但不是本模板重点。
+| 题目 | 模板 | 本地代码与测试 |
+| --- | --- | --- |
+| [23](https://leetcode.com/problems/merge-k-sorted-lists/) | Queue | [代码](l23/23.go) · [测试](l23/23_test.go) |
+| [215](https://leetcode.com/problems/kth-largest-element-in-an-array/) | Queue | [代码](l215/215.go) · [测试](l215/215_test.go) |
+| [239](https://leetcode.com/problems/sliding-window-maximum/) | Queue | [代码](l239/239.go) · [测试](l239/239_test.go) |
+| [264](https://leetcode.com/problems/ugly-number-ii/) | Queue | [代码](l264/264.go) · [测试](l264/264_test.go) |
+| [295](https://leetcode.com/problems/find-median-from-data-stream/) | Queue | [代码](l295/295.go) · [测试](l295/295_test.go) |
+| [347](https://leetcode.com/problems/top-k-frequent-elements/) | Queue | [代码](l347/347.go) · [测试](l347/347_test.go) |
+| [373](https://leetcode.com/problems/find-k-pairs-with-smallest-sums/) | Queue | [代码](l373/373.go) · [测试](l373/373_test.go) |
+| [378](https://leetcode.com/problems/kth-smallest-element-in-a-sorted-matrix/) | Queue | [代码](l378/378.go) · [测试](l378/378_test.go) |
+| [407](https://leetcode.com/problems/trapping-rain-water-ii/) | Queue | [代码](l407/407.go) · [测试](l407/407_test.go) |
+| [480](https://leetcode.com/problems/sliding-window-median/) | Queue | [代码](l480/480.go) · [测试](l480/480_test.go) |
+| [621](https://leetcode.com/problems/task-scheduler/) | Queue | [代码](l621/621.go) · [测试](l621/621_test.go) |
+| [630](https://leetcode.com/problems/course-schedule-iii/) | Queue | [代码](l630/630.go) · [测试](l630/630_test.go) |
+| [632](https://leetcode.com/problems/smallest-range-covering-elements-from-k-lists/) | Queue | [代码](l632/632.go) · [测试](l632/632_test.go) |
+| [692](https://leetcode.com/problems/top-k-frequent-words/) | Queue | [代码](l692/692.go) · [测试](l692/692_test.go) |
+| [703](https://leetcode.com/problems/kth-largest-element-in-a-stream/) | Queue | [代码](l703/703.go) · [测试](l703/703_test.go) |
+| [743](https://leetcode.com/problems/network-delay-time/) | Queue | [代码](l743/743.go) · [测试](l743/743_test.go) |
+| [767](https://leetcode.com/problems/reorganize-string/) | Queue | [代码](l767/767.go) · [测试](l767/767_test.go) |
+| [857](https://leetcode.com/problems/minimum-cost-to-hire-k-workers/) | Queue | [代码](l857/857.go) · [测试](l857/857_test.go) |
+| [871](https://leetcode.com/problems/minimum-number-of-refueling-stops/) | Queue | [代码](l871/871.go) · [测试](l871/871_test.go) |
+| [912](https://leetcode.com/problems/sort-an-array/) | HeapSort | [代码](l912/912.go) · [测试](l912/912_test.go) |
+| [973](https://leetcode.com/problems/k-closest-points-to-origin/) | Queue | [代码](l973/973.go) · [测试](l973/973_test.go) |
+| [1046](https://leetcode.com/problems/last-stone-weight/) | Queue | [代码](l1046/1046.go) · [测试](l1046/1046_test.go) |
+| [1514](https://leetcode.com/problems/path-with-maximum-probability/) | Queue | [代码](l1514/1514.go) · [测试](l1514/1514_test.go) |
+| [1631](https://leetcode.com/problems/path-with-minimum-effort/) | Queue | [代码](l1631/1631.go) · [测试](l1631/1631_test.go) |
+| [1642](https://leetcode.com/problems/furthest-building-you-can-reach/) | Queue | [代码](l1642/1642.go) · [测试](l1642/1642_test.go) |
+| [1753](https://leetcode.com/problems/maximum-score-from-removing-stones/) | Queue | [代码](l1753/1753.go) · [测试](l1753/1753_test.go) |
+| [1834](https://leetcode.com/problems/single-threaded-cpu/) | Queue | [代码](l1834/1834.go) · [测试](l1834/1834_test.go) |
+| [1882](https://leetcode.com/problems/process-tasks-using-servers/) | Queue | [代码](l1882/1882.go) · [测试](l1882/1882_test.go) |
+| [1962](https://leetcode.com/problems/remove-stones-to-minimize-the-total/) | Queue | [代码](l1962/1962.go) · [测试](l1962/1962_test.go) |
+| [2402](https://leetcode.com/problems/meeting-rooms-iii/) | Queue | [代码](l2402/2402.go) · [测试](l2402/2402_test.go) |
+| [2530](https://leetcode.com/problems/maximal-score-after-applying-k-operations/) | Queue | [代码](l2530/2530.go) · [测试](l2530/2530_test.go) |
+| [2558](https://leetcode.com/problems/take-gifts-from-the-richest-pile/) | Queue | [代码](l2558/2558.go) · [测试](l2558/2558_test.go) |
 
-<a id="lc703"></a>
+## 逐题适配器
 
-## 3. [703. 数据流中的第K大元素](https://leetcode.com/problems/kth-largest-element-in-a-stream/)
+### [23](https://leetcode.com/problems/merge-k-sorted-lists/)
 
-[练习](l703/variants/template/703.go) · [测试](l703/variants/template/703_test.go)
+需要模板：`Queue`。
 
-**题意**：初始化已有流，每次Add后返回当前第k大；题设保证调用返回时元素足够。
+标准库：`container/heap`。
 
-**变化**：将215中的堆作为持久状态，构造时依次Add初始数据；不足k时内部堆顶只是现有最小值，构造不使用这个返回值。
-
+<!-- solution: heap_priority_queue/l23/23.go; templates: Queue; imports: container/heap -->
 ```go
-package template
+type ListNode struct {
+	Val  int
+	Next *ListNode
+}
 
-import "container/heap"
+// mergeKLists reuses nodes; the heap holds one frontier per nonempty list.
+// O(N log k) time and O(k) extra space for N total nodes.
+func mergeKLists(lists []*ListNode) *ListNode {
+	q := NewQueue(func(a, b *ListNode) bool { return a.Val < b.Val })
+	for _, node := range lists {
+		if node != nil {
+			q.Push(node)
+		}
+	}
+	dummy := &ListNode{}
+	tail := dummy
+	for q.Len() > 0 {
+		node := q.Pop()
+		if node.Next != nil {
+			q.Push(node.Next)
+		}
+		tail.Next = node
+		tail = node
+	}
+	if tail != dummy {
+		tail.Next = nil
+	}
+	return dummy.Next
+}
+```
 
-type minHeap []int
+### [215](https://leetcode.com/problems/kth-largest-element-in-an-array/)
 
-func (h minHeap) Len() int           { return len(h) }
-func (h minHeap) Less(i, j int) bool { return h[i] < h[j] }
-func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-func (h *minHeap) Push(x any)        { *h = append(*h, x.(int)) }
-func (h *minHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
+需要模板：`Queue`。
 
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l215/215.go; templates: Queue; imports: container/heap -->
+```go
+// findKthLargest keeps the largest k values in a minimum heap.
+// O(n log k) time, O(k) space. Requires 1 <= k <= len(nums).
+func findKthLargest(nums []int, k int) int {
+	q := NewQueue(func(a, b int) bool { return a < b })
+	for _, x := range nums {
+		q.Push(x)
+		if q.Len() > k {
+			q.Pop()
+		}
+	}
+	return q.Peek()
+}
+```
+
+### [239](https://leetcode.com/problems/sliding-window-maximum/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l239/239.go; templates: Queue; imports: container/heap -->
+```go
+type entry struct{ value, index int }
+
+// maxSlidingWindow removes expired entries when they reach the heap top.
+// Stale interior entries can accumulate: O(n log n) time, O(n) auxiliary space.
+func maxSlidingWindow(nums []int, k int) []int {
+	out := make([]int, 0)
+	if k <= 0 || k > len(nums) {
+		return out
+	}
+	q := NewQueue(func(a, b entry) bool {
+		if a.value != b.value {
+			return a.value > b.value
+		}
+		return a.index > b.index
+	})
+	for i, v := range nums {
+		q.Push(entry{v, i})
+		for q.Peek().index <= i-k {
+			q.Pop()
+		}
+		if i >= k-1 {
+			out = append(out, q.Peek().value)
+		}
+	}
+	return out
+}
+```
+
+### [264](https://leetcode.com/problems/ugly-number-ii/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l264/264.go; templates: Queue; imports: container/heap -->
+```go
+// nthUglyNumber expands unique multiples of 2,3,5 in sorted order.
+// O(n log n) time, O(n) space. int64 intermediates avoid 32-bit overflow.
+func nthUglyNumber(n int) int {
+	q := NewQueue(func(a, b int64) bool { return a < b }, int64(1))
+	seen := map[int64]bool{1: true}
+	var x int64
+	for count := 0; count < n; count++ {
+		x = q.Pop()
+		for _, factor := range []int64{2, 3, 5} {
+			y := x * factor
+			if !seen[y] {
+				seen[y] = true
+				q.Push(y)
+			}
+		}
+	}
+	return int(x)
+}
+```
+
+### [295](https://leetcode.com/problems/find-median-from-data-stream/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l295/295.go; templates: Queue; imports: container/heap -->
+```go
+// MedianFinder partitions values into lower(max heap) and upper(min heap).
+// Lower has either the same size as upper or one additional element.
+type MedianFinder struct{ lower, upper *Queue[int] }
+
+func Constructor() MedianFinder {
+	return MedianFinder{NewQueue(func(a, b int) bool { return a > b }), NewQueue(func(a, b int) bool { return a < b })}
+}
+
+// AddNum takes O(log n) time. All inserted values occupy O(n) space.
+func (m *MedianFinder) AddNum(num int) {
+	if m.lower.Len() == 0 || num <= m.lower.Peek() {
+		m.lower.Push(num)
+	} else {
+		m.upper.Push(num)
+	}
+	if m.lower.Len() > m.upper.Len()+1 {
+		m.upper.Push(m.lower.Pop())
+	}
+	if m.upper.Len() > m.lower.Len() {
+		m.lower.Push(m.upper.Pop())
+	}
+}
+
+// FindMedian takes O(1) time; at least one number must have been inserted.
+func (m *MedianFinder) FindMedian() float64 {
+	if m.lower.Len() > m.upper.Len() {
+		return float64(m.lower.Peek())
+	}
+	return float64(m.lower.Peek())/2 + float64(m.upper.Peek())/2
+}
+```
+
+### [347](https://leetcode.com/problems/top-k-frequent-elements/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l347/347.go; templates: Queue; imports: container/heap -->
+```go
+type entry struct{ value, count int }
+
+// topKFrequent keeps the k most frequent values. Ties are deterministic.
+// O(n+u log k) time, O(u+k) space for u unique values.
+func topKFrequent(nums []int, k int) []int {
+	counts := make(map[int]int)
+	for _, x := range nums {
+		counts[x]++
+	}
+	q := NewQueue(func(a, b entry) bool {
+		if a.count != b.count {
+			return a.count < b.count
+		}
+		return a.value > b.value
+	})
+	for v, c := range counts {
+		q.Push(entry{v, c})
+		if q.Len() > k {
+			q.Pop()
+		}
+	}
+	out := make([]int, q.Len())
+	for i := len(out) - 1; i >= 0; i-- {
+		out[i] = q.Pop().value
+	}
+	return out
+}
+```
+
+### [373](https://leetcode.com/problems/find-k-pairs-with-smallest-sums/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l373/373.go; templates: Queue; imports: container/heap -->
+```go
+type pair struct {
+	sum  int64
+	i, j int
+}
+
+// kSmallestPairs merges rows nums1[i]+nums2[j] without generating the product.
+// O(k log min(k,len(nums1))) time, O(min(k,len(nums1))) heap space.
+func kSmallestPairs(nums1, nums2 []int, k int) [][]int {
+	out := make([][]int, 0)
+	if len(nums1) == 0 || len(nums2) == 0 || k <= 0 {
+		return out
+	}
+	q := NewQueue(func(a, b pair) bool {
+		if a.sum != b.sum {
+			return a.sum < b.sum
+		}
+		if a.i != b.i {
+			return a.i < b.i
+		}
+		return a.j < b.j
+	})
+	for i := 0; i < len(nums1) && i < k; i++ {
+		q.Push(pair{int64(nums1[i]) + int64(nums2[0]), i, 0})
+	}
+	for len(out) < k && q.Len() > 0 {
+		x := q.Pop()
+		out = append(out, []int{nums1[x.i], nums2[x.j]})
+		if x.j+1 < len(nums2) {
+			q.Push(pair{int64(nums1[x.i]) + int64(nums2[x.j+1]), x.i, x.j + 1})
+		}
+	}
+	return out
+}
+```
+
+### [378](https://leetcode.com/problems/kth-smallest-element-in-a-sorted-matrix/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l378/378.go; templates: Queue; imports: container/heap -->
+```go
+type cell struct{ value, row, col int }
+
+// kthSmallest merges sorted rows. O((n+k) log(n+1)) time, O(n) space.
+func kthSmallest(matrix [][]int, k int) int {
+	q := NewQueue(func(a, b cell) bool { return a.value < b.value })
+	for r, row := range matrix {
+		q.Push(cell{row[0], r, 0})
+	}
+	for {
+		x := q.Pop()
+		k--
+		if k == 0 {
+			return x.value
+		}
+		if x.col+1 < len(matrix[x.row]) {
+			q.Push(cell{matrix[x.row][x.col+1], x.row, x.col + 1})
+		}
+	}
+}
+```
+
+### [407](https://leetcode.com/problems/trapping-rain-water-ii/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l407/407.go; templates: Queue; imports: container/heap -->
+```go
+type cell struct{ row, col, height int }
+
+// trapRainWater expands the lowest boundary; visited cells are marked on insertion.
+// O(mn log(mn)) time, O(mn) space.
+func trapRainWater(heightMap [][]int) int {
+	m := len(heightMap)
+	if m == 0 {
+		return 0
+	}
+	n := len(heightMap[0])
+	if m < 3 || n < 3 {
+		return 0
+	}
+	visited := make([][]bool, m)
+	for r := range visited {
+		visited[r] = make([]bool, n)
+	}
+	q := NewQueue(func(a, b cell) bool { return a.height < b.height })
+	add := func(r, c int) {
+		if !visited[r][c] {
+			visited[r][c] = true
+			q.Push(cell{r, c, heightMap[r][c]})
+		}
+	}
+	for r := 0; r < m; r++ {
+		add(r, 0)
+		add(r, n-1)
+	}
+	for c := 0; c < n; c++ {
+		add(0, c)
+		add(m-1, c)
+	}
+	dirs := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	water := 0
+	for q.Len() > 0 {
+		s := q.Pop()
+		for _, d := range dirs {
+			r, c := s.row+d[0], s.col+d[1]
+			if r < 0 || r >= m || c < 0 || c >= n || visited[r][c] {
+				continue
+			}
+			visited[r][c] = true
+			water += max(0, s.height-heightMap[r][c])
+			q.Push(cell{r, c, max(s.height, heightMap[r][c])})
+		}
+	}
+	return water
+}
+```
+
+### [480](https://leetcode.com/problems/sliding-window-median/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l480/480.go; templates: Queue; imports: container/heap -->
+```go
+type entry struct{ value, index int }
+
+// medianSlidingWindow uses two heaps, index-based lazy expiration, and logical sizes.
+// Stale interior entries may remain: O(n log n) worst-case time, O(n) space.
+func medianSlidingWindow(nums []int, k int) []float64 {
+	out := make([]float64, 0)
+	if k <= 0 || k > len(nums) {
+		return out
+	}
+	lower := NewQueue(func(a, b entry) bool {
+		if a.value != b.value {
+			return a.value > b.value
+		}
+		return a.index > b.index
+	})
+	upper := NewQueue(func(a, b entry) bool {
+		if a.value != b.value {
+			return a.value < b.value
+		}
+		return a.index < b.index
+	})
+	inLower := make([]bool, len(nums))
+	lowSize, upSize, left := 0, 0, 0
+	prune := func(q *Queue[entry]) {
+		for q.Len() > 0 && q.Peek().index < left {
+			q.Pop()
+		}
+	}
+	balance := func() {
+		prune(lower)
+		prune(upper)
+		for lowSize > upSize+1 {
+			x := lower.Pop()
+			lowSize--
+			upSize++
+			inLower[x.index] = false
+			upper.Push(x)
+			prune(lower)
+		}
+		for lowSize < upSize {
+			x := upper.Pop()
+			upSize--
+			lowSize++
+			inLower[x.index] = true
+			lower.Push(x)
+			prune(upper)
+		}
+	}
+	for i, v := range nums {
+		if i >= k {
+			old := i - k
+			if inLower[old] {
+				lowSize--
+			} else {
+				upSize--
+			}
+			left = old + 1
+			balance()
+		}
+		x := entry{v, i}
+		if lowSize == 0 || v <= lower.Peek().value {
+			lower.Push(x)
+			inLower[i] = true
+			lowSize++
+		} else {
+			upper.Push(x)
+			upSize++
+		}
+		balance()
+		if i >= k-1 {
+			median := float64(lower.Peek().value)
+			if k%2 == 0 {
+				median = median/2 + float64(upper.Peek().value)/2
+			}
+			out = append(out, median)
+		}
+	}
+	return out
+}
+```
+
+### [621](https://leetcode.com/problems/task-scheduler/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l621/621.go; templates: Queue; imports: container/heap -->
+```go
+type cooling struct{ ready, count int }
+
+// leastInterval greedily runs the largest available frequency and queues cooldowns.
+// O(T log A) time for T tasks and A distinct task kinds; O(A) space.
+// Idle periods are jumped over rather than simulated one unit at a time.
+func leastInterval(tasks []byte, n int) int {
+	counts := make(map[byte]int)
+	for _, c := range tasks {
+		counts[c]++
+	}
+	q := NewQueue(func(a, b int) bool { return a > b })
+	for _, c := range counts {
+		q.Push(c)
+	}
+	wait := make([]cooling, 0, len(counts))
+	head, now := 0, 0
+	for q.Len() > 0 || head < len(wait) {
+		if q.Len() == 0 {
+			now = max(now, wait[head].ready)
+		}
+		for head < len(wait) && wait[head].ready <= now {
+			q.Push(wait[head].count)
+			head++
+		}
+		remaining := q.Pop() - 1
+		now++
+		if remaining > 0 {
+			wait = append(wait, cooling{now + n, remaining})
+		}
+		// Compact consumed cooldowns to keep storage bounded by active kinds.
+		if head > 0 && head*2 >= len(wait) {
+			wait = append(wait[:0], wait[head:]...)
+			head = 0
+		}
+	}
+	return now
+}
+```
+
+### [630](https://leetcode.com/problems/course-schedule-iii/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`, `sort`。
+
+<!-- solution: heap_priority_queue/l630/630.go; templates: Queue; imports: container/heap,sort -->
+```go
+// scheduleCourse sorts deadlines; when over budget, discard the longest course.
+// O(n log n) time, O(n) space. The input is not reordered.
+func scheduleCourse(courses [][]int) int {
+	ordered := append([][]int(nil), courses...)
+	sort.Slice(ordered, func(i, j int) bool { return ordered[i][1] < ordered[j][1] })
+	q := NewQueue(func(a, b int) bool { return a > b })
+	var elapsed int64
+	for _, c := range ordered {
+		q.Push(c[0])
+		elapsed += int64(c[0])
+		if elapsed > int64(c[1]) {
+			elapsed -= int64(q.Pop())
+		}
+	}
+	return q.Len()
+}
+```
+
+### [632](https://leetcode.com/problems/smallest-range-covering-elements-from-k-lists/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l632/632.go; templates: Queue; imports: container/heap -->
+```go
+type item struct{ value, row, col int }
+
+// smallestRange advances the current minimum while tracking the maximum.
+// O(N log k) time, O(k) space for N total values and k lists.
+func smallestRange(nums [][]int) []int {
+	q := NewQueue(func(a, b item) bool { return a.value < b.value })
+	high := nums[0][0]
+	for r, row := range nums {
+		q.Push(item{row[0], r, 0})
+		high = max(high, row[0])
+	}
+	lo, hi := q.Peek().value, high
+	for {
+		x := q.Pop()
+		width, best := int64(high)-int64(x.value), int64(hi)-int64(lo)
+		if width < best || width == best && x.value < lo {
+			lo, hi = x.value, high
+		}
+		if x.col+1 == len(nums[x.row]) {
+			break
+		}
+		v := nums[x.row][x.col+1]
+		high = max(high, v)
+		q.Push(item{v, x.row, x.col + 1})
+	}
+	return []int{lo, hi}
+}
+```
+
+### [692](https://leetcode.com/problems/top-k-frequent-words/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l692/692.go; templates: Queue; imports: container/heap -->
+```go
+type entry struct {
+	word  string
+	count int
+}
+
+// topKFrequent returns frequency descending, then lexicographic ascending.
+// O(n+u log k+k log k) heap operations, O(u+k) space; string comparisons cost length.
+func topKFrequent(words []string, k int) []string {
+	counts := make(map[string]int)
+	for _, w := range words {
+		counts[w]++
+	}
+	q := NewQueue(func(a, b entry) bool {
+		if a.count != b.count {
+			return a.count < b.count
+		}
+		return a.word > b.word
+	})
+	for w, c := range counts {
+		q.Push(entry{w, c})
+		if q.Len() > k {
+			q.Pop()
+		}
+	}
+	out := make([]string, q.Len())
+	for i := len(out) - 1; i >= 0; i-- {
+		out[i] = q.Pop().word
+	}
+	return out
+}
+```
+
+### [703](https://leetcode.com/problems/kth-largest-element-in-a-stream/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l703/703.go; templates: Queue; imports: container/heap -->
+```go
+// KthLargest retains only the largest k values seen so far.
 type KthLargest struct {
-	k      int
-	values minHeap
+	k int
+	q *Queue[int]
 }
 
 func Constructor(k int, nums []int) KthLargest {
-	result := KthLargest{k: k}
+	s := KthLargest{k: k, q: NewQueue(func(a, b int) bool { return a < b })}
 	for _, x := range nums {
-		result.Add(x)
+		s.Add(x)
 	}
-	return result
+	return s
 }
 
+// Add takes O(log k) time; total storage is O(k).
 func (s *KthLargest) Add(val int) int {
-	heap.Push(&s.values, val)
-	if len(s.values) > s.k {
-		heap.Pop(&s.values)
+	s.q.Push(val)
+	if s.q.Len() > s.k {
+		s.q.Pop()
 	}
-	return s.values[0]
+	return s.q.Peek()
 }
 ```
 
-**例子**：k=3、初始[4,5,8,2]，依次Add(3)、Add(5)，返回4、5。
+### [743](https://leetcode.com/problems/network-delay-time/)
 
-**复杂度**：构造O(n log(k+1))，每次Add O(log(k+1))，空间O(k)。通用接口若允许查询不足k个的流，应另返回ok，不把堆顶误称第k大。
+需要模板：`Queue`。
 
-<a id="lc347"></a>
+标准库：`container/heap`。
 
-## 4. [347. 前K个高频元素](https://leetcode.com/problems/top-k-frequent-elements/)
-
-[练习](l347/variants/template/347.go) · [测试](l347/variants/template/347_test.go)
-
-**题意**：返回出现次数最多的k个不同值，顺序任意。
-
-**变化**：先统计所有频次，堆元素为(value,count)，比较count而不是value。不能在频次尚未统计完成时直接丢弃值。
-
+<!-- solution: heap_priority_queue/l743/743.go; templates: Queue; imports: container/heap -->
 ```go
-package template
+type edge struct{ to, weight int }
+type state struct{ node, distance int }
 
-import "container/heap"
-
-type entry struct{ value, count int }
-type minHeap []entry
-
-func (h minHeap) Len() int           { return len(h) }
-func (h minHeap) Less(i, j int) bool { return h[i].count < h[j].count }
-func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-func (h *minHeap) Push(x any)        { *h = append(*h, x.(entry)) }
-func (h *minHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
-
-func topKFrequent(nums []int, k int) []int {
-	freq := make(map[int]int)
-	for _, x := range nums {
-		freq[x]++
+// networkDelayTime uses Dijkstra with lazy outdated-state removal.
+// O(n+E log(E+1)) time, O(n+E) space; all edge weights are nonnegative.
+func networkDelayTime(times [][]int, n, k int) int {
+	graph := make([][]edge, n+1)
+	for _, e := range times {
+		graph[e[0]] = append(graph[e[0]], edge{e[1], e[2]})
 	}
-	h := &minHeap{}
-	for x, count := range freq {
-		heap.Push(h, entry{x, count})
-		if h.Len() > k {
-			heap.Pop(h)
+	inf := int(^uint(0) >> 1)
+	dist := make([]int, n+1)
+	for i := 1; i <= n; i++ {
+		dist[i] = inf
+	}
+	dist[k] = 0
+	q := NewQueue(func(a, b state) bool { return a.distance < b.distance }, state{k, 0})
+	for q.Len() > 0 {
+		s := q.Pop()
+		if s.distance != dist[s.node] {
+			continue
+		}
+		for _, e := range graph[s.node] {
+			d := s.distance + e.weight
+			if d < dist[e.to] {
+				dist[e.to] = d
+				q.Push(state{e.to, d})
+			}
 		}
 	}
-	answer := make([]int, h.Len())
-	for i, e := range *h {
-		answer[i] = e.value
+	answer := 0
+	for i := 1; i <= n; i++ {
+		if dist[i] == inf {
+			return -1
+		}
+		answer = max(answer, dist[i])
 	}
 	return answer
 }
 ```
 
-**例子**：[100,1,1,1,2,2]、k=1，答案[1]，不是[100]。
+### [767](https://leetcode.com/problems/reorganize-string/)
 
-**复杂度**：U个不同值，平均时间O(n+U log(k+1))，空间O(U+k)。题设答案集合唯一，组内输出顺序不限。
+需要模板：`Queue`。
 
-<a id="lc973"></a>
+标准库：`container/heap`。
 
-## 5. [973. 最接近原点的K个点](https://leetcode.com/problems/k-closest-points-to-origin/)
-
-[练习](l973/variants/template/973.go) · [测试](l973/variants/template/973_test.go)
-
-**题意**：保留距离原点最近的k个点，输出顺序任意。
-
-**变化**：保留最小k个距离，所以用最大堆淘汰最远者；平方距离即可，无需开方。
-
+<!-- solution: heap_priority_queue/l767/767.go; templates: Queue; imports: container/heap -->
 ```go
-package template
+type letter struct {
+	char  byte
+	count int
+}
 
-import "container/heap"
+// reorganizeString withholds the previous character until a different one is used.
+// O(n log A) time, O(n+A) space including output for A distinct characters.
+func reorganizeString(s string) string {
+	counts := make(map[byte]int)
+	for i := range s {
+		counts[s[i]]++
+	}
+	q := NewQueue(func(a, b letter) bool {
+		if a.count != b.count {
+			return a.count > b.count
+		}
+		return a.char < b.char
+	})
+	for c, n := range counts {
+		q.Push(letter{c, n})
+	}
+	out := make([]byte, 0, len(s))
+	previous := letter{}
+	for q.Len() > 0 {
+		current := q.Pop()
+		out = append(out, current.char)
+		current.count--
+		if previous.count > 0 {
+			q.Push(previous)
+		}
+		previous = current
+	}
+	if len(out) != len(s) {
+		return ""
+	}
+	return string(out)
+}
+```
 
+### [857](https://leetcode.com/problems/minimum-cost-to-hire-k-workers/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`, `math`, `sort`。
+
+<!-- solution: heap_priority_queue/l857/857.go; templates: Queue; imports: container/heap,math,sort -->
+```go
+type worker struct{ quality, wage int }
+
+// mincostToHireWorkers scans increasing minimum wage/quality ratios.
+// At each ratio a max heap retains k smallest qualities. O(n log n) time, O(n) space.
+func mincostToHireWorkers(quality, wage []int, k int) float64 {
+	workers := make([]worker, len(quality))
+	for i := range quality {
+		workers[i] = worker{quality[i], wage[i]}
+	}
+	sort.Slice(workers, func(i, j int) bool {
+		return int64(workers[i].wage)*int64(workers[j].quality) < int64(workers[j].wage)*int64(workers[i].quality)
+	})
+	q := NewQueue(func(a, b int) bool { return a > b })
+	var sum int64
+	best := math.Inf(1)
+	for _, w := range workers {
+		q.Push(w.quality)
+		sum += int64(w.quality)
+		if q.Len() > k {
+			sum -= int64(q.Pop())
+		}
+		if q.Len() == k {
+			best = math.Min(best, float64(sum)*float64(w.wage)/float64(w.quality))
+		}
+	}
+	return best
+}
+```
+
+### [871](https://leetcode.com/problems/minimum-number-of-refueling-stops/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l871/871.go; templates: Queue; imports: container/heap -->
+```go
+// minRefuelStops retroactively selects the largest passed station when needed.
+// O(n log n) time, O(n) space. Stations must be sorted by position.
+func minRefuelStops(target, startFuel int, stations [][]int) int {
+	q := NewQueue(func(a, b int) bool { return a > b })
+	reach := int64(startFuel)
+	i, stops := 0, 0
+	for reach < int64(target) {
+		for i < len(stations) && int64(stations[i][0]) <= reach {
+			q.Push(stations[i][1])
+			i++
+		}
+		if q.Len() == 0 {
+			return -1
+		}
+		reach += int64(q.Pop())
+		stops++
+	}
+	return stops
+}
+```
+
+### [912](https://leetcode.com/problems/sort-an-array/)
+
+需要模板：`HeapSort`。
+
+<!-- solution: heap_priority_queue/l912/912.go; templates: HeapSort; imports: none -->
+```go
+// sortArray performs in-place heapsort. O(n log n) time, O(1) extra space.
+func sortArray(nums []int) []int {
+	for i := len(nums)/2 - 1; i >= 0; i-- {
+		siftDown(nums, i, len(nums))
+	}
+	for end := len(nums) - 1; end > 0; end-- {
+		nums[0], nums[end] = nums[end], nums[0]
+		siftDown(nums, 0, end)
+	}
+	return nums
+}
+```
+
+### [973](https://leetcode.com/problems/k-closest-points-to-origin/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l973/973.go; templates: Queue; imports: container/heap -->
+```go
 type point struct {
-	x, y     int
+	coords   []int
 	distance int64
 }
-type maxHeap []point
 
-func (h maxHeap) Len() int           { return len(h) }
-func (h maxHeap) Less(i, j int) bool { return h[i].distance > h[j].distance }
-func (h maxHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-func (h *maxHeap) Push(x any)        { *h = append(*h, x.(point)) }
-func (h *maxHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
-
+// kClosest keeps k smallest squared distances. O(n log k) time, O(k) heap space.
 func kClosest(points [][]int, k int) [][]int {
-	h := &maxHeap{}
+	q := NewQueue(func(a, b point) bool { return a.distance > b.distance })
 	for _, p := range points {
 		x, y := int64(p[0]), int64(p[1])
-		heap.Push(h, point{p[0], p[1], x*x + y*y})
-		if h.Len() > k {
-			heap.Pop(h)
+		q.Push(point{p, x*x + y*y})
+		if q.Len() > k {
+			q.Pop()
 		}
 	}
-	answer := make([][]int, h.Len())
-	for i, p := range *h {
-		answer[i] = []int{p.x, p.y}
+	out := make([][]int, q.Len())
+	for i := range out {
+		out[i] = append([]int(nil), q.Pop().coords...)
 	}
-	return answer
+	return out
 }
 ```
 
-**例子**：[[1,3],[-2,2]]、k=1，平方距离10与8，返回[[-2,2]]。重复坐标仍是多个输入点，不能用集合去重。
+### [1046](https://leetcode.com/problems/last-stone-weight/)
 
-**复杂度**：时间O(n log(k+1))，空间O(k)。平方前转int64，覆盖本题坐标范围。
+需要模板：`Queue`。
 
-<a id="lc295"></a>
+标准库：`container/heap`。
 
-## 6. [295. 数据流的中位数](https://leetcode.com/problems/find-median-from-data-stream/)
-
-[练习](l295/variants/template/295.go) · [测试](l295/variants/template/295_test.go)
-
-**题意**：动态加入数字，查询中位数，保证查询时至少一个数字。
-
-**双堆不变量**：low为较小一半的最大堆，high为较大一半的最小堆；low的数量等于high或多1，且low中所有值<=high中所有值。
-
+<!-- solution: heap_priority_queue/l1046/1046.go; templates: Queue; imports: container/heap -->
 ```go
-package template
-
-import "container/heap"
-
-type maxHeap []int
-
-func (h maxHeap) Len() int           { return len(h) }
-func (h maxHeap) Less(i, j int) bool { return h[i] > h[j] }
-func (h maxHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-func (h *maxHeap) Push(x any)        { *h = append(*h, x.(int)) }
-func (h *maxHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
-
-type minHeap []int
-
-func (h minHeap) Len() int           { return len(h) }
-func (h minHeap) Less(i, j int) bool { return h[i] < h[j] }
-func (h minHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-func (h *minHeap) Push(x any)        { *h = append(*h, x.(int)) }
-func (h *minHeap) Pop() any          { a := *h; x := a[len(a)-1]; *h = a[:len(a)-1]; return x }
-
-type MedianFinder struct {
-	low  maxHeap
-	high minHeap
-}
-
-func Constructor() MedianFinder { return MedianFinder{} }
-
-func (m *MedianFinder) AddNum(num int) {
-	if len(m.low) == 0 || num <= m.low[0] {
-		heap.Push(&m.low, num)
-	} else {
-		heap.Push(&m.high, num)
+// lastStoneWeight smashes the two largest stones. O(n log n) time, O(n) space.
+func lastStoneWeight(stones []int) int {
+	q := NewQueue(func(a, b int) bool { return a > b }, stones...)
+	for q.Len() > 1 {
+		a, b := q.Pop(), q.Pop()
+		if a > b {
+			q.Push(a - b)
+		}
 	}
-	if len(m.low) > len(m.high)+1 {
-		heap.Push(&m.high, heap.Pop(&m.low).(int))
+	if q.Len() == 0 {
+		return 0
 	}
-	if len(m.high) > len(m.low) {
-		heap.Push(&m.low, heap.Pop(&m.high).(int))
-	}
-}
-
-func (m *MedianFinder) FindMedian() float64 {
-	if len(m.low) > len(m.high) {
-		return float64(m.low[0])
-	}
-	return (float64(m.low[0]) + float64(m.high[0])) / 2
+	return q.Pop()
 }
 ```
 
-**例子**：加入[5,15,1,3]，中位数依次5、10、5、4。偶数时先转float64再加，避免整数相加溢出；精度覆盖本题范围。
+### [1514](https://leetcode.com/problems/path-with-maximum-probability/)
 
-**复杂度**：Add O(log(n+1))，查询O(1)，空间O(n)。双堆保存全部数据，不是固定K空间。
+需要模板：`Queue`。
 
-<a id="pitfalls"></a>
+标准库：`container/heap`。
 
-## 7. 对比与易错点
-
-| 题目 | 排名键 | 堆方向 | 保留数量 |
-| --- | --- | --- | --- |
-| 215 / 703 | 值 | 最小堆淘汰小值 | K |
-| 347 | 频次 | 最小堆淘汰低频 | K，另有频率map |
-| 973 | 距离平方 | 最大堆淘汰远点 | K |
-| 295 | 值 | 较小半最大堆＋较大半最小堆 | 全部 |
-
-- 空堆天然满足堆性质；若用非空切片直接初始化，需要heap.Init。
-- 自定义Pop只取切片末尾，不要在其中再次执行删除堆顶。
-- 输出顺序有要求时另外排序副本；堆内部切片并非有序。
-- 同频率若要求字典序，要补次级比较；不能依赖map遍历顺序。
-- 固定K模板不自动支持删除流中旧元素，也不能直接求任意分位数。
-
-已有分类：[heap_priority_queue](.)。
-
-
-<a id="legacy-notes"></a>
-
-## 原分类笔记（保留）
-
-# 优先级队列题目
-
-优先级队列适用于：候选集合不断变化，每次需要取出当前最小、最大或优先级最高的元素。堆只保证堆顶最优，**底层切片并非整体有序**。
-
-## 题型与推荐练习
-
-### 1. 堆基础与模拟
-
-| 题目 | 难度 | 核心思路 |
-| --- | --- | --- |
-| [1046. 最后一块石头的重量](https://leetcode.com/problems/last-stone-weight/) | 简单 | 最大堆，每次弹出最大的两块石头，放回差值 |
-| [2558. 从数量最多的堆取走礼物](https://leetcode.com/problems/take-gifts-from-the-richest-pile/) | 简单 | 反复更新当前最大值 |
-| [1962. 移除石子使总数最小](https://leetcode.com/problems/remove-stones-to-minimize-the-total/) | 中等 | 最大堆，每次移除最大堆的一半石子 |
-| [1753. 移除石子的最大得分](https://leetcode.com/problems/maximum-score-from-removing-stones/) | 中等 | 最大堆模拟取两堆，也可推导数学解法；本目录已有 `1753` |
-| [912. 排序数组](https://leetcode.com/problems/sort-an-array/) | 中等 | 练习建堆与堆排序；本目录已有 `912` |
-
-注意：1046 固定取最大的两块；1049 可以自由选择，目标通常转为背包 DP，不能直接套用相同贪心。
-
-### 2. Top K：固定大小的候选集合
-
-| 题目 | 难度 | 核心思路 |
-| --- | --- | --- |
-| [215. 数组中的第 K 个最大元素](https://leetcode.com/problems/kth-largest-element-in-an-array/) | 中等 | 保留 k 个最大元素，用大小为 k 的最小堆 |
-| [703. 数据流中的第 K 大元素](https://leetcode.com/problems/kth-largest-element-in-a-stream/) | 简单 | 每次加入后只保留最大的 k 个，堆顶就是第 k 大 |
-| [347. 前 K 个高频元素](https://leetcode.com/problems/top-k-frequent-elements/) | 中等 | 先计数，再按频率维护 k 个候选；也可用桶排序 |
-| [692. 前 K 个高频单词](https://leetcode.com/problems/top-k-frequent-words/) | 中等 | 频率相同还要比较字典序，注意堆顶代表“最该淘汰”的候选 |
-| [973. 最接近原点的 K 个点](https://leetcode.com/problems/k-closest-points-to-origin/) | 中等 | 保留 k 个最近点，用最大堆淘汰最远点；比较距离平方即可 |
-
-口诀：**保留最大的 k 个，用最小堆；保留最小的 k 个，用最大堆。** 堆顶是候选集合中最差、最先被淘汰的元素。典型时间 O(n log k)，堆空间 O(k)；频率题还需要计数表。
-
-### 3. 多路归并与有序候选扩展
-
-| 题目 | 难度 | 核心思路 |
-| --- | --- | --- |
-| [23. 合并 K 个升序链表](https://leetcode.com/problems/merge-k-sorted-lists/) | 困难 | 最小堆维护每条链表当前节点，弹出后加入该链表的下一个节点 |
-| [378. 有序矩阵中第 K 小的元素](https://leetcode.com/problems/kth-smallest-element-in-a-sorted-matrix/) | 中等 | 把每一行看成有序序列，最小堆归并 |
-| [373. 查找和最小的 K 对数字](https://leetcode.com/problems/find-k-pairs-with-smallest-sums/) | 中等 | 固定第一个数组的下标形成多条有序候选链，弹出后扩展下一对 |
-| [632. 最小区间](https://leetcode.com/problems/smallest-range-covering-elements-from-k-lists/) | 困难 | 堆维护各列表当前最小元素，额外维护当前最大值 |
-| [264. 丑数 II](https://leetcode.com/problems/ugly-number-ii/) | 中等 | 最小堆生成候选并去重；也有三指针 DP 解法 |
-
-关键：不要一次性生成所有组合。只保留每条有序序列的“前沿”，需要时再扩展，并根据生成方式避免重复。
-
-### 4. 贪心：动态选择当前最优候选
-
-| 题目 | 难度 | 核心思路 |
-| --- | --- | --- |
-| [871. 最低加油次数](https://leetcode.com/problems/minimum-number-of-refueling-stops/) | 困难 | 将已到达站点的油量加入最大堆，不足时选最多的补给 |
-| [1642. 可以到达的最远建筑](https://leetcode.com/problems/furthest-building-you-can-reach/) | 中等 | 最小堆保留使用梯子的最大高度差，其余消耗砖块 |
-| [630. 课程表 III](https://leetcode.com/problems/course-schedule-iii/) | 困难 | 按截止日期排序，超期时从最大堆移除耗时最长课程 |
-| [2530. 执行 K 次操作后的最大分数](https://leetcode.com/problems/maximal-score-after-applying-k-operations/) | 中等 | 最大堆取分，更新为向上取整的三分之一后放回 |
-| [857. 雇佣 K 名工人的最低成本](https://leetcode.com/problems/minimum-cost-to-hire-k-workers/) | 困难 | 按工资质量比排序，最大堆维护 k 个工人的最小质量总和 |
-
-堆只是高效选择工具，**贪心正确性需要额外证明**。例如 871 只能选择已到达的站点，而不能直接选择全局油量最多的站点。
-
-### 5. 调度、资源分配与事件模拟
-
-| 题目 | 难度 | 核心思路 |
-| --- | --- | --- |
-| [2402. 会议室 III](https://leetcode.com/problems/meeting-rooms-iii/) | 困难 | 空闲房间按编号排序，忙碌房间按结束时间、编号排序，使用两个最小堆 |
-| [1834. 单线程 CPU](https://leetcode.com/problems/single-threaded-cpu/) | 中等 | 按入队时间扫描，堆按处理时间、原下标选择任务 |
-| [1882. 使用服务器处理任务](https://leetcode.com/problems/process-tasks-using-servers/) | 中等 | 空闲服务器按权重、编号，忙碌服务器按完成时间排序 |
-| [621. 任务调度器](https://leetcode.com/problems/task-scheduler/) | 中等 | 最大堆选择剩余最多的任务，配合冷却队列；也有计数公式解法 |
-| [767. 重构字符串](https://leetcode.com/problems/reorganize-string/) | 中等 | 最大堆优先使用高频字符，避免连续选同一字符 |
-
-常见细节：先释放所有在当前时刻已结束的资源；没有可用任务或资源时，时间直接跳到下一事件；并列优先级要按题目规则处理。
-
-### 6. 双堆、懒删除与动态统计
-
-| 题目 | 难度 | 核心思路 |
-| --- | --- | --- |
-| [295. 数据流的中位数](https://leetcode.com/problems/find-median-from-data-stream/) | 困难 | 最大堆维护较小一半，最小堆维护较大一半，保持数量平衡 |
-| [480. 滑动窗口中位数](https://leetcode.com/problems/sliding-window-median/) | 困难 | 双堆 + 懒删除，并区分逻辑元素数与切片长度 |
-| [239. 滑动窗口最大值](https://leetcode.com/problems/sliding-window-maximum/) | 困难 | 最大堆存值和下标，弹出过期堆顶；单调队列可进一步优化到 O(n) |
-
-懒删除只在过期元素到达堆顶时删除。被埋在内部的过期元素仍占空间：例如 239 的简单懒删除堆最坏可能增长到 O(n)，不是自动维持 O(k)。
-
-### 7. 图上的优先扩展
-
-| 题目 | 难度 | 核心思路 |
-| --- | --- | --- |
-| [743. 网络延迟时间](https://leetcode.com/problems/network-delay-time/) | 中等 | 非负边权 Dijkstra，最小堆弹出当前最短距离 |
-| [1631. 最小体力消耗路径](https://leetcode.com/problems/path-with-minimum-effort/) | 中等 | Dijkstra 的路径代价改为沿途边权最大值 |
-| [1514. 概率最大的路径](https://leetcode.com/problems/path-with-maximum-probability/) | 中等 | 最大堆按当前成功概率扩展 |
-| [407. 接雨水 II](https://leetcode.com/problems/trapping-rain-water-ii/) | 困难 | 从边界最小高度开始向内扩展，维护水位边界 |
-
-Dijkstra 常将更新后的状态重新入堆，弹出时跳过旧状态，不必支持原地 decrease-key。普通 BFS 适用于等权边；堆不能让标准 Dijkstra 正确处理负权边。
-
-## Go：`container/heap`
-
-标准库通过 `heap.Interface` 使用堆。它嵌入 `sort.Interface` 的三个方法，再要求实现 `Push`、`Pop`。标准库接口使用 `any`，并非泛型接口。
-
+<!-- solution: heap_priority_queue/l1514/1514.go; templates: Queue; imports: container/heap -->
 ```go
-import "container/heap"
-
-type MinHeap []int
-
-func (h MinHeap) Len() int           { return len(h) }
-func (h MinHeap) Less(i, j int) bool { return h[i] < h[j] }
-func (h MinHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-
-func (h *MinHeap) Push(x any) {
-    *h = append(*h, x.(int))
+type edge struct {
+	to          int
+	probability float64
+}
+type state struct {
+	node        int
+	probability float64
 }
 
-func (h *MinHeap) Pop() any {
-    old := *h
-    x := old[len(old)-1]
-    *h = old[:len(old)-1]
-    return x
+// maxProbability uses a maximum heap; probabilities in [0,1] cannot improve along a path.
+// O(n+E log(E+1)) time, O(n+E) space.
+func maxProbability(n int, edges [][]int, succProb []float64, start_node, end_node int) float64 {
+	graph := make([][]edge, n)
+	for i, e := range edges {
+		graph[e[0]] = append(graph[e[0]], edge{e[1], succProb[i]})
+		graph[e[1]] = append(graph[e[1]], edge{e[0], succProb[i]})
+	}
+	best := make([]float64, n)
+	best[start_node] = 1
+	q := NewQueue(func(a, b state) bool { return a.probability > b.probability }, state{start_node, 1})
+	for q.Len() > 0 {
+		s := q.Pop()
+		if s.probability < best[s.node] {
+			continue
+		}
+		if s.node == end_node {
+			return s.probability
+		}
+		for _, e := range graph[s.node] {
+			p := s.probability * e.probability
+			if p > best[e.to] {
+				best[e.to] = p
+				q.Push(state{e.to, p})
+			}
+		}
+	}
+	return 0
 }
-
-// 在函数内部使用：
-// h := &MinHeap{5, 2, 8}
-// heap.Init(h)
-// heap.Push(h, 1)
-// if h.Len() > 0 {
-//     smallest := heap.Pop(h).(int)
-//     _ = smallest
-// }
 ```
 
-最大堆将 `Less` 改为 `h[i] > h[j]`，同时使用对应的接收者类型。
+### [1631](https://leetcode.com/problems/path-with-minimum-effort/)
 
-| 操作 | 用法 | 复杂度 |
-| --- | --- | --- |
-| 建堆 | `heap.Init(h)` | O(n) |
-| 插入 | `heap.Push(h, x)` | O(log n) |
-| 弹出堆顶 | `heap.Pop(h)` | O(log n) |
-| 查看堆顶 | `(*h)[0]`，先检查非空 | O(1) |
-| 修改后修复 | `heap.Fix(h, index)` | O(log n) |
-| 删除指定元素 | `heap.Remove(h, index)` | O(log n) |
+需要模板：`Queue`。
 
-### 常见坑与现有示例
+标准库：`container/heap`。
 
-- 使用 `heap.Push` / `heap.Pop`，不要直接调用自定义的 `Push` / `Pop`：标准库会先调整堆，再调用这些底层方法。自定义 `Pop` 应删除**切片末尾**。
-- `Less` 必须是严格比较，不能使用 `<=`。结构体有并列规则时，逐字段比较。
-- 修改已有元素的优先级后，需要调用 `heap.Fix`；如果元素保存下标，`Swap` 必须同步更新下标。
-- 本目录的 [pq.go](pq.go) 是结构体最大堆示例，包含 `priority`、`index`、`update` 和 `heap.Fix`。`index` 只有在正确维护且元素仍在堆中时才有效。
-- 对指针切片，`Pop` 时将旧末尾设为 `nil`，避免底层数组继续持有对象引用；`pq.go` 已包含这种处理。
-- 时间和累计值可能很大，例如会议室调度的累计结束时间，应按题目范围考虑 `int64`；避免通过可能溢出的减法比较优先级。
+<!-- solution: heap_priority_queue/l1631/1631.go; templates: Queue; imports: container/heap -->
+```go
+type cell struct{ row, col, effort int }
 
-## 本仓库实现与测试
+// minimumEffortPath minimizes the maximum edge difference on a path.
+// O(mn log(mn)) time, O(mn) space using Dijkstra.
+func minimumEffortPath(heights [][]int) int {
+	m, n := len(heights), len(heights[0])
+	inf := int(^uint(0) >> 1)
+	dist := make([][]int, m)
+	for r := range dist {
+		dist[r] = make([]int, n)
+		for c := range dist[r] {
+			dist[r][c] = inf
+		}
+	}
+	dist[0][0] = 0
+	q := NewQueue(func(a, b cell) bool { return a.effort < b.effort }, cell{0, 0, 0})
+	dirs := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	for q.Len() > 0 {
+		s := q.Pop()
+		if s.effort != dist[s.row][s.col] {
+			continue
+		}
+		if s.row == m-1 && s.col == n-1 {
+			return s.effort
+		}
+		for _, d := range dirs {
+			r, c := s.row+d[0], s.col+d[1]
+			if r < 0 || r >= m || c < 0 || c >= n {
+				continue
+			}
+			difference := heights[r][c] - heights[s.row][s.col]
+			if difference < 0 {
+				difference = -difference
+			}
+			effort := max(s.effort, difference)
+			if effort < dist[r][c] {
+				dist[r][c] = effort
+				q.Push(cell{r, c, effort})
+			}
+		}
+	}
+	return 0
+}
+```
 
-上述 32 道题的实现与测试位于对应的 `l<题号>/` 目录。题目包复用 [internal/pqueue/queue.go](internal/pqueue/queue.go) 中基于 `container/heap` 的泛型优先级队列；912 使用原地堆排序。
+### [1642](https://leetcode.com/problems/furthest-building-you-can-reach/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l1642/1642.go; templates: Queue; imports: container/heap -->
+```go
+// furthestBuilding reserves ladders for the largest climbs seen so far.
+// O(n log(ladders+1)) time, O(ladders+1) heap space.
+func furthestBuilding(heights []int, bricks, ladders int) int {
+	q := NewQueue(func(a, b int) bool { return a < b })
+	for i := 1; i < len(heights); i++ {
+		d := heights[i] - heights[i-1]
+		if d <= 0 {
+			continue
+		}
+		q.Push(d)
+		if q.Len() > ladders {
+			bricks -= q.Pop()
+		}
+		if bricks < 0 {
+			return i - 1
+		}
+	}
+	return len(heights) - 1
+}
+```
+
+### [1753](https://leetcode.com/problems/maximum-score-from-removing-stones/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l1753/1753.go; templates: Queue; imports: container/heap -->
+```go
+// maximumScore always pairs the two largest nonempty piles.
+// O(a+b+c) time, O(1) space (the heap has at most three elements).
+func maximumScore(a, b, c int) int {
+	q := NewQueue(func(a, b int) bool { return a > b }, a, b, c)
+	score := 0
+	for q.Len() > 1 {
+		x, y := q.Pop(), q.Pop()
+		if y == 0 {
+			break
+		}
+		score++
+		if x > 1 {
+			q.Push(x - 1)
+		}
+		if y > 1 {
+			q.Push(y - 1)
+		}
+	}
+	return score
+}
+```
+
+### [1834](https://leetcode.com/problems/single-threaded-cpu/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`, `sort`。
+
+<!-- solution: heap_priority_queue/l1834/1834.go; templates: Queue; imports: container/heap,sort -->
+```go
+type task struct{ arrival, duration, index int }
+
+// getOrder selects available tasks by processing time, then original index.
+// O(n log n) time, O(n) space. The clock uses int64 for cumulative durations.
+func getOrder(tasks [][]int) []int {
+	ordered := make([]task, len(tasks))
+	for i, t := range tasks {
+		ordered[i] = task{t[0], t[1], i}
+	}
+	sort.Slice(ordered, func(i, j int) bool { return ordered[i].arrival < ordered[j].arrival })
+	q := NewQueue(func(a, b task) bool {
+		if a.duration != b.duration {
+			return a.duration < b.duration
+		}
+		return a.index < b.index
+	})
+	out := make([]int, 0, len(tasks))
+	i := 0
+	var now int64
+	for i < len(ordered) || q.Len() > 0 {
+		if q.Len() == 0 {
+			now = max(now, int64(ordered[i].arrival))
+		}
+		for i < len(ordered) && int64(ordered[i].arrival) <= now {
+			q.Push(ordered[i])
+			i++
+		}
+		t := q.Pop()
+		now += int64(t.duration)
+		out = append(out, t.index)
+	}
+	return out
+}
+```
+
+### [1882](https://leetcode.com/problems/process-tasks-using-servers/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l1882/1882.go; templates: Queue; imports: container/heap -->
+```go
+type server struct {
+	end        int64
+	weight, id int
+}
+
+// assignTasks maintains idle weight/ID priority and busy end/weight/ID priority.
+// O((n+m) log n) time, O(n+m) space including output; cumulative times use int64.
+func assignTasks(servers, tasks []int) []int {
+	byWeight := func(a, b server) bool {
+		if a.weight != b.weight {
+			return a.weight < b.weight
+		}
+		return a.id < b.id
+	}
+	idle := NewQueue(byWeight)
+	busy := NewQueue(func(a, b server) bool {
+		if a.end != b.end {
+			return a.end < b.end
+		}
+		return byWeight(a, b)
+	})
+	for i, w := range servers {
+		idle.Push(server{weight: w, id: i})
+	}
+	out := make([]int, len(tasks))
+	var now int64
+	for i, duration := range tasks {
+		now = max(now, int64(i))
+		if idle.Len() == 0 {
+			now = max(now, busy.Peek().end)
+		}
+		// Release every simultaneous completion before choosing by weight.
+		for busy.Len() > 0 && busy.Peek().end <= now {
+			idle.Push(busy.Pop())
+		}
+		s := idle.Pop()
+		out[i] = s.id
+		s.end = now + int64(duration)
+		busy.Push(s)
+	}
+	return out
+}
+```
+
+### [1962](https://leetcode.com/problems/remove-stones-to-minimize-the-total/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l1962/1962.go; templates: Queue; imports: container/heap -->
+```go
+// minStoneSum removes floor(pile/2) from the largest pile each time.
+// O(n+k log n) time, O(n) space.
+func minStoneSum(piles []int, k int) int {
+	q := NewQueue(func(a, b int) bool { return a > b }, piles...)
+	total := 0
+	for _, x := range piles {
+		total += x
+	}
+	for ; k > 0 && q.Len() > 0; k-- {
+		x := q.Pop()
+		total -= x / 2
+		q.Push(x - x/2)
+	}
+	return total
+}
+```
+
+### [2402](https://leetcode.com/problems/meeting-rooms-iii/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`, `sort`。
+
+<!-- solution: heap_priority_queue/l2402/2402.go; templates: Queue; imports: container/heap,sort -->
+```go
+type room struct {
+	end int64
+	id  int
+}
+
+// mostBooked uses an ID heap for idle rooms and an end-time/ID heap for busy rooms.
+// O(m log m + (m+n) log n) time, O(m+n) space. End times may exceed int32.
+func mostBooked(n int, meetings [][]int) int {
+	ordered := append([][]int(nil), meetings...)
+	sort.Slice(ordered, func(i, j int) bool { return ordered[i][0] < ordered[j][0] })
+	idle := NewQueue(func(a, b int) bool { return a < b })
+	busy := NewQueue(func(a, b room) bool {
+		if a.end != b.end {
+			return a.end < b.end
+		}
+		return a.id < b.id
+	})
+	for i := 0; i < n; i++ {
+		idle.Push(i)
+	}
+	counts := make([]int, n)
+	for _, m := range ordered {
+		start, duration := int64(m[0]), int64(m[1])-int64(m[0])
+		for busy.Len() > 0 && busy.Peek().end <= start {
+			idle.Push(busy.Pop().id)
+		}
+		var r room
+		if idle.Len() > 0 {
+			r = room{start, idle.Pop()}
+		} else {
+			r = busy.Pop()
+		}
+		r.end += duration
+		counts[r.id]++
+		busy.Push(r)
+	}
+	best := 0
+	for i := 1; i < n; i++ {
+		if counts[i] > counts[best] {
+			best = i
+		}
+	}
+	return best
+}
+```
+
+### [2530](https://leetcode.com/problems/maximal-score-after-applying-k-operations/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`。
+
+<!-- solution: heap_priority_queue/l2530/2530.go; templates: Queue; imports: container/heap -->
+```go
+// maxKelements takes the current maximum and replaces it with ceil(x/3).
+// O(n+k log n) time, O(n) space.
+func maxKelements(nums []int, k int) int64 {
+	q := NewQueue(func(a, b int) bool { return a > b }, nums...)
+	var score int64
+	for ; k > 0; k-- {
+		x := q.Pop()
+		score += int64(x)
+		y := x / 3
+		if x%3 != 0 {
+			y++
+		}
+		q.Push(y)
+	}
+	return score
+}
+```
+
+### [2558](https://leetcode.com/problems/take-gifts-from-the-richest-pile/)
+
+需要模板：`Queue`。
+
+标准库：`container/heap`, `math`。
+
+<!-- solution: heap_priority_queue/l2558/2558.go; templates: Queue; imports: container/heap,math -->
+```go
+// pickGifts uses a maximum heap. O(n+k log n) time, O(n) space.
+func pickGifts(gifts []int, k int) int64 {
+	q := NewQueue(func(a, b int) bool { return a > b }, gifts...)
+	for ; k > 0 && q.Len() > 0; k-- {
+		x := q.Pop()
+		r := int(math.Sqrt(float64(x)))
+		// Correct rounding at perfect squares using integer comparisons.
+		for r > 0 && r > x/r {
+			r--
+		}
+		for r+1 <= x/(r+1) {
+			r++
+		}
+		q.Push(r)
+	}
+	var total int64
+	for q.Len() > 0 {
+		total += int64(q.Pop())
+	}
+	return total
+}
+```
+
+## 验证与原有推导
 
 ```sh
-go test ./heap_priority_queue/internal/... ./heap_priority_queue/l... -count=1 -cover
-go vet ./heap_priority_queue/internal/... ./heap_priority_queue/l...
+go test ./heap_priority_queue/...
 ```
 
-部分题目的测试包含固定随机种子的朴素算法对照、浮点误差判断或合法答案验证，不依赖堆内部的元素顺序。调度题使用 `int64` 处理累计时间。
-
-这些实现用于本仓库学习与测试；复制到 LeetCode 时，需要将内部优先队列一并改为同文件的堆实现，并移除仓库内导入路径。`pq.go` 展示了不依赖仓库辅助包的标准接口写法。
-
-## 建议练习顺序
-
-`1046 → 215 → 703 → 347 → 23 → 373 → 295 → 871 → 1642 → 1834 → 630 → 480 → 743 → 407`
-
-先掌握最小堆/最大堆，再学固定大小 Top K、多路归并，最后练贪心、双堆、调度和图搜索。各题也可能有比堆更合适的替代解法。
-
-## 参考资料
-
-- [Go 官方 container/heap 文档](https://pkg.go.dev/container/heap)
-- [LeetCode 堆（优先队列）题目](https://leetcode.com/tag/heap-priority-queue/)
-- [Master Heap by Solving 23 Questions in 4 Patterns](https://leetcode.com/discuss/general-discussion/1127238/master-heap-by-solving-23-questions-in-4-patterns-category)
-
-<a id="extended-practice"></a>
-
-## 扩展练习：迁移点与边界
-
-新增题目只补充学习路线与解法总结，不自动生成未请求的实现或测试。
-
-| 题目（原题） | 如何迁移当前模板 | 必须确认的条件 / 边界 |
-| --- | --- | --- |
-| [692. 前K个高频单词](https://leetcode.com/problems/top-k-frequent-words/) | 频率高优先，同频字典序小优先；堆顶表示最差候选 | 最差同频词应是字典序最大，输出需最终排序 |
-| [658. 找到K个最接近的元素](https://leetcode.com/problems/find-k-closest-elements/) | 按距离和数值组成优先级，保留最小k个 | 输入有序时二分窗口通常更优；答案升序 |
-| [1985. 找出数组中的第K大整数](https://leetcode.com/problems/find-the-kth-largest-integer-in-the-array/) | 数字字符串按长度再字典序比较，保留最大k个 | 不可直接转机器整数；相等字符串重复计数 |
-| [2542. 最大子序列的分数](https://leetcode.com/problems/maximum-subsequence-score/) | 按nums2降序扫描，用最小堆维护k个nums1最大和 | 当前nums2为最小乘子，不能单独按乘积选k项 |
-| [1383. 最大的团队表现值](https://leetcode.com/problems/maximum-performance-of-a-team/) | 效率降序，堆维护最多k个速度最大和 | 最多k人不是恰好k；先取真实最大表现再模 |
-| [480. 滑动窗口中位数](https://leetcode.com/problems/sliding-window-median/) | 从295双堆扩展为支持删除过期值，需懒删除和逻辑大小 | 内部过期元素未必出堆，物理长度不能充当有效数量 |
-
-**复习方法**：先独立写出状态、合法性或松弛条件，再指出相较本篇基础题改变的那一行；若前提不满足，主动换算法，不为统一模板牺牲正确性。
+题解文件与文档使用相同声明和适配器；修改模板后需要同时验证每题包以及由文档重新组装的代码。原有推导、详细例子和扩展题单保存在 [整理前笔记](legacy/README.before-inline-templates.md)。

@@ -1,39 +1,32 @@
 package main
 
-import "fmt"
-
-func get(s string) (i0 int, i1 int) {
-	for _, c := range s {
-		if c == '0' {
-			i0++
-		} else {
-			i1++
-		}
+// TwoResources：每项消耗两种资源，两个容量都倒序，每项只选一次。
+func TwoResources(costs [][2]int, zeroLimit, oneLimit int) [][]int {
+	dp := make([][]int, zeroLimit+1)
+	for z := range dp {
+		dp[z] = make([]int, oneLimit+1)
 	}
-	return
-}
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-func findMaxForm(strs []string, m int, n int) int {
-	dp := make([][]int, m+1)
-	for i := 0; i < len(dp); i++ {
-		dp[i] = make([]int, n+1)
-	}
-	for i := 0; i < len(strs); i++ {
-		i0, i1 := get(strs[i])
-		for mi := m; mi >= i0; mi-- {
-			for ni := n; ni >= i1; ni-- {
-				dp[mi][ni] = max(dp[mi-i0][ni-i1]+1, dp[mi][ni])
+	for _, cost := range costs {
+		for z := zeroLimit; z >= cost[0]; z-- {
+			for o := oneLimit; o >= cost[1]; o-- {
+				dp[z][o] = max(dp[z][o], dp[z-cost[0]][o-cost[1]]+1)
 			}
 		}
 	}
-	return dp[m][n]
+	return dp
 }
 
-func main() {
-	fmt.Println(findMaxForm([]string{"10", "0001", "111001", "1", "0"}, 5, 3))
+// 每个字符串消耗零和一两种资源，不是单容量背包。
+func findMaxForm(strs []string, m int, n int) int {
+	costs := make([][2]int, len(strs))
+	for i, s := range strs {
+		for _, char := range s {
+			if char == '0' {
+				costs[i][0]++
+			} else {
+				costs[i][1]++
+			}
+		}
+	}
+	return TwoResources(costs, m, n)[m][n]
 }

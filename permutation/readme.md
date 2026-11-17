@@ -1,5 +1,74 @@
 # 排列与相关问题
 
+## 同文件命名模板与适配器
+
+先复制本代码块，再复制任一题的适配器；实际题解文件同样内嵌 helper，保留官方函数签名。只使用标准库，不导入仓库本地模板包。本文所有 Go 代码块可按顺序组合成一个包；不要重复复制 helper。
+
+```go
+import "strconv"
+
+// nextLexicographic advances one lexicographic step, or resets to the minimum.
+func nextLexicographic[T ~int | ~byte](values []T) bool {
+	pivot := len(values) - 2
+	for pivot >= 0 && values[pivot] >= values[pivot+1] {
+		pivot--
+	}
+	advanced := pivot >= 0
+	if advanced {
+		successor := len(values) - 1
+		for values[successor] <= values[pivot] {
+			successor--
+		}
+		values[pivot], values[successor] = values[successor], values[pivot]
+	}
+	for left, right := pivot+1, len(values)-1; left < right; left, right = left+1, right-1 {
+		values[left], values[right] = values[right], values[left]
+	}
+	return advanced
+}
+
+// previousSingleSwap changes the rightmost reducible pivot by one swap only.
+func previousSingleSwap(arr []int) []int {
+	pivot := len(arr) - 2
+	for pivot >= 0 && arr[pivot] <= arr[pivot+1] {
+		pivot--
+	}
+	if pivot < 0 {
+		return arr
+	}
+	successor := len(arr) - 1
+	for arr[successor] >= arr[pivot] {
+		successor--
+	}
+	for successor > pivot+1 && arr[successor] == arr[successor-1] {
+		successor--
+	}
+	arr[pivot], arr[successor] = arr[successor], arr[pivot]
+	return arr
+}
+
+// factorialSelection chooses a zero-based block among the remaining digits.
+func factorialSelection(n, k int) string {
+	factorial := make([]int, n+1)
+	factorial[0] = 1
+	available := make([]int, n)
+	for i := 1; i <= n; i++ {
+		factorial[i] = factorial[i-1] * i
+		available[i-1] = i
+	}
+	result := make([]byte, 0, n)
+	k--
+	for remaining := n; remaining > 0; remaining-- {
+		block := factorial[remaining-1]
+		index := k / block
+		k %= block
+		result = append(result, byte('0'+available[index]))
+		available = append(available[:index], available[index+1:]...)
+	}
+	return string(result)
+}
+```
+
 ## 1. 全排列：回溯
 
 逐个位置选择尚未使用的元素，递归完成排列，再撤销选择。
@@ -154,4 +223,71 @@ dp[n][k] = sum(dp[n-1][k-x]), 0 <= x <= min(k,n-1)
 
 “找更大的排列”和“找右侧更大元素”仅名称相近。前者允许改变整体排列，后者保持输入关系并寻找边界；所以本次实际移动了代码目录，而不是重复维护一份相同题目。
 
-所有迁移都保留原源码和测试，未完成的 60、1053、1850 等仍未补齐；原 51 的语法问题随源码迁至 back_tracking 并明确保留。完整映射见 [reorganization.json](../two_pointers/reorganization.json)。
+所有迁移来源与原测试保留在独立目录；实际 Go 实现现已按命名模板补齐 60、1053、1850 等题，51 的历史语法错误在 back_tracking 的统一实现中修复。完整映射见 [reorganization.json](../two_pointers/reorganization.json)。
+
+
+## 逐题模板适配器补全
+
+下列函数使用本页已声明的同名子模板；不是将不同不变量强行改为同一弹栈或移动条件。
+
+### 31
+
+```go
+func nextPermutation(nums []int) { nextLexicographic(nums) }
+```
+
+### 60
+
+```go
+func getPermutation(n int, k int) string { return factorialSelection(n, k) }
+```
+
+### 556
+
+```go
+func nextGreaterElement(n int) int {
+	digits := []byte(strconv.Itoa(n))
+	if !nextLexicographic(digits) {
+		return -1
+	}
+	var value int64
+	for _, digit := range digits {
+		value = value*10 + int64(digit-'0')
+	}
+	if value > 1<<31-1 {
+		return -1
+	}
+	return int(value)
+}
+```
+
+### 1053
+
+```go
+func prevPermOpt1(arr []int) []int { return previousSingleSwap(arr) }
+```
+
+### 1850
+
+```go
+func getMinSwaps(num string, k int) int {
+	target := []byte(num)
+	for step := 0; step < k; step++ {
+		nextLexicographic(target)
+	}
+	current := []byte(num)
+	swaps := 0
+	for i, digit := range target {
+		j := i
+		for current[j] != digit {
+			j++
+		}
+		for j > i {
+			current[j], current[j-1] = current[j-1], current[j]
+			j--
+			swaps++
+		}
+	}
+	return swaps
+}
+```

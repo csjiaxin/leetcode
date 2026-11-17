@@ -1,64 +1,42 @@
 package l329
 
+// MemoGrid 仅适用于依赖无环的状态；缓存的零值也是合法答案。
+func MemoGrid[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
+	memo := make(map[S]V)
+	var solve func(S) V
+	solve = func(s S) V {
+		if value, ok := memo[s]; ok {
+			return value
+		}
+		value := evaluate(s, solve)
+		memo[s] = value
+		return value
+	}
+	return solve
+}
+
+// 严格递增保证无环；每格答案是从该格出发的最长路径，O(mn)。
 func longestIncreasingPath(matrix [][]int) int {
-	m := len(matrix)
-	n := len(matrix[0])
-	dir4 := [][]int{{-1, 0}, {1, 0}, {0, 1}, {0, -1}}
-
-	var isValid func(i, j int) bool
-	isValid = func(i, j int) bool {
-		if i >= 0 && i < m && j >= 0 && j < n {
-			return true
-		}
-		return false
+	if len(matrix) == 0 || len(matrix[0]) == 0 {
+		return 0
 	}
-	indegree := make([][]int, m)
-	for i := 0; i < m; i++ {
-		indegree[i] = make([]int, n)
-	}
-	q := make([][]int, 0)
-
-	for i := 0; i < m; i++ {
-		for j := 0; j < n; j++ {
-			for _, d := range dir4 {
-				ni := i + d[0]
-				nj := j + d[1]
-				if isValid(ni, nj) {
-					if matrix[ni][nj] < matrix[i][j] {
-						indegree[i][j] += 1
-					}
-				}
+	m, n := len(matrix), len(matrix[0])
+	directions := [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}
+	solve := MemoGrid(func(s [2]int, next func([2]int) int) int {
+		best := 1
+		for _, d := range directions {
+			r, c := s[0]+d[0], s[1]+d[1]
+			if r >= 0 && r < m && c >= 0 && c < n && matrix[r][c] > matrix[s[0]][s[1]] {
+				best = max(best, 1+next([2]int{r, c}))
 			}
 		}
-	}
-	for i := 0; i < m; i++ {
-		for j := 0; j < n; j++ {
-			if indegree[i][j] == 0 {
-				q = append(q, []int{i, j})
-			}
+		return best
+	})
+	answer := 0
+	for r := 0; r < m; r++ {
+		for c := 0; c < n; c++ {
+			answer = max(answer, solve([2]int{r, c}))
 		}
 	}
-	layer := 0
-	for len(q) > 0 {
-		L := len(q)
-		layer += 1
-		for i := 0; i < L; i++ {
-			e := q[i]
-			for _, d := range dir4 {
-				ni := e[0] + d[0]
-				nj := e[1] + d[1]
-				if isValid(ni, nj) {
-					if matrix[ni][nj] > matrix[e[0]][e[1]] {
-						indegree[ni][nj] -= 1
-						if indegree[ni][nj] == 0 {
-							q = append(q, []int{ni, nj})
-						}
-					}
-				}
-
-			}
-		}
-		q = q[L:]
-	}
-	return layer
+	return answer
 }

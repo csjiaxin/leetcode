@@ -1,43 +1,28 @@
 package l123
 
-import "math"
-
-type E struct {
-	holdStock  int // Holding, using at most the first purchase.
-	noStock    int // Not holding, after at most one transaction.
-	holdStock2 int // Holding, using at most the second purchase.
-	noStock2   int // Not holding, after at most two transactions.
+// BoundedTrade 的 cash[t]/hold[t] 表示至多 t 次买入的现金/持股收益。
+// 每天从昨天的整组数组转移，预算维度不会混入当天新状态。
+func BoundedTrade(prices []int, budget int) int {
+	if budget <= 0 || len(prices) < 2 {
+		return 0
+	}
+	budget = min(budget, len(prices)/2)
+	cash, hold := make([]int, budget+1), make([]int, budget+1)
+	for t := range hold {
+		hold[t] = -int(^uint(0)>>1) / 4
+	}
+	for _, price := range prices {
+		nextCash := append([]int(nil), cash...)
+		nextHold := append([]int(nil), hold...)
+		for t := 1; t <= budget; t++ {
+			nextCash[t] = max(cash[t], hold[t]+price)
+			nextHold[t] = max(hold[t], cash[t-1]-price)
+		}
+		cash, hold = nextCash, nextHold
+	}
+	return cash[budget]
 }
 
 // https://leetcode.com/problems/best-time-to-buy-and-sell-stock/
-func maxProfit(prices []int) int {
-	n := len(prices)
-
-	dp := make([]E, n)
-	for i := 0; i < n; i++ {
-		dp[i].holdStock = math.MinInt
-		dp[i].noStock = math.MinInt
-		dp[i].holdStock2 = math.MinInt
-		dp[i].noStock2 = math.MinInt
-	}
-
-	dp[0] = E{
-		holdStock:  -prices[0],
-		noStock:    0,
-		holdStock2: -prices[0],
-		noStock2:   0,
-	}
-
-	for j := 1; j < n; j++ {
-		le := dp[j-1]
-		e := E{
-			holdStock:  max(-prices[j], le.holdStock),
-			noStock:    max(le.holdStock+prices[j], le.noStock),
-			holdStock2: max(le.noStock-prices[j], le.holdStock2),
-			noStock2:   max(le.holdStock2+prices[j], le.noStock2),
-		}
-		dp[j] = e
-	}
-
-	return dp[n-1].noStock2
-}
+// 交易预算为两次。
+func maxProfit(prices []int) int { return BoundedTrade(prices, 2) }

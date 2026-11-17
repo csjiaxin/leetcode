@@ -1,45 +1,50 @@
 package l76
 
 // https://leetcode.com/problems/minimum-window-substring/
-// minWindow returns the shortest substring covering t's character multiplicities,
-// or an empty string if none exists. Letters are case-sensitive.
+// The standalone helper below matches the named subtemplate in README.md.
+// windowShortest records valid windows before shrinking; length n+1 means absent.
+func windowShortest(n int, add, remove func(int), valid func() bool) (int, int) {
+	left, start, length := 0, 0, n+1
+	for right := 0; right < n; right++ {
+		add(right)
+		for left <= right && valid() {
+			if right-left+1 < length {
+				start, length = left, right-left+1
+			}
+			remove(left)
+			left++
+		}
+	}
+	return start, length
+}
+
 func minWindow(s string, t string) string {
 	if len(t) == 0 || len(t) > len(s) {
 		return ""
 	}
-
-	var need, window [256]int
-	for i := 0; i < len(t); i++ {
+	var need, count [256]int
+	missing := len(t)
+	for i := range t {
 		need[t[i]]++
 	}
-
-	// matched counts filled demand slots, including repeated characters in t.
-	left, matched := 0, 0
-	bestStart, bestLen := 0, len(s)+1
-	for right := 0; right < len(s); right++ {
-		c := s[right]
-		window[c]++
-		if window[c] <= need[c] {
-			matched++
-		}
-
-		for matched == len(t) {
-			if length := right - left + 1; length < bestLen {
-				bestStart, bestLen = left, length
+	start, length := windowShortest(len(s),
+		func(i int) {
+			c := s[i]
+			if count[c] < need[c] {
+				missing--
 			}
-
-			removed := s[left]
-			// Check before decrementing: excess copies do not fill demand slots.
-			if window[removed] <= need[removed] {
-				matched--
+			count[c]++
+		},
+		func(i int) {
+			c := s[i]
+			count[c]--
+			if count[c] < need[c] {
+				missing++
 			}
-			window[removed]--
-			left++
-		}
-	}
-
-	if bestLen > len(s) {
+		},
+		func() bool { return missing == 0 })
+	if length == len(s)+1 {
 		return ""
 	}
-	return s[bestStart : bestStart+bestLen]
+	return s[start : start+length]
 }

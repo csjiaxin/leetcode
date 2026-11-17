@@ -1,67 +1,37 @@
 package main
 
-import (
-	"fmt"
-	"math"
-)
-
-func min(a, b int) int {
-	if a > b {
-		return b
+// IntervalTable 按闭区间长度递增；step 只能读取严格更短区间。
+// base 初始化单点；空区间不在表中，由适配器自行处理。
+func IntervalTable[T any](n int, base func(i int) T, step func(l, r int, dp [][]T) T) [][]T {
+	dp := make([][]T, n)
+	for i := range dp {
+		dp[i] = make([]T, n)
+		dp[i][i] = base(i)
 	}
-	return a
-}
-func max(a, b int) int {
-	if a > b {
-		return a
+	for length := 2; length <= n; length++ {
+		for l := 0; l+length <= n; l++ {
+			r := l + length - 1
+			dp[l][r] = step(l, r, dp)
+		}
 	}
-	return b
+	return dp
 }
 
+// 顶点闭区间 l..r；边界边 (l,r) 对应三角形第三点 k，两个子区间共享 k。
 func minScoreTriangulation(values []int) int {
 	n := len(values)
-	N := n + 2
-	V := make([]int, N)
-	V[0] = values[n-1]
-	copy(V[1:], values)
-	V[N-1] = values[0]
-
-	dp := make([][]int, N)
-	for i := 0; i < len(dp); i++ {
-		dp[i] = make([]int, N)
-		for j := 0; j < len(dp[i]); j++ {
-			dp[i][j] = math.MaxInt
+	if n < 3 {
+		return 0
+	}
+	dp := IntervalTable(n, func(int) int { return 0 }, func(l, r int, dp [][]int) int {
+		if r-l < 2 {
+			return 0
 		}
-	}
-	for i := 1; i < N-1; i++ {
-		dp[i][i] = V[i-1] * V[i] * V[i+1]
-	}
-	for l := 2; l <= n; l++ {
-		for i := 1; i+l-1 < N-1; i++ {
-			j := i + l - 1
-			bond := V[i-1] * V[j+1]
-			for last := i; last <= j; last++ {
-				cost := V[last] * bond
-				if last-1 >= i {
-					cost += dp[i][last-1]
-				}
-				if last+1 <= j {
-					cost += dp[last+1][j]
-				}
-				dp[i][j] = min(dp[i][j], cost)
-			}
+		best := int(^uint(0) >> 1)
+		for k := l + 1; k < r; k++ {
+			best = min(best, dp[l][k]+dp[k][r]+values[l]*values[k]*values[r])
 		}
-	}
-	remove_len := n - 2
-	ret := math.MaxInt
-	for i := 1; i+remove_len-1 <= N-1; i++ {
-		j := i + remove_len - 1
-		ret = min(ret, dp[i][j])
-	}
-	return ret
-}
-
-func main() {
-	fmt.Println(minScoreTriangulation([]int{1, 2, 3}))
-	fmt.Println(minScoreTriangulation([]int{3, 7, 4, 5}))
+		return best
+	})
+	return dp[0][n-1]
 }

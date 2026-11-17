@@ -1,58 +1,36 @@
 package l224
 
-type frame struct {
-	sign rune
-	val  int
-}
+// Standalone nested-context subtemplate and problem adapter; see README.md.
+type arithmeticFrame struct{ sum, sign int }
 
-func update(stack []frame, sign rune, number int) {
-	last := &stack[len(stack)-1]
-	if sign == '-' {
-		last.val -= number
-	} else {
-		last.val += number
-	}
-}
-
-// https://leetcode.com/problems/basic-calculator/
-func calculate(s string) int {
-	var (
-		stack        []frame
-		current_sign rune
-		number       int
-	)
-	stack = append(stack, frame{
-		val:  0,
-		sign: '+',
-	})
-	for _, c := range s {
-		if c == '(' {
-			e := frame{
-				val:  0,
-				sign: current_sign,
+// evaluateSum restores sum/sign at each closing parenthesis; unary '-' is allowed.
+func evaluateSum(s string) int {
+	stack := []arithmeticFrame{}
+	sum, number, sign := 0, 0, 1
+	for i := range s {
+		token := s[i]
+		switch {
+		case token >= '0' && token <= '9':
+			number = number*10 + int(token-'0')
+		case token == '+' || token == '-':
+			sum += sign * number
+			number = 0
+			sign = 1
+			if token == '-' {
+				sign = -1
 			}
-			stack = append(stack, e)
-			current_sign = '\x00'
-
-		} else if c == ')' {
-			update(stack, current_sign, number)
+		case token == '(':
+			stack = append(stack, arithmeticFrame{sum, sign})
+			sum, number, sign = 0, 0, 1
+		case token == ')':
+			sum += sign * number
 			number = 0
-
-			inner := stack[len(stack)-1]
+			frame := stack[len(stack)-1]
 			stack = stack[:len(stack)-1]
-
-			update(stack, inner.sign, inner.val)
-
-		} else if c == '+' || c == '-' {
-			update(stack, current_sign, number)
-			number = 0
-			current_sign = c
-		} else if c == ' ' {
-
-		} else {
-			number = 10*number + int(c-'0')
+			sum = frame.sum + frame.sign*sum
 		}
 	}
-	update(stack, current_sign, number)
-	return stack[0].val
+	return sum + sign*number
 }
+
+func calculate(s string) int { return evaluateSum(s) }

@@ -1,64 +1,176 @@
-# 股票 DP：日期上的持股状态机
+# 股票 DP：昨天的状态与合法买入来源
 
-股票题共用“今天结束时处于什么状态”的建模方式。交易次数、手续费与冷冻期改变合法转移，不能把无限次交易的两条公式原样用于全部题目。
+[返回 DP 总目录](../README.md)
 
-## 1. 无限次交易的基本骨架
+先定义“某天结束后是否持股”，再增加交易预算、手续费或冷冻约束。所有更新右侧只读取昨天或明确要求的前天状态。
 
-cash 表示未持股的最大利润，hold 表示持有一股的最大利润。处理某一天时，右侧只读取昨天的值：
+| 子模板 | 不变量与参数 | 题目 |
+| --- | --- | --- |
+| BoundedTrade | cash[t]/hold[t] 为最多 t 次买入时的收益；买入来自昨天 cash[t-1] | 121 的 1 次、123 的 2 次、188 的 k 次 |
+| UnlimitedTrade | cash/hold 是昨天的两种状态；手续费在卖出时扣一次 | 122、714 |
+| UnlimitedTrade(cooldown=true) | 买入必须读取前天 cash，避开昨天卖出后的冷冻日 | 309 |
 
-~~~go
-import "math"
+例如 714 一次交易只扣一次 fee，下面统一放到卖出动作。309 不能用同日更新的 cash，也不能直接读取昨天 cash。持股初值为足够小的负值；最终返回未持股的收益。
 
-func UnlimitedProfit(prices []int) int {
-    cash, hold := 0, math.MinInt/4
-    for _, price := range prices {
-        oldCash, oldHold := cash, hold
-        cash = max(oldCash, oldHold+price)
-        hold = max(oldHold, oldCash-price)
-    }
-    return cash
+预算版按天分配新数组，避免 t 的遍历方向带来混淆，时间 O(nk)、辅助空间 O(k)。188 在 k>=n/2 时改用无限次模板，时间 O(n)。无限次模板 O(n) 时间、O(1) 空间。
+
+## 复制与运行约定
+
+每道题是一个独立代码组：复制下方列明的模板一次，再复制该题适配函数。题目 `.go` 文件已经包含相同模板，不依赖仓库内部导入，可直接作为单题提交。不同题目可能使用相同入口名（如 `rob`、`maxProfit`、`cherryPickup`），请分别复制，不能把全部适配器拼进同一个文件。以下代码使用 Go 1.21+ 的内置 `min/max`。
+
+## 固定模板
+
+### BoundedTrade
+
+<!-- template: BoundedTrade -->
+```go
+// BoundedTrade 的 cash[t]/hold[t] 表示至多 t 次买入的现金/持股收益。
+// 每天从昨天的整组数组转移，预算维度不会混入当天新状态。
+func BoundedTrade(prices []int, budget int) int {
+	if budget <= 0 || len(prices) < 2 {
+		return 0
+	}
+	budget = min(budget, len(prices)/2)
+	cash, hold := make([]int, budget+1), make([]int, budget+1)
+	for t := range hold {
+		hold[t] = -int(^uint(0)>>1) / 4
+	}
+	for _, price := range prices {
+		nextCash := append([]int(nil), cash...)
+		nextHold := append([]int(nil), hold...)
+		for t := 1; t <= budget; t++ {
+			nextCash[t] = max(cash[t], hold[t]+price)
+			nextHold[t] = max(hold[t], cash[t-1]-price)
+		}
+		cash, hold = nextCash, nextHold
+	}
+	return cash[budget]
 }
-~~~
+```
 
-负无穷应结合输入数值范围选取，避免继续加减时溢出。最终返回未持股状态；空价格序列返回 0。
+### UnlimitedTrade
 
-## 2. 按题意修改状态与来源
+<!-- template: UnlimitedTrade -->
+```go
+// UnlimitedTrade 支持卖出时扣手续费，及卖出后冷冻一天的独立限制。
+func UnlimitedTrade(prices []int, fee int, cooldown bool) int {
+	cash, hold := 0, -int(^uint(0)>>1)/4
+	beforeYesterday := 0
+	for _, price := range prices {
+		oldCash, oldHold := cash, hold
+		buyFrom := oldCash
+		if cooldown {
+			buyFrom = beforeYesterday
+		}
+		cash = max(oldCash, oldHold+price-fee)
+		hold = max(oldHold, buyFrom-price)
+		beforeYesterday = oldCash
+	}
+	return cash
+}
+```
 
-| 实现 | 修改处 |
-| --- | --- |
-| [121](l121/121.go) | 只允许一次买入：hold 的买入来源始终是初始现金 0，即 -price |
-| [122](l122/122.go) | 不限次数，可由昨天 cash 再次买入 |
-| [123](l123/123.go) | 交易次数预算为 2 |
-| [188](l188/188.go) | 增加交易次数预算 t，不能漏掉次数维度 |
-| [714](l714/714.go) | 每笔交易扣一次手续费，可统一在卖出时扣除 |
-| [309](l309/309.go) | 买入来自前天的 cash，或显式维护冷冻状态 |
+## 逐题适配器
 
-### 限定次数
+### 121
 
-一种一致的定义是：cash[t]/hold[t] 表示最多允许 t 次买入时，两种持股状态的最优值。
+[代码](l121/121.go) · [测试](l121/121_test.go)
 
-~~~text
-nextCash[t] = max(cash[t], hold[t] + price)
-nextHold[t] = max(hold[t], cash[t-1] - price), t>=1
-~~~
+最多一次买入与卖出。
 
-初始 cash 全为 0，hold 全为负无穷。这是“最多”次数，不是“恰好”次数的初始化。前一天与当天的数组要分清；若原地压缩，需要额外证明更新顺序。
+需要模板：`BoundedTrade`。
 
-一般时间 O(nk)、空间 O(k)。无手续费、无冷冻等附加限制的 188 中，k>=n/2 时等价于无限次交易。
+<!-- solution: dp/stock/l121/121.go; templates: BoundedTrade -->
+```go
+// https://leetcode.com/problems/best-time-to-buy-and-sell-stock/
+// 最多一次买入与卖出。
+func maxProfit(prices []int) int { return BoundedTrade(prices, 1) }
+```
 
-### 手续费与冷冻期
+### 123
 
-~~~text
-手续费：nextCash = max(cash, hold + price - fee)
-冷冻期：hold[i] = max(hold[i-1], cash[i-2] - price[i])
-~~~
+[代码](l123/123.go) · [测试](l123/123_test.go)
 
-一次买卖只能扣一次手续费。冷冻期公式中的 i-2 不能机械改成 i-1；同日更新在某些基础模型中恰好等价，不意味着所有变体也正确。
+交易预算为两次。
 
-## 3. 学习顺序与历史记录
+需要模板：`BoundedTrade`。
 
-建议 121 → 122 → 123 → 188 → 714 → 309。先固定状态含义，再增加一个限制；不是每次都从所有买入日、卖出日的二重循环开始。
+<!-- solution: dp/stock/l123/123.go; templates: BoundedTrade -->
+```go
+// https://leetcode.com/problems/best-time-to-buy-and-sell-stock/
+// 交易预算为两次。
+func maxProfit(prices []int) int { return BoundedTrade(prices, 2) }
+```
 
-现有每题代码和测试原样保留。[原股票笔记](legacy/readme)继续保留；本文给出统一建模与变化点，不声称所有旧实现都使用相同存储形式。
+### 188
 
-当前 l714 的原实现没有正确扣除手续费，原有测试仍失败。本页列出的是应满足的状态模型；本轮目录整理没有修复该算法。
+[代码](l188/188.go) · [测试](l188/188_test.go)
+
+预算足够大时退化为无限次交易，避免 O(nk) 的大预算开销。
+
+需要模板：`BoundedTrade`、`UnlimitedTrade`。
+
+<!-- solution: dp/stock/l188/188.go; templates: BoundedTrade,UnlimitedTrade -->
+```go
+// https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/
+// 预算足够大时退化为无限次交易，避免 O(nk) 的大预算开销。
+func maxProfit(k int, prices []int) int {
+	if k >= len(prices)/2 {
+		return UnlimitedTrade(prices, 0, false)
+	}
+	return BoundedTrade(prices, k)
+}
+```
+
+### 122
+
+[代码](l122/122.go) · [测试](l122/122_test.go)
+
+无限次交易，无手续费和冷冻。
+
+需要模板：`UnlimitedTrade`。
+
+<!-- solution: dp/stock/l122/122.go; templates: UnlimitedTrade -->
+```go
+// https://leetcode.com/problems/best-time-to-buy-and-sell-stock/
+// 无限次交易，无手续费和冷冻。
+func maxProfit(prices []int) int { return UnlimitedTrade(prices, 0, false) }
+```
+
+### 714
+
+[代码](l714/714.go) · [测试](l714/714_test.go)
+
+手续费每笔只扣一次，统一放在卖出时。
+
+需要模板：`UnlimitedTrade`。
+
+<!-- solution: dp/stock/l714/714.go; templates: UnlimitedTrade -->
+```go
+// https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/
+// 手续费每笔只扣一次，统一放在卖出时。
+func maxProfit(prices []int, fee int) int { return UnlimitedTrade(prices, fee, false) }
+```
+
+### 309
+
+[代码](l309/309.go) · [测试](l309/309_test.go)
+
+买入读取前天 cash，不能读取昨天刚卖出的收益。
+
+需要模板：`UnlimitedTrade`。
+
+<!-- solution: dp/stock/l309/309.go; templates: UnlimitedTrade -->
+```go
+// https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/
+// 买入读取前天 cash，不能读取昨天刚卖出的收益。
+func maxProfit(prices []int) int { return UnlimitedTrade(prices, 0, true) }
+```
+
+## 原始说明与其他材料
+
+[改写前的完整分类笔记](legacy/README.before-template-rewrite.md)保存原说明、外部链接以及无扩展名片段的索引。上述适配器是当前实现；历史文字中的“尚未实现”等描述仅反映当时状态。原有测试保留，新增测试覆盖补全实现的关键边界。
+
+```sh
+go test ./dp/stock/...
+```

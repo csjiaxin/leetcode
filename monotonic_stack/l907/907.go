@@ -1,67 +1,35 @@
 package l907
 
-type Stack[T any] struct {
-	d []T
-}
-
-func New[T any]() *Stack[T] {
-	s := &Stack[T]{
-		d: []T{},
-	}
-	return s
-}
-func (s *Stack[T]) Size() int {
-	return len(s.d)
-}
-
-func (s *Stack[T]) Peek() T {
-	return s.d[len(s.d)-1]
-}
-
-func (s *Stack[T]) Pop() T {
-	v := s.d[len(s.d)-1]
-	s.d = s.d[:len(s.d)-1]
-	return v
-}
-func (s *Stack[T]) Push(v T) {
-	s.d = append(s.d, v)
-}
-
-type E struct {
-	idx   int
-	value int
-}
-
 // https://leetcode.com/problems/sum-of-subarray-minimums/
-func sumSubarrayMins(heights []int) int {
-	idxStack := New[E]()
-	ret := 0
-
-	handleCurrent := func(pop E, right int) {
-		left := -1
-		if idxStack.Size() > 0 {
-			left = idxStack.Peek().idx
+// Embedded subtemplate: see README.md for its invariant and tie policy.
+// monotonicBoundaries settles right boundaries on pop and reads left on push.
+// pop defines the strict/non-strict tie ownership for this specific problem.
+func monotonicBoundaries(nums []int, pop func(previous, current int) bool) ([]int, []int) {
+	n := len(nums)
+	left, right := make([]int, n), make([]int, n)
+	stack := []int{}
+	for i, x := range nums {
+		right[i] = n
+		for len(stack) > 0 && pop(nums[stack[len(stack)-1]], x) {
+			j := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			right[j] = i
 		}
-		currentIdx := pop.idx
-		currentValue := pop.value
-		leftNums := currentIdx - 1 - left
-		rightNums := right - 1 - currentIdx
-		area := (leftNums + 1) * (rightNums + 1) * currentValue
-		ret += area
-		ret = ret % (1_000_000_007)
-
-	}
-	for i, v := range heights {
-		for idxStack.Size() > 0 && idxStack.Peek().value > v {
-			pop := idxStack.Pop()
-			handleCurrent(pop, i)
+		left[i] = -1
+		if len(stack) > 0 {
+			left[i] = stack[len(stack)-1]
 		}
-		idxStack.Push(E{idx: i, value: v})
+		stack = append(stack, i)
 	}
+	return left, right
+}
 
-	for idxStack.Size() > 0 {
-		pop := idxStack.Pop()
-		handleCurrent(pop, len(heights))
+func sumSubarrayMins(arr []int) int {
+	left, right := monotonicBoundaries(arr, func(previous, current int) bool { return previous >= current })
+	const mod int64 = 1_000_000_007
+	var result int64
+	for i, value := range arr {
+		result = (result + int64(value)*int64(i-left[i])*int64(right[i]-i)) % mod
 	}
-	return ret
+	return int(result)
 }

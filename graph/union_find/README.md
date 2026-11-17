@@ -2,19 +2,11 @@
 
 ## 共享集合操作与练习状态
 
-[union_find.go](union_find.go)提供现成的 `NewUnionFind`、`Find`、`Union`、`Connected`。集合初始化各自独立；`Union(a,b)` 只有合并两个不同集合时返回 true，可以用来维护分量数或判断新增无向边是否成环。
+[union_find.go](union_find.go)保留为通用参考，主解文件内各自复制相同的 `NewUnionFind`、`Find`、`Union`、`Connected`。集合初始化各自独立；`Union(a,b)` 只有合并两个不同集合时返回 true，可以用来维护分量数或判断新增无向边是否成环。
 
-```go
-import unionfind "leetcode/graph/union_find"
+各题直接调用本文件中的 `NewUnionFind`，公共 helper 见下方核心思路；单题主解无需导入仓库内部包。
 
-uf := unionfind.NewUnionFind(n)
-components := n
-for _, edge := range edges {
-    if uf.Union(edge[0], edge[1]) { components-- }
-}
-```
-
-547、684、1319、721 的题目文件保留为待实现练习与原测试，下文给出各题参考实现。不要把它用于一般有向可达或在线删边；需要路径长度时使用 BFS／最短路族。
+547、684、1319、721 的题目文件均已按下方模板实现，每个主解包含完整本地 helper，已有测试保持原样；下文展示同一 helper 与各题的适配函数。不要把它用于一般有向可达或在线删边；需要路径长度时使用 BFS／最短路族。
 
 [返回总目录](../../algorithm_templates/README.md)
 
@@ -40,7 +32,64 @@ Find得到集合代表，Union合并不同代表。parent[root]=root；size仅�
 根不同：小树挂大树 → 分量数减1
 ```
 
-下面每题含自己的find/union，方便单独复制。它们是必要的集合操作，不再包装题目无关回调。只解决无向连通或等价关系，不支持一般有向可达、在线删边和最短路。
+先声明一次固定的集合操作，下面每题只写适配函数。它们是必要的集合操作，不再包装题目无关回调。只解决无向连通或等价关系，不支持一般有向可达、在线删边和最短路。
+
+复制时，将这个公共代码块与选定题目的适配函数放在同一个 Go 文件中，只保留一次 `package` 和一套 `UnionFind` 声明；721 还需在 `package` 后、任何类型或函数声明前加入 `import "sort"`。其他三题无需导入包。仓库中的每个题目主文件已经包含完整副本，可直接独立提交。
+
+```go
+package template
+
+type UnionFind struct {
+	parent []int
+	size   []int
+}
+
+// Nodes are numbered 0 through n-1.
+func NewUnionFind(n int) *UnionFind {
+	uf := &UnionFind{
+		parent: make([]int, n),
+		size:   make([]int, n),
+	}
+
+	for i := 0; i < n; i++ {
+		uf.parent[i] = i
+		uf.size[i] = 1
+	}
+
+	return uf
+}
+
+func (uf *UnionFind) Find(x int) int {
+	for x != uf.parent[x] {
+		// Path compression: point x directly to its grandparent.
+		uf.parent[x] = uf.parent[uf.parent[x]]
+		x = uf.parent[x]
+	}
+	return x
+}
+
+func (uf *UnionFind) Union(a, b int) bool {
+	rootA := uf.Find(a)
+	rootB := uf.Find(b)
+
+	if rootA == rootB {
+		return false
+	}
+
+	// Attach the smaller tree under the larger tree.
+	if uf.size[rootA] < uf.size[rootB] {
+		rootA, rootB = rootB, rootA
+	}
+
+	uf.parent[rootB] = rootA
+	uf.size[rootA] += uf.size[rootB]
+	return true
+}
+
+func (uf *UnionFind) Connected(a, b int) bool {
+	return uf.Find(a) == uf.Find(b)
+}
+```
 
 <a id="lc547"></a>
 
@@ -53,38 +102,15 @@ Find得到集合代表，Union合并不同代表。parent[root]=root；size仅�
 **状态**：components初始n，只有不同集合合并时减1。遍历上三角避免重复处理。
 
 ```go
-package template
-
 func findCircleNum(isConnected [][]int) int {
 	n := len(isConnected)
-	parent, size := make([]int, n), make([]int, n)
-	for i := range parent {
-		parent[i] = i
-		size[i] = 1
-	}
-	find := func(x int) int {
-		for x != parent[x] {
-			parent[x] = parent[parent[x]]
-			x = parent[x]
-		}
-		return x
-	}
+	uf := NewUnionFind(n)
 	components := n
 	for i := 0; i < n; i++ {
 		for j := i + 1; j < n; j++ {
-			if isConnected[i][j] == 0 {
-				continue
+			if isConnected[i][j] != 0 && uf.Union(i, j) {
+				components--
 			}
-			a, b := find(i), find(j)
-			if a == b {
-				continue
-			}
-			if size[a] < size[b] {
-				a, b = b, a
-			}
-			parent[b] = a
-			size[a] += size[b]
-			components--
 		}
 	}
 	return components
@@ -106,32 +132,12 @@ func findCircleNum(isConnected [][]int) int {
 **变化**：按输入顺序加入；第一次发现端点已连通的边，就是环上最后出现的边。
 
 ```go
-package template
-
 func findRedundantConnection(edges [][]int) []int {
-	n := len(edges)
-	parent, size := make([]int, n+1), make([]int, n+1)
-	for i := range parent {
-		parent[i] = i
-		size[i] = 1
-	}
-	find := func(x int) int {
-		for x != parent[x] {
-			parent[x] = parent[parent[x]]
-			x = parent[x]
+	uf := NewUnionFind(len(edges) + 1)
+	for _, edge := range edges {
+		if !uf.Union(edge[0], edge[1]) {
+			return []int{edge[0], edge[1]}
 		}
-		return x
-	}
-	for _, e := range edges {
-		a, b := find(e[0]), find(e[1])
-		if a == b {
-			return []int{e[0], e[1]}
-		}
-		if size[a] < size[b] {
-			a, b = b, a
-		}
-		parent[b] = a
-		size[a] += size[b]
 	}
 	return nil
 }
@@ -152,36 +158,19 @@ func findRedundantConnection(edges [][]int) []int {
 **推导**：线少于n-1必无解；否则冗余线足以连接所有分量，答案components-1。
 
 ```go
-package template
-
 func makeConnected(n int, connections [][]int) int {
+	if n <= 1 {
+		return 0
+	}
 	if len(connections) < n-1 {
 		return -1
 	}
-	parent, size := make([]int, n), make([]int, n)
-	for i := range parent {
-		parent[i] = i
-		size[i] = 1
-	}
-	find := func(x int) int {
-		for x != parent[x] {
-			parent[x] = parent[parent[x]]
-			x = parent[x]
-		}
-		return x
-	}
+	uf := NewUnionFind(n)
 	components := n
-	for _, e := range connections {
-		a, b := find(e[0]), find(e[1])
-		if a == b {
-			continue
+	for _, edge := range connections {
+		if uf.Union(edge[0], edge[1]) {
+			components--
 		}
-		if size[a] < size[b] {
-			a, b = b, a
-		}
-		parent[b] = a
-		size[a] += size[b]
-		components--
 	}
 	return components - 1
 }
@@ -202,55 +191,28 @@ func makeConnected(n int, connections [][]int) int {
 **建模**：账户下标为DSU节点。owner记录邮箱首次出现的账户；再次出现时合并两个账户。最后把每个唯一邮箱归入最终根。
 
 ```go
-package template
-
-import "sort"
-
 func accountsMerge(accounts [][]string) [][]string {
-	n := len(accounts)
-	parent, size := make([]int, n), make([]int, n)
-	for i := range parent {
-		parent[i] = i
-		size[i] = 1
-	}
-	find := func(x int) int {
-		for x != parent[x] {
-			parent[x] = parent[parent[x]]
-			x = parent[x]
-		}
-		return x
-	}
-	union := func(a, b int) {
-		a, b = find(a), find(b)
-		if a == b {
-			return
-		}
-		if size[a] < size[b] {
-			a, b = b, a
-		}
-		parent[b] = a
-		size[a] += size[b]
-	}
+	uf := NewUnionFind(len(accounts))
 	owner := make(map[string]int)
 	for i, account := range accounts {
 		for _, email := range account[1:] {
-			if j, ok := owner[email]; ok {
-				union(i, j)
+			if previous, ok := owner[email]; ok {
+				uf.Union(i, previous)
 			} else {
 				owner[email] = i
 			}
 		}
 	}
 	groups := make(map[int][]string)
-	for email, i := range owner {
-		root := find(i)
+	for email, account := range owner {
+		root := uf.Find(account)
 		groups[root] = append(groups[root], email)
 	}
-	answer := [][]string{}
+	answer := make([][]string, 0, len(groups))
 	for root, emails := range groups {
 		sort.Strings(emails)
-		group := []string{accounts[root][0]}
-		answer = append(answer, append(group, emails...))
+		group := append([]string{accounts[root][0]}, emails...)
+		answer = append(answer, group)
 	}
 	return answer
 }

@@ -1,502 +1,768 @@
-# 字典树 Trie（前缀树）：共享前缀、节点信息与搜索规则
+# Trie：统一走树模板与节点载荷
 
-[返回仓库目录](../README.md)
+[返回模板总目录](../algorithm_templates/README.md)
 
-> 固定骨架：**从根出发，按字符沿边向下走。** 变化点：节点保存什么、什么时候停止、是否需要搜索多个分支。
->
-> 本文先针对小写字母 `a..z`。README 提供参考实现，`l题号/` 中只保留空函数供练习，原有旧稿不改动。
+TrieNode[V] 把节点路径与题目数据分离。TrieWalk 的 create 控制建点，onNode 维护沿途统计；Data 分别保存终止标记、次数、候选、前缀和或原单词。查找失败不创建节点，完整单词和存在前缀必须分别判断。
 
-## 目录
+字符 Trie 使用字节 map，适用于本组 ASCII 词典。XOR 子系列单列31位非负整数 BitTrie，支持计数、窗口删除、最大异或和小于阈值的数量；相同“走树”外形不意味着查询规则相同。
 
-- [1. 解决什么问题？思路从哪里来？](#why)
-- [2. 节点、前缀与完整单词](#node)
-- [3. 基础模板：208. 实现 Trie](#lc208)
-- [4. 最短词根：648. 单词替换](#lc648)
-- [5. 通配符分支：211. 添加与搜索单词](#lc211)
-- [6. 前缀聚合：677. 键值映射](#lc677)
-- [7. 字典序候选：1268. 搜索推荐系统](#lc1268)
-- [8. 网格与前缀剪枝：212. 单词搜索 II](#lc212)
-- [9. 分类扩展题单](#practice)
-- [10. 复杂度、易错点与复盘](#review)
-- [原有资料与旧稿](#legacy)
+## 复制约定
 
-<a id="why"></a>
-## 1. 解决什么问题？思路从哪里来？
+每题 `.go` 文件已内嵌所需模板，无需导入仓库的算法包。文档将固定模板只列一次，逐题展示适配器；每个适配器与它列出的模板组成一个独立代码组。不同题的同名 Constructor、类型或入口请分别使用。将列出的标准库 import 放在文件顶部，再放模板与适配器；复制提交时优先直接使用对应题目的完整 `.go`。
 
-适合的场景：维护许多字符串，反复查询单词是否存在、某个前缀是否存在、前缀对应多少个词/多大权值，或者在搜索过程中不断判断“当前路径还有没有可能组成字典里的词”。
+本组使用 Go 1.21+ 的 min/max 和 Go 1.18+ 的泛型。平台已提供的 ListNode 等类型沿用平台定义。
 
-从朴素方法出发：有 `apple、app、apt、bat`，每次查询 `ap`，可以遍历所有单词逐个判断前缀。问题在于反复比较相同的 `a`、`p`，没有复用公共部分。
+## 固定模板
 
-把公共前缀合并成一条路径：
+### TrieWalk
 
-```text
-root（空前缀）
-├── a
-│   └── p
-│       ├── p *          app 是完整词
-│       │   └── l
-│       │       └── e *  apple 是完整词
-│       └── t *          apt 是完整词
-└── b
-    └── a
-        └── t *          bat 是完整词
-```
-
-树中的**边表示一个字符，根到节点的路径表示一个前缀**。多个单词共享路径，不必每次从头比较每个单词。
-
-这就是 Trie 的来源：不是按整个单词建立哈希索引，而是按“下一字符”逐层组织信息。查询长度为 L 的前缀，通常只沿 L 条边，不必扫描整个字典。
-
-### 怎样理解“走到一个节点”？
-
-已经匹配了 `ap`，当前指针就停在代表 `ap` 的节点。它的孩子表示后面允许出现的字符：`p` 或 `t`。若下一字符为 `z`，没有对应边，立刻知道**没有任何字典单词以 apz 开头**。
-
-Trie 不只是存储完整词，还存储“哪些中间状态仍有希望”。这正是它与 DFS/回溯结合时能剪枝的原因。
-
-### 不是所有字符串问题都需要 Trie
-
-| 需求 | 优先考虑 |
-| --- | --- |
-| 只查完整字符串是否存在 | 哈希集合，通常更简单 |
-| 频繁查询前缀、沿路径剪枝 | Trie |
-| 静态词典中按前缀取候选 | Trie 或排序＋二分 |
-| 求几个字符串的最长公共前缀 | 直接逐字符比较通常足够 |
-| 大字符集且分支稀疏 | `map[rune]*Node` 或按实际 token 建边 |
-
-Trie 的代价是节点和指针较多；不应为了套模板忽略更简单的解法。
-
-<a id="node"></a>
-## 2. 节点、前缀与完整单词
-
+<!-- template: TrieWalk -->
 ```go
-type TrieNode struct {
-    Children [26]*TrieNode
-    IsEnd    bool
+// TrieNode 的 Data 保存题目需要的终止、计数或聚合信息。
+type TrieNode[V any] struct {
+	Next map[byte]*TrieNode[V]
+	Data V
+}
+
+func NewTrieNode[V any]() *TrieNode[V] { return &TrieNode[V]{Next: make(map[byte]*TrieNode[V])} }
+
+// TrieWalk 沿前缀走树；create 决定是否建点，onNode 可聚合沿途信息。
+func TrieWalk[V any](node *TrieNode[V], key string, create bool, onNode func(*TrieNode[V])) *TrieNode[V] {
+	if node == nil {
+		return nil
+	}
+	if onNode != nil {
+		onNode(node)
+	}
+	for i := 0; i < len(key); i++ {
+		child := node.Next[key[i]]
+		if child == nil {
+			if !create {
+				return nil
+			}
+			child = NewTrieNode[V]()
+			node.Next[key[i]] = child
+		}
+		node = child
+		if onNode != nil {
+			onNode(node)
+		}
+	}
+	return node
 }
 ```
 
-- `Children[c-'a']`：读取字符 c 后到达的下一个节点，nil 表示这条边不存在。
-- `IsEnd`：是否有完整单词恰好在当前节点结束。
-- 根不表示任何字符，代表空前缀；不需要额外保存当前字符。
+### BitTrie
 
-只插入 `apple`：
-
-```text
-StartsWith("app") = true    路径存在
-Search("app")     = false   路径存在，但不是完整词
-Search("apple")   = true    路径存在，且结束标记为true
-```
-
-**节点存在不等于单词存在。** 插入时只把最后一个节点标为结束，中间节点不自动成为完整词。
-
-本篇代码按字节遍历，约定输入字符符合各题的小写英文字母约束。中文不能直接用 `word[i]-'a'`；应改用 rune 遍历与 map 子节点。路径分隔符、数字和二进制位也需要对应的子节点结构。
-
-<a id="lc208"></a>
-## 3. 基础模板：208. 实现 Trie
-
-[LeetCode 208](https://leetcode.com/problems/implement-trie-prefix-tree/) · [练习](l208/208.go)
-
-**题意**：实现插入、完整单词查询、前缀查询。
-
-**不变量**：处理完前 i 个字符后，node 表示 `word[:i]` 对应的节点。插入时缺边就创建；查询时缺边就失败。
-
-下面是独立参考代码。后续各题也分别给出独立代码，不需要跨题复制类型，避免过度泛型或回调封装。
-
+<!-- template: BitTrie -->
 ```go
-package template
+// BitTrie 按高位到低位维护非负31位整数，Count 支持窗口删除。
+type bitNode struct {
+	Next  [2]*bitNode
+	Count int
+}
+type BitTrie struct{ Root *bitNode }
 
-type TrieNode struct {
-    Children [26]*TrieNode
-    IsEnd    bool
+func NewBitTrie() *BitTrie { return &BitTrie{Root: &bitNode{}} }
+func (t *BitTrie) Add(value, delta int) {
+	node := t.Root
+	node.Count += delta
+	for bit := 30; bit >= 0; bit-- {
+		digit := (value >> bit) & 1
+		if node.Next[digit] == nil {
+			node.Next[digit] = &bitNode{}
+		}
+		node = node.Next[digit]
+		node.Count += delta
+	}
+}
+func (t *BitTrie) MaxXor(value int) int {
+	if t.Root.Count == 0 {
+		return -1
+	}
+	node := t.Root
+	answer := 0
+	for bit := 30; bit >= 0; bit-- {
+		digit := (value >> bit) & 1
+		preferred := digit ^ 1
+		if node.Next[preferred] != nil && node.Next[preferred].Count > 0 {
+			answer |= 1 << bit
+			node = node.Next[preferred]
+		} else {
+			node = node.Next[digit]
+		}
+	}
+	return answer
 }
 
-type Trie struct { root *TrieNode }
-
-func Constructor() Trie { return Trie{root: &TrieNode{}} }
-
-func (t *Trie) Insert(word string) {
-    node := t.root
-    for i := 0; i < len(word); i++ {
-        c := word[i] - 'a'
-        if node.Children[c] == nil { node.Children[c] = &TrieNode{} }
-        node = node.Children[c]
-    }
-    node.IsEnd = true
+// Less 统计与 value 异或后严格小于 limit 的已插入数字数量。
+func (t *BitTrie) Less(value, limit int) int {
+	node := t.Root
+	answer := 0
+	for bit := 30; bit >= 0 && node != nil; bit-- {
+		digit := (value >> bit) & 1
+		if (limit>>bit)&1 != 0 {
+			if child := node.Next[digit]; child != nil {
+				answer += child.Count
+			}
+			node = node.Next[digit^1]
+		} else {
+			node = node.Next[digit]
+		}
+	}
+	return answer
 }
+```
 
-func (t *Trie) find(s string) *TrieNode {
-    node := t.root
-    for i := 0; i < len(s); i++ {
-        node = node.Children[s[i]-'a']
-        if node == nil { return nil }
-    }
-    return node
+## 题目索引
+
+| 题目 | 模板 | 本地代码与测试 |
+| --- | --- | --- |
+| [14](https://leetcode.com/problems/longest-common-prefix/) | TrieWalk | [代码](l14/14.go) |
+| [139](https://leetcode.com/problems/word-break/) | TrieWalk | [代码](l139/139.go) |
+| [208](https://leetcode.com/problems/implement-trie-prefix-tree/) | TrieWalk | [代码](l208/208.go) · [测试](l208/208_test.go) |
+| [211](https://leetcode.com/problems/design-add-and-search-words-data-structure/) | TrieWalk | [代码](l211/211.go) · [测试](l211/211_test.go) |
+| [212](https://leetcode.com/problems/word-search-ii/) | TrieWalk | [代码](l212/212.go) · [测试](l212/212_test.go) |
+| [421](https://leetcode.com/problems/maximum-xor-of-two-numbers-in-an-array/) | BitTrie | [代码](l421/421.go) |
+| [472](https://leetcode.com/problems/concatenated-words/) | TrieWalk | [代码](l472/472.go) |
+| [648](https://leetcode.com/problems/replace-words/) | TrieWalk | [代码](l648/648.go) · [测试](l648/648_test.go) |
+| [677](https://leetcode.com/problems/map-sum-pairs/) | TrieWalk | [代码](l677/677.go) · [测试](l677/677_test.go) |
+| [720](https://leetcode.com/problems/longest-word-in-dictionary/) | TrieWalk | [代码](l720/720.go) |
+| [745](https://leetcode.com/problems/prefix-and-suffix-search/) | TrieWalk | [代码](l745/745.go) |
+| [820](https://leetcode.com/problems/short-encoding-of-words/) | TrieWalk | [代码](l820/820.go) |
+| [1032](https://leetcode.com/problems/stream-of-characters/) | TrieWalk | [代码](l1032/1032.go) |
+| [1233](https://leetcode.com/problems/remove-sub-folders-from-the-filesystem/) | TrieWalk | [代码](l1233/1233.go) |
+| [1268](https://leetcode.com/problems/search-suggestions-system/) | TrieWalk | [代码](l1268/1268.go) · [测试](l1268/1268_test.go) |
+| [1707](https://leetcode.com/problems/maximum-xor-with-an-element-from-array/) | BitTrie | [代码](l1707/1707.go) |
+| [1803](https://leetcode.com/problems/count-pairs-with-xor-in-a-range/) | BitTrie | [代码](l1803/1803.go) |
+| [1804](https://leetcode.com/problems/implement-trie-ii-prefix-tree/) | TrieWalk | [代码](l1804/1804.go) |
+| [2416](https://leetcode.com/problems/sum-of-prefix-scores-of-strings/) | TrieWalk | [代码](l2416/2416.go) |
+| [2935](https://leetcode.com/problems/maximum-strong-pair-xor-ii/) | BitTrie | [代码](l2935/2935.go) |
+
+## 逐题适配器
+
+### [14](https://leetcode.com/problems/longest-common-prefix/)
+
+需要模板：`TrieWalk`。
+
+<!-- solution: trie/l14/14.go; templates: TrieWalk; imports: none -->
+```go
+func longestCommonPrefix(strs []string) string {
+	if len(strs) == 0 {
+		return ""
+	}
+	root := NewTrieNode[int]()
+	for _, word := range strs {
+		TrieWalk(root, word, true, func(node *TrieNode[int]) { node.Data++ })
+	}
+	node := root
+	answer := []byte{}
+	for len(node.Next) == 1 {
+		var value byte
+		var child *TrieNode[int]
+		for value, child = range node.Next {
+		}
+		if child.Data != len(strs) {
+			break
+		}
+		answer = append(answer, value)
+		node = child
+	}
+	return string(answer)
 }
+```
 
+### [139](https://leetcode.com/problems/word-break/)
+
+需要模板：`TrieWalk`。
+
+<!-- solution: trie/l139/139.go; templates: TrieWalk; imports: none -->
+```go
+func wordBreak(s string, wordDict []string) bool {
+	root := NewTrieNode[bool]()
+	for _, word := range wordDict {
+		if word != "" {
+			TrieWalk(root, word, true, nil).Data = true
+		}
+	}
+	possible := make([]bool, len(s)+1)
+	possible[0] = true
+	for i := 0; i < len(s); i++ {
+		if !possible[i] {
+			continue
+		}
+		node := root
+		for j := i; j < len(s); j++ {
+			node = node.Next[s[j]]
+			if node == nil {
+				break
+			}
+			if node.Data {
+				possible[j+1] = true
+			}
+		}
+	}
+	return possible[len(s)]
+}
+```
+
+### [208](https://leetcode.com/problems/implement-trie-prefix-tree/)
+
+需要模板：`TrieWalk`。
+
+<!-- solution: trie/l208/208.go; templates: TrieWalk; imports: none -->
+```go
+type Trie struct{ root *TrieNode[bool] }
+
+func Constructor() Trie            { return Trie{NewTrieNode[bool]()} }
+func (t *Trie) Insert(word string) { TrieWalk(t.root, word, true, nil).Data = true }
 func (t *Trie) Search(word string) bool {
-    node := t.find(word)
-    return node != nil && node.IsEnd
+	node := TrieWalk(t.root, word, false, nil)
+	return node != nil && node.Data
 }
-
-func (t *Trie) StartsWith(prefix string) bool { return t.find(prefix) != nil }
+func (t *Trie) StartsWith(prefix string) bool { return TrieWalk(t.root, prefix, false, nil) != nil }
 ```
 
-**复杂度**：插入/查询长度为 L 的字符串，时间 `O(L)`。累计插入字符总数为 S，固定26分支时节点空间 `O(S+1)`，但每个节点有26个指针，常数不小。
+### [211](https://leetcode.com/problems/design-add-and-search-words-data-structure/)
 
-按本模板构造后，空前缀始终存在；只有显式插入空串，根才标为结束。208原题操作参数为非空字符串。调用前使用 Constructor 初始化 root。
+需要模板：`TrieWalk`。
 
-<a id="lc648"></a>
-## 4. 最短词根：648. 单词替换
-
-[LeetCode 648](https://leetcode.com/problems/replace-words/) · [练习](l648/648.go)
-
-**题意**：用字典中最短的词根替换句子中的单词。例：字典 `["cat","bat","rat"]`，`"the cattle was rattled"` 变为 `"the cat was rat"`。
-
-**变化点**：插入不变；查询从左到右，一遇到 `IsEnd` 立即返回，保证选到最短词根。若路径中断或没有结束标记，保留原词。
-
+<!-- solution: trie/l211/211.go; templates: TrieWalk; imports: none -->
 ```go
-package template
+type WordDictionary struct{ root *TrieNode[bool] }
 
-import "strings"
-
-type rootNode struct {
-    children [26]*rootNode
-    isEnd bool
-}
-
-func replaceWords(dictionary []string, sentence string) string {
-    root := &rootNode{}
-    for _, word := range dictionary {
-        node := root
-        for i := 0; i < len(word); i++ {
-            c := word[i]-'a'
-            if node.children[c] == nil { node.children[c] = &rootNode{} }
-            node = node.children[c]
-        }
-        node.isEnd = true
-    }
-    words := strings.Split(sentence, " ")
-    for j, word := range words {
-        node := root
-        for i := 0; i < len(word); i++ {
-            node = node.children[word[i]-'a']
-            if node == nil { break }
-            if node.isEnd {
-                words[j] = word[:i+1]
-                break
-            }
-        }
-    }
-    return strings.Join(words, " ")
+func Constructor() WordDictionary             { return WordDictionary{NewTrieNode[bool]()} }
+func (w *WordDictionary) AddWord(word string) { TrieWalk(w.root, word, true, nil).Data = true }
+func (w *WordDictionary) Search(word string) bool {
+	var visit func(*TrieNode[bool], int) bool
+	visit = func(node *TrieNode[bool], i int) bool {
+		if node == nil {
+			return false
+		}
+		if i == len(word) {
+			return node.Data
+		}
+		if word[i] != '.' {
+			return visit(node.Next[word[i]], i+1)
+		}
+		for _, child := range node.Next {
+			if visit(child, i+1) {
+				return true
+			}
+		}
+		return false
+	}
+	return visit(w.root, 0)
 }
 ```
 
-**复杂度**：字典总字符数 S，句子长度 C，时间 `O(S+C)`，额外空间 `O(S+C)`（含拆分与结果）。题设词根非空，句子单词以单个空格分隔。
+### [212](https://leetcode.com/problems/word-search-ii/)
 
-<a id="lc211"></a>
-## 5. 通配符分支：211. 添加与搜索单词
+需要模板：`TrieWalk`。
 
-[LeetCode 211](https://leetcode.com/problems/design-add-and-search-words-data-structure/) · [练习](l211/211.go)
-
-**题意**：添加单词；搜索模式中的 `.` 匹配任意**一个**字母。例如已加入 `bad`，则 `.ad`、`b..` 为true，`ba` 为false。
-
-**变化点**：普通字符只走一条边；点号尝试所有非空孩子。搜索状态为 `(当前节点,模式下标)`，模式消耗完仍须检查结束标记。
-
+<!-- solution: trie/l212/212.go; templates: TrieWalk; imports: none -->
 ```go
-package template
-
-type wordNode struct {
-    children [26]*wordNode
-    isEnd bool
-}
-
-type WordDictionary struct { root *wordNode }
-
-func Constructor() WordDictionary { return WordDictionary{root: &wordNode{}} }
-
-func (d *WordDictionary) AddWord(word string) {
-    node := d.root
-    for i := 0; i < len(word); i++ {
-        c := word[i]-'a'
-        if node.children[c] == nil { node.children[c] = &wordNode{} }
-        node = node.children[c]
-    }
-    node.isEnd = true
-}
-
-func (d *WordDictionary) Search(word string) bool {
-    var dfs func(*wordNode, int) bool
-    dfs = func(node *wordNode, i int) bool {
-        if node == nil { return false }
-        if i == len(word) { return node.isEnd }
-        if word[i] != '.' { return dfs(node.children[word[i]-'a'], i+1) }
-        for _, child := range node.children {
-            if child != nil && dfs(child, i+1) { return true }
-        }
-        return false
-    }
-    return dfs(d.root, 0)
-}
-```
-
-**复杂度**：插入 `O(L)`；含 d 个点号的长度 L 搜索，粗略上界 `O(L·26^d)`，实际只访问已有分支，不能声称仍为 `O(L)`。递归栈 `O(L)`。点号不是正则里的 `.*`，不能跳过字符或匹配任意长度。
-
-<a id="lc677"></a>
-## 6. 前缀聚合：677. 键值映射
-
-[LeetCode 677](https://leetcode.com/problems/map-sum-pairs/) · [练习](l677/677.go)
-
-**题意**：`Insert(key,val)` 插入或覆盖键值；`Sum(prefix)` 返回以此前缀开头的所有键的值之和。
-
-**节点信息变化**：增加 `sum`，表示当前前缀下所有完整键的总值。用 map 保存旧值，每次只传播 `delta=new-old`，而不是把新值重复加一遍。
-
-```text
-Insert("apple",3) → Sum("ap")=3
-Insert("app",2)   → Sum("ap")=5
-Insert("apple",2) → delta=-1，Sum("ap")=4
-```
-
-```go
-package template
-
-type sumNode struct {
-    children [26]*sumNode
-    sum int
-}
-
-type MapSum struct {
-    root *sumNode
-    values map[string]int
-}
-
-func Constructor() MapSum {
-    return MapSum{root: &sumNode{}, values: map[string]int{}}
-}
-
-func (m *MapSum) Insert(key string, val int) {
-    delta := val - m.values[key]
-    m.values[key] = val
-    node := m.root
-    node.sum += delta
-    for i := 0; i < len(key); i++ {
-        c := key[i]-'a'
-        if node.children[c] == nil { node.children[c] = &sumNode{} }
-        node = node.children[c]
-        node.sum += delta
-    }
-}
-
-func (m *MapSum) Sum(prefix string) int {
-    node := m.root
-    for i := 0; i < len(prefix); i++ {
-        node = node.children[prefix[i]-'a']
-        if node == nil { return 0 }
-    }
-    return node.sum
-}
-```
-
-**复杂度**：插入长度 L 的键为 `O(L)`，查询长度 P 的前缀为 `O(P)`；空间为Trie节点和旧值map，总计与所存不同键的字符量同阶。无需 `IsEnd`：此题不查询完整键存在性，旧值由map负责。
-
-<a id="lc1268"></a>
-## 7. 字典序候选：1268. 搜索推荐系统
-
-[LeetCode 1268](https://leetcode.com/problems/search-suggestions-system/) · [练习](l1268/1268.go)
-
-**题意**：输入搜索词的每个前缀后，返回字典序最小的至多3个商品。例：`["mobile","mouse","moneypot","monitor","mousepad"]`，前缀 `m` 的结果为 `["mobile","moneypot","monitor"]`，前缀 `mou` 为 `["mouse","mousepad"]`。
-
-**节点信息变化**：在每个前缀节点缓存前三个词。先复制并排序商品，再按字典序插入；节点仅在缓存不足3个时添加当前词，就自然保留最小三个，不必每次搜索整棵子树。
-
-```go
-package template
-
-import "sort"
-
-type suggestionNode struct {
-    children [26]*suggestionNode
-    top []string
-}
-
-func suggestedProducts(products []string, searchWord string) [][]string {
-    sorted := append([]string(nil), products...)
-    sort.Strings(sorted)
-    root := &suggestionNode{}
-    for _, word := range sorted {
-        node := root
-        for i := 0; i < len(word); i++ {
-            c := word[i]-'a'
-            if node.children[c] == nil { node.children[c] = &suggestionNode{} }
-            node = node.children[c]
-            if len(node.top) < 3 { node.top = append(node.top, word) }
-        }
-    }
-    answer := make([][]string, len(searchWord))
-    node := root
-    for i := 0; i < len(searchWord); i++ {
-        if node != nil { node = node.children[searchWord[i]-'a'] }
-        answer[i] = []string{}
-        if node != nil { answer[i] = append(answer[i], node.top...) }
-    }
-    return answer
-}
-```
-
-**复杂度**：n个商品，总字符数 S，最长商品长度 L，查询长度 Q。排序最坏 `O(n·L·log n)`，构建 `O(S)`，查询及输出 `O(Q)`（每次至多3个字符串引用），空间 `O(S+n+Q)`，不计原有字符串内容。商品在题设中互不相同；如果改为重复商品输入，要先明确是否去重。
-
-另一条路线是查到前缀节点后按 `a..z` 做DFS，收集到3个立即停止；注意 map 遍历无序，且达到3个后必须停止继续搜。这两点不能仅靠结束标记保证。静态数据也可采用排序＋二分，不一定非用Trie。
-
-<a id="lc212"></a>
-## 8. 网格与前缀剪枝：212. 单词搜索 II
-
-[LeetCode 212](https://leetcode.com/problems/word-search-ii/) · [练习](l212/212.go)
-
-**题意**：在字母网格中，通过上下左右相邻格拼出字典中的单词。同一路径不能重复使用格子，同一答案只返回一次。
-
-**核心来源**：若对每个单词分别做79的搜索，会重复探索相同前缀。把所有词放进Trie，一次网格回溯同时匹配整个字典；当Trie中不存在当前前缀，立即停止这条路径。
-
-**状态**：`(row,col,当前前缀节点)`，加上当前路径占用的格子。节点保存完整词 `word`，找到后清空以避免重复输出。
-
-```go
-package template
-
-type boardNode struct {
-    children [26]*boardNode
-    word string
-}
-
 func findWords(board [][]byte, words []string) []string {
-    answer := []string{}
-    if len(board) == 0 || len(board[0]) == 0 { return answer }
-    root := &boardNode{}
-    for _, word := range words {
-        node := root
-        for i := 0; i < len(word); i++ {
-            c := word[i]-'a'
-            if node.children[c] == nil { node.children[c] = &boardNode{} }
-            node = node.children[c]
-        }
-        node.word = word
-    }
-    rows, cols := len(board), len(board[0])
-    dirs := [][2]int{{1,0},{-1,0},{0,1},{0,-1}}
-    var dfs func(int, int, *boardNode)
-    dfs = func(r, c int, parent *boardNode) {
-        if r < 0 || r >= rows || c < 0 || c >= cols { return }
-        ch := board[r][c]
-        if ch == '#' { return }
-        node := parent.children[ch-'a']
-        if node == nil { return } // 没有任何单词能沿此前缀继续
-        if node.word != "" {
-            answer = append(answer, node.word)
-            node.word = "" // 去重，但不能停止：可能还有更长的词
-        }
-        board[r][c] = '#'
-        for _, d := range dirs { dfs(r+d[0], c+d[1], node) }
-        board[r][c] = ch // 恢复，其他起点仍能使用这个格子
-    }
-    for r := 0; r < rows; r++ {
-        for c := 0; c < cols; c++ { dfs(r,c,root) }
-    }
-    return answer
+	answer := []string{}
+	if len(board) == 0 || len(board[0]) == 0 {
+		return answer
+	}
+	root := NewTrieNode[string]()
+	for _, word := range words {
+		if word != "" {
+			TrieWalk(root, word, true, nil).Data = word
+		}
+	}
+	visited := make([][]bool, len(board))
+	for i := range visited {
+		visited[i] = make([]bool, len(board[0]))
+	}
+	var visit func(int, int, *TrieNode[string])
+	visit = func(r, c int, node *TrieNode[string]) {
+		if r < 0 || r >= len(board) || c < 0 || c >= len(board[0]) || visited[r][c] {
+			return
+		}
+		node = node.Next[board[r][c]]
+		if node == nil {
+			return
+		}
+		if node.Data != "" {
+			answer = append(answer, node.Data)
+			node.Data = ""
+		}
+		visited[r][c] = true
+		for _, d := range [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
+			visit(r+d[0], c+d[1], node)
+		}
+		visited[r][c] = false
+	}
+	for r := range board {
+		for c := range board[r] {
+			visit(r, c, root)
+		}
+	}
+	return answer
 }
 ```
 
-例：同一条路径可以先找到 `app` 再找到 `apple`，所以“找到完整词”不等于“整条分支完成”。清空结束信息只用于去重，不代表无条件删除其孩子。
+### [421](https://leetcode.com/problems/maximum-xor-of-two-numbers-in-an-array/)
 
-**复杂度**：字典总字符数 S，网格格子数 B，最长词长 L。保守时间上界 `O(S+B·4^L)`，实际受前缀剪枝、不能重复格子及网格大小限制；不是线性算法。辅助空间 `O(S+min(L,B))`，不含答案。搜索时暂改网格，但每条路径返回时恢复，函数结束后网格不变。
+需要模板：`BitTrie`。
 
-<a id="practice"></a>
-## 9. 分类扩展题单
-
-### 基础路线：先掌握六个变化点
-
-| 原题 | 本地练习 | 节点信息 / 搜索规则 |
-| --- | --- | --- |
-| [208. 实现 Trie](https://leetcode.com/problems/implement-trie-prefix-tree/) | [l208](l208/208.go) | Children＋IsEnd，插入/查词/查前缀 |
-| [648. 单词替换](https://leetcode.com/problems/replace-words/) | [l648](l648/648.go) | 遇到第一个完整词根就返回 |
-| [211. 添加与搜索单词](https://leetcode.com/problems/design-add-and-search-words-data-structure/) | [l211](l211/211.go) | 点号分支搜索，模式耗尽再查结束 |
-| [677. 键值映射](https://leetcode.com/problems/map-sum-pairs/) | [l677](l677/677.go) | 前缀sum，覆盖只传播差值 |
-| [1268. 搜索推荐系统](https://leetcode.com/problems/search-suggestions-system/) | [l1268](l1268/1268.go) | 缓存字典序前3名，或按序DFS并及时停止 |
-| [212. 单词搜索 II](https://leetcode.com/problems/word-search-ii/) | [l212](l212/212.go) | 网格回溯＋Trie前缀剪枝＋答案去重 |
-
-### 前缀统计、词典路径与切分
-
-| 原题 | 本地练习 | 迁移点与边界 |
-| --- | --- | --- |
-| [14. 最长公共前缀](https://leetcode.com/problems/longest-common-prefix/) | [l14](l14/14.go) | 仅一条孩子边且当前不是完整词时继续；空串立即终止。直接逐字符比较更简单 |
-| [720. 词典中最长的单词](https://leetcode.com/problems/longest-word-in-dictionary/) | [l720](l720/720.go) | 只沿IsEnd为true的孩子向下搜索；同长度取字典序最小 |
-| [1804. 实现 Trie II（前缀树）](https://leetcode.com/problems/implement-trie-ii-prefix-tree/) | [l1804](l1804/1804.go) | passCount/endCount处理重复插入、完整词计数、前缀计数和删除；会员题 |
-| [2416. 字符串的前缀分数和](https://leetcode.com/problems/sum-of-prefix-scores-of-strings/) | [l2416](l2416/2416.go) | 每个非根节点记录经过次数，查询时累加各个非空前缀计数，重复词也贡献 |
-| [139. 单词拆分](https://leetcode.com/problems/word-break/) | [l139](l139/139.go) | 从可达下标沿Trie向后走，遇完整词标记下一下标可达；Trie只加速匹配，还需要DP |
-| [472. 连接词](https://leetcode.com/problems/concatenated-words/) | [l472](l472/472.go) | Trie＋切分DP/记忆化；要求至少两个词，不能用自身一次匹配就判断成功 |
-
-### 后缀、路径 token 与混合查询
-
-| 原题 | 本地练习 | 迁移点与边界 |
-| --- | --- | --- |
-| [820. 单词的压缩编码](https://leetcode.com/problems/short-encoding-of-words/) | [l820](l820/820.go) | 反向插入使后缀共享成为前缀共享；仅叶子词贡献长度+1，重复词不重复算 |
-| [1233. 删除子文件夹](https://leetcode.com/problems/remove-sub-folders-from-the-filesystem/) | [l1233](l1233/1233.go) | 以路径段而非字母建边，遇已结束父目录就不再向下；/a不是/ab的父目录 |
-| [745. 前缀和后缀搜索](https://leetcode.com/problems/prefix-and-suffix-search/) | [l745](l745/745.go) | 可插入suffix+分隔符+word，在节点记录最大下标；构造每词O(L²)，分隔符需额外分支 |
-| [1032. 字符流](https://leetcode.com/problems/stream-of-characters/) | [l1032](l1032/1032.go) | 反向Trie匹配最近字符的后缀，只保留最长词长的历史；不能只沿流向维护单个节点 |
-
-### 二进制 Trie：把字符换成高位到低位的0/1
-
-| 原题 | 本地练习 | 迁移点与边界 |
-| --- | --- | --- |
-| [421. 数组中两个数的最大异或值](https://leetcode.com/problems/maximum-xor-of-two-numbers-in-an-array/) | [l421](l421/421.go) | children[2]，从高位到低位优先选相反位，高位收益支配低位 |
-| [1707. 与数组中元素的最大异或值](https://leetcode.com/problems/maximum-xor-with-an-element-from-array/) | [l1707](l1707/1707.go) | 按查询上限离线排序，只插入不超过上限的数；Trie为空返回-1，恢复原查询顺序 |
-| [1803. 统计异或值在范围内的数对有多少](https://leetcode.com/problems/count-pairs-with-xor-in-a-range/) | [l1803](l1803/1803.go) | 节点记数量，count(xor<high+1)-count(xor<low)，查询后插入避免自身配对；位宽覆盖high+1 |
-| [2935. 找出强数对的最大异或值 II](https://leetcode.com/problems/maximum-strong-pair-xor-ii/) | [l2935](l2935/2935.go) | 排序滑窗满足max<=2*min，带计数Trie支持移出；计数为0的边不能查询 |
-
-共20题。新增 `l题号/题号.go` 只放空函数声明，**不提供练习实现或新测试**；有返回值的空函数会产生missing return，完成后再运行该目录测试。上述六题参考代码各自独立，Constructor重名是因为来自不同题，不能拼在同一个包里编译。
-
-<a id="review"></a>
-## 10. 复杂度、易错点与复盘
-
-### 固定骨架与少量变化点
-
-```text
-插入：从根开始 → 按字符找孩子 → 不存在则创建 → 更新节点信息
-查询：从根开始 → 按字符找孩子 → 不存在则失败 → 按题意处理终点
+<!-- solution: trie/l421/421.go; templates: BitTrie; imports: none -->
+```go
+func findMaximumXOR(nums []int) int {
+	trie := NewBitTrie()
+	for _, value := range nums {
+		trie.Add(value, 1)
+	}
+	answer := 0
+	for _, value := range nums {
+		answer = max(answer, trie.MaxXor(value))
+	}
+	return answer
+}
 ```
 
-| 目标 | 节点增加什么 | 查询如何变化 |
-| --- | --- | --- |
-| 完整词存在 | IsEnd | 走完还要检查结束标记 |
-| 前缀存在 | 不需要额外信息 | 路径存在即可 |
-| 重复词数量 | endCount | 返回结束次数 |
-| 前缀下数量/权值 | passCount/sum | 走到前缀节点直接取统计值 |
-| 返回候选词 | word/topK/单词下标 | 收集子树或读取缓存 |
-| 单字符通配符 | 通常不用额外字段 | 遇点号向多个孩子搜索 |
-| 后缀匹配 | 通常不用额外字段 | 反向插入，反向查询 |
-| 异或最优值 | 两个孩子，可带计数 | 按位贪心，不是字典序字符搜索 |
+### [472](https://leetcode.com/problems/concatenated-words/)
 
-### 常见错误
+需要模板：`TrieWalk`。
 
-1. 把“前缀存在”当成“完整词存在”。
-2. 插入重复键时无条件叠加新值，忘记覆盖差值。
-3. 删除一个词就删除整条路径，破坏共享前缀；先检查通过计数和子树需求。
-4. 遍历map时误以为自然有字典序。
-5. 找到一个完整词就停止212的搜索，漏掉以它为前缀的长词。
-6. 212中使用全局永久visited，导致其他路径无法再次使用格子。
-7. 将任意字符直接映射到26分支，造成越界。
-8. 把单路径查询O(L)推广到通配符、DFS或全部候选输出；这些操作需另算分支和输出规模。
-
-### 推荐顺序
-
-```text
-主线：208 → 648 → 211 → 677 → 1268 → 212
-统计：1804 → 2416
-组合：139 → 472 → 1032 → 745
-异或：421 → 1707 → 1803 → 2935
+<!-- solution: trie/l472/472.go; templates: TrieWalk; imports: none -->
+```go
+func findAllConcatenatedWordsInADict(words []string) []string {
+	root := NewTrieNode[bool]()
+	for _, word := range words {
+		if word != "" {
+			TrieWalk(root, word, true, nil).Data = true
+		}
+	}
+	answer := []string{}
+	for _, word := range words {
+		pieces := make([]int, len(word)+1)
+		for i := 1; i < len(pieces); i++ {
+			pieces[i] = -1
+		}
+		for i := 0; i < len(word); i++ {
+			if pieces[i] < 0 {
+				continue
+			}
+			node := root
+			for j := i; j < len(word); j++ {
+				node = node.Next[word[j]]
+				if node == nil {
+					break
+				}
+				if node.Data {
+					pieces[j+1] = max(pieces[j+1], pieces[i]+1)
+				}
+			}
+		}
+		if pieces[len(word)] >= 2 {
+			answer = append(answer, word)
+		}
+	}
+	return answer
+}
 ```
 
-每题先回答：**边是什么？节点代表哪个前缀？保存什么信息？何时成功或剪枝？复杂度是否含分支和输出？**
+### [648](https://leetcode.com/problems/replace-words/)
 
-<a id="legacy"></a>
-## 原有资料与旧稿
+需要模板：`TrieWalk`。
 
-保留现有文件，不覆盖历史实现；新版练习统一放在l题号目录。
+标准库：`strings`。
 
-- 对应练习：[14](l14/14.go)、[1233](l1233/1233.go)、[1268](l1268/1268.go)、[820](l820/820.go)。
-- [208原题](https://leetcode.com/problems/implement-trie-prefix-tree/)。
-- [原有 Google OA 讨论资料](https://leetcode.com/discuss/interview-question/350363/Google-or-OA-2018-or-Max-Distance)。
+<!-- solution: trie/l648/648.go; templates: TrieWalk; imports: strings -->
+```go
+func replaceWords(dictionary []string, sentence string) string {
+	root := NewTrieNode[bool]()
+	for _, word := range dictionary {
+		TrieWalk(root, word, true, nil).Data = true
+	}
+	words := strings.Split(sentence, " ")
+	for i, word := range words {
+		node := root
+		for j := 0; j < len(word); j++ {
+			node = node.Next[word[j]]
+			if node == nil {
+				break
+			}
+			if node.Data {
+				words[i] = word[:j+1]
+				break
+			}
+		}
+	}
+	return strings.Join(words, " ")
+}
+```
+
+### [677](https://leetcode.com/problems/map-sum-pairs/)
+
+需要模板：`TrieWalk`。
+
+<!-- solution: trie/l677/677.go; templates: TrieWalk; imports: none -->
+```go
+type MapSum struct {
+	root   *TrieNode[int]
+	values map[string]int
+}
+
+func Constructor() MapSum { return MapSum{NewTrieNode[int](), make(map[string]int)} }
+func (m *MapSum) Insert(key string, val int) {
+	delta := val - m.values[key]
+	m.values[key] = val
+	TrieWalk(m.root, key, true, func(node *TrieNode[int]) { node.Data += delta })
+}
+func (m *MapSum) Sum(prefix string) int {
+	node := TrieWalk(m.root, prefix, false, nil)
+	if node == nil {
+		return 0
+	}
+	return node.Data
+}
+```
+
+### [720](https://leetcode.com/problems/longest-word-in-dictionary/)
+
+需要模板：`TrieWalk`。
+
+<!-- solution: trie/l720/720.go; templates: TrieWalk; imports: none -->
+```go
+func longestWord(words []string) string {
+	root := NewTrieNode[bool]()
+	for _, word := range words {
+		TrieWalk(root, word, true, nil).Data = true
+	}
+	answer := ""
+	var visit func(*TrieNode[bool], []byte)
+	visit = func(node *TrieNode[bool], prefix []byte) {
+		for value, child := range node.Next {
+			if !child.Data {
+				continue
+			}
+			prefix = append(prefix, value)
+			word := string(prefix)
+			if len(word) > len(answer) || (len(word) == len(answer) && word < answer) {
+				answer = word
+			}
+			visit(child, prefix)
+			prefix = prefix[:len(prefix)-1]
+		}
+	}
+	visit(root, nil)
+	return answer
+}
+```
+
+### [745](https://leetcode.com/problems/prefix-and-suffix-search/)
+
+需要模板：`TrieWalk`。
+
+<!-- solution: trie/l745/745.go; templates: TrieWalk; imports: none -->
+```go
+type WordFilter struct{ root *TrieNode[int] }
+
+func Constructor(words []string) WordFilter {
+	result := WordFilter{NewTrieNode[int]()}
+	for index, word := range words {
+		for start := 0; start <= len(word); start++ {
+			TrieWalk(result.root, word[start:]+"{"+word, true, func(node *TrieNode[int]) { node.Data = index })
+		}
+	}
+	return result
+}
+func (w *WordFilter) F(pref, suff string) int {
+	node := TrieWalk(w.root, suff+"{"+pref, false, nil)
+	if node == nil {
+		return -1
+	}
+	return node.Data
+}
+```
+
+### [820](https://leetcode.com/problems/short-encoding-of-words/)
+
+需要模板：`TrieWalk`。
+
+<!-- solution: trie/l820/820.go; templates: TrieWalk; imports: none -->
+```go
+func minimumLengthEncoding(words []string) int {
+	root := NewTrieNode[bool]()
+	for _, word := range words {
+		data := []byte(word)
+		for l, r := 0, len(data)-1; l < r; l, r = l+1, r-1 {
+			data[l], data[r] = data[r], data[l]
+		}
+		TrieWalk(root, string(data), true, nil).Data = true
+	}
+	var visit func(*TrieNode[bool], int) int
+	visit = func(node *TrieNode[bool], depth int) int {
+		if len(node.Next) == 0 {
+			if node.Data {
+				return depth + 1
+			}
+			return 0
+		}
+		answer := 0
+		for _, child := range node.Next {
+			answer += visit(child, depth+1)
+		}
+		return answer
+	}
+	return visit(root, 0)
+}
+```
+
+### [1032](https://leetcode.com/problems/stream-of-characters/)
+
+需要模板：`TrieWalk`。
+
+<!-- solution: trie/l1032/1032.go; templates: TrieWalk; imports: none -->
+```go
+type StreamChecker struct {
+	root    *TrieNode[bool]
+	history []byte
+	maximum int
+}
+
+func Constructor(words []string) StreamChecker {
+	result := StreamChecker{root: NewTrieNode[bool]()}
+	for _, word := range words {
+		result.maximum = max(result.maximum, len(word))
+		data := []byte(word)
+		for l, r := 0, len(data)-1; l < r; l, r = l+1, r-1 {
+			data[l], data[r] = data[r], data[l]
+		}
+		TrieWalk(result.root, string(data), true, nil).Data = true
+	}
+	return result
+}
+func (s *StreamChecker) Query(letter byte) bool {
+	s.history = append(s.history, letter)
+	if len(s.history) > s.maximum {
+		s.history = s.history[len(s.history)-s.maximum:]
+	}
+	node := s.root
+	for i := len(s.history) - 1; i >= 0; i-- {
+		node = node.Next[s.history[i]]
+		if node == nil {
+			return false
+		}
+		if node.Data {
+			return true
+		}
+	}
+	return node.Data
+}
+```
+
+### [1233](https://leetcode.com/problems/remove-sub-folders-from-the-filesystem/)
+
+需要模板：`TrieWalk`。
+
+标准库：`sort`。
+
+<!-- solution: trie/l1233/1233.go; templates: TrieWalk; imports: sort -->
+```go
+func removeSubfolders(folder []string) []string {
+	ordered := append([]string(nil), folder...)
+	sort.Strings(ordered)
+	root := NewTrieNode[bool]()
+	answer := []string{}
+	for _, path := range ordered {
+		node := root
+		subfolder := false
+		for i := range path {
+			if node.Data && path[i] == '/' {
+				subfolder = true
+				break
+			}
+			node = node.Next[path[i]]
+			if node == nil {
+				break
+			}
+		}
+		if !subfolder {
+			answer = append(answer, path)
+			TrieWalk(root, path, true, nil).Data = true
+		}
+	}
+	return answer
+}
+```
+
+### [1268](https://leetcode.com/problems/search-suggestions-system/)
+
+需要模板：`TrieWalk`。
+
+标准库：`sort`。
+
+<!-- solution: trie/l1268/1268.go; templates: TrieWalk; imports: sort -->
+```go
+func suggestedProducts(products []string, searchWord string) [][]string {
+	ordered := append([]string(nil), products...)
+	sort.Strings(ordered)
+	root := NewTrieNode[[]string]()
+	for _, product := range ordered {
+		TrieWalk(root, product, true, func(node *TrieNode[[]string]) {
+			if len(node.Data) < 3 {
+				node.Data = append(node.Data, product)
+			}
+		})
+	}
+	answer := make([][]string, len(searchWord))
+	node := root
+	for i := 0; i < len(searchWord); i++ {
+		if node != nil {
+			node = node.Next[searchWord[i]]
+		}
+		answer[i] = []string{}
+		if node != nil {
+			answer[i] = append(answer[i], node.Data...)
+		}
+	}
+	return answer
+}
+```
+
+### [1707](https://leetcode.com/problems/maximum-xor-with-an-element-from-array/)
+
+需要模板：`BitTrie`。
+
+标准库：`sort`。
+
+<!-- solution: trie/l1707/1707.go; templates: BitTrie; imports: sort -->
+```go
+func maximizeXor(nums []int, queries [][]int) []int {
+	ordered := append([]int(nil), nums...)
+	sort.Ints(ordered)
+	type query struct{ x, limit, index int }
+	pending := make([]query, len(queries))
+	for i, q := range queries {
+		pending[i] = query{q[0], q[1], i}
+	}
+	sort.Slice(pending, func(i, j int) bool { return pending[i].limit < pending[j].limit })
+	trie := NewBitTrie()
+	answer := make([]int, len(queries))
+	next := 0
+	for _, q := range pending {
+		for next < len(ordered) && ordered[next] <= q.limit {
+			trie.Add(ordered[next], 1)
+			next++
+		}
+		answer[q.index] = trie.MaxXor(q.x)
+	}
+	return answer
+}
+```
+
+### [1803](https://leetcode.com/problems/count-pairs-with-xor-in-a-range/)
+
+需要模板：`BitTrie`。
+
+<!-- solution: trie/l1803/1803.go; templates: BitTrie; imports: none -->
+```go
+func countPairs(nums []int, low, high int) int {
+	trie := NewBitTrie()
+	answer := 0
+	for _, value := range nums {
+		answer += trie.Less(value, high+1) - trie.Less(value, low)
+		trie.Add(value, 1)
+	}
+	return answer
+}
+```
+
+### [1804](https://leetcode.com/problems/implement-trie-ii-prefix-tree/)
+
+需要模板：`TrieWalk`。
+
+<!-- solution: trie/l1804/1804.go; templates: TrieWalk; imports: none -->
+```go
+type wordCounts struct{ Pass, End int }
+type Trie struct{ root *TrieNode[wordCounts] }
+
+func Constructor() Trie { return Trie{NewTrieNode[wordCounts]()} }
+func (t *Trie) Insert(word string) {
+	node := TrieWalk(t.root, word, true, func(node *TrieNode[wordCounts]) { node.Data.Pass++ })
+	node.Data.End++
+}
+func (t *Trie) CountWordsEqualTo(word string) int {
+	node := TrieWalk(t.root, word, false, nil)
+	if node == nil {
+		return 0
+	}
+	return node.Data.End
+}
+func (t *Trie) CountWordsStartingWith(prefix string) int {
+	node := TrieWalk(t.root, prefix, false, nil)
+	if node == nil {
+		return 0
+	}
+	return node.Data.Pass
+}
+func (t *Trie) Erase(word string) {
+	if t.CountWordsEqualTo(word) == 0 {
+		return
+	}
+	node := TrieWalk(t.root, word, false, func(node *TrieNode[wordCounts]) { node.Data.Pass-- })
+	node.Data.End--
+}
+```
+
+### [2416](https://leetcode.com/problems/sum-of-prefix-scores-of-strings/)
+
+需要模板：`TrieWalk`。
+
+<!-- solution: trie/l2416/2416.go; templates: TrieWalk; imports: none -->
+```go
+func sumPrefixScores(words []string) []int {
+	root := NewTrieNode[int]()
+	for _, word := range words {
+		TrieWalk(root, word, true, func(node *TrieNode[int]) { node.Data++ })
+	}
+	answer := make([]int, len(words))
+	for i, word := range words {
+		node := root
+		for j := range word {
+			node = node.Next[word[j]]
+			answer[i] += node.Data
+		}
+	}
+	return answer
+}
+```
+
+### [2935](https://leetcode.com/problems/maximum-strong-pair-xor-ii/)
+
+需要模板：`BitTrie`。
+
+标准库：`sort`。
+
+<!-- solution: trie/l2935/2935.go; templates: BitTrie; imports: sort -->
+```go
+func maximumStrongPairXor(nums []int) int {
+	ordered := append([]int(nil), nums...)
+	sort.Ints(ordered)
+	trie := NewBitTrie()
+	left, answer := 0, 0
+	for _, value := range ordered {
+		trie.Add(value, 1)
+		for ordered[left]*2 < value {
+			trie.Add(ordered[left], -1)
+			left++
+		}
+		answer = max(answer, trie.MaxXor(value))
+	}
+	return answer
+}
+```
+
+## 验证与原有推导
+
+```sh
+go test ./trie/...
+```
+
+题解文件与文档使用相同声明和适配器；修改模板后需要同时验证每题包以及由文档重新组装的代码。原有推导、详细例子和扩展题单保存在 [整理前笔记](legacy/README.before-inline-templates.md)。
