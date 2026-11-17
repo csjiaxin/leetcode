@@ -1,0 +1,382 @@
+[
+  {
+    "from": "dp/distinct_ways/1220",
+    "to": "dp/linear/finite_state/vowels/1220"
+  },
+  {
+    "from": "dp/distinct_ways/1223",
+    "to": "dp/linear/finite_state/dice/1223"
+  },
+  {
+    "from": "dp/distinct_ways/1226",
+    "to": "dp/linear/finite_state/position/1226"
+  },
+  {
+    "from": "dp/distinct_ways/174.go",
+    "to": "dp/grid/l174/174.go"
+  },
+  {
+    "from": "dp/distinct_ways/377",
+    "to": "dp/knapsack/l377/377"
+  },
+  {
+    "from": "dp/distinct_ways/377_dp",
+    "to": "dp/knapsack/l377/377_dp"
+  },
+  {
+    "from": "dp/distinct_ways/494",
+    "to": "dp/knapsack/l494/legacy/494"
+  },
+  {
+    "from": "dp/distinct_ways/576",
+    "to": "dp/grid/l576/576"
+  },
+  {
+    "from": "dp/distinct_ways/62",
+    "to": "dp/grid/l62/legacy/62"
+  },
+  {
+    "from": "dp/distinct_ways/63",
+    "to": "dp/grid/l63/legacy/63"
+  },
+  {
+    "from": "dp/distinct_ways/673",
+    "to": "dp/linear/l673/673"
+  },
+  {
+    "from": "dp/distinct_ways/688",
+    "to": "dp/grid/l688/688"
+  },
+  {
+    "from": "dp/distinct_ways/70",
+    "to": "dp/linear/l70/legacy/70"
+  },
+  {
+    "from": "dp/game/readme.md",
+    "to": "dp/game/legacy/game.readme.md"
+  },
+  {
+    "from": "dp/grid/391.go",
+    "to": "dp/grid/legacy_geometry/l391/391.go"
+  },
+  {
+    "from": "dp/grid/85",
+    "to": "dp/grid/l85/85"
+  },
+  {
+    "from": "dp/grid/l1463_recuision/__debug_bin4246040808",
+    "to": "dp/grid/l1463/variants/recursion/__debug_bin4246040808"
+  },
+  {
+    "from": "dp/grid/l1463_recuision/1463_test.go",
+    "to": "dp/grid/l1463/variants/recursion/1463_test.go"
+  },
+  {
+    "from": "dp/grid/l1463_recuision/1463.go",
+    "to": "dp/grid/l1463/variants/recursion/1463.go"
+  },
+  {
+    "from": "dp/grid/l741_dp/741_test.go",
+    "to": "dp/grid/l741/741_test.go"
+  },
+  {
+    "from": "dp/grid/l741_dp/741.go",
+    "to": "dp/grid/l741/741.go"
+  },
+  {
+    "from": "dp/grid/l741_recursion/741_test.go",
+    "to": "dp/grid/l741/variants/recursion/741_test.go"
+  },
+  {
+    "from": "dp/grid/l741_recursion/741.go",
+    "to": "dp/grid/l741/variants/recursion/741.go"
+  },
+  {
+    "from": "dp/grid/readme.md",
+    "to": "dp/grid/legacy/grid.readme.md"
+  },
+  {
+    "from": "dp/house_robber/l198/198_test.go",
+    "to": "dp/linear/l198/198_test.go"
+  },
+  {
+    "from": "dp/house_robber/l198/198.go",
+    "to": "dp/linear/l198/198.go"
+  },
+  {
+    "from": "dp/house_robber/l213/213_test.go",
+    "to": "dp/linear/l213/213_test.go"
+  },
+  {
+    "from": "dp/house_robber/l213/213.go",
+    "to": "dp/linear/l213/213.go"
+  },
+  {
+    "from": "dp/house_robber/l337/337_test.go",
+    "to": "tree/postorder/l337/variants/dp/337_test.go"
+  },
+  {
+    "from": "dp/house_robber/l337/337.go",
+    "to": "tree/postorder/l337/variants/dp/337.go"
+  },
+  {
+    "from": "dp/Interval/l1000/1000_test.go",
+    "to": "dp/interval/l1000/1000_test.go"
+  },
+  {
+    "from": "dp/Interval/l1000/1000.go",
+    "to": "dp/interval/l1000/1000.go"
+  },
+  {
+    "from": "dp/Interval/l1547/1547_test.go",
+    "to": "dp/interval/l1547/1547_test.go"
+  },
+  {
+    "from": "dp/Interval/l1547/1547.go",
+    "to": "dp/interval/l1547/1547.go"
+  },
+  {
+    "from": "dp/Interval/l1690/1690_test.go",
+    "to": "dp/game/l1690/variants/interval/1690_test.go"
+  },
+  {
+    "from": "dp/Interval/l1690/1690.go",
+    "to": "dp/game/l1690/variants/interval/1690.go"
+  },
+  {
+    "from": "dp/Interval/l312/312_test.go",
+    "to": "dp/interval/l312/312_test.go"
+  },
+  {
+    "from": "dp/Interval/l312/312.go",
+    "to": "dp/interval/l312/312.go"
+  },
+  {
+    "from": "dp/Interval/l375/375_test.go",
+    "to": "dp/interval/l375/375_test.go"
+  },
+  {
+    "from": "dp/Interval/l375/375.go",
+    "to": "dp/interval/l375/375.go"
+  },
+  {
+    "from": "dp/Interval/l664/664_test.go",
+    "to": "dp/interval/l664/664_test.go"
+  },
+  {
+    "from": "dp/Interval/l664/664.go",
+    "to": "dp/interval/l664/664.go"
+  },
+  {
+    "from": "dp/Interval/readme.md",
+    "to": "dp/interval/legacy/Interval.readme.md"
+  },
+  {
+    "from": "dp/jump_game/readme",
+    "to": "dp/jump_game/legacy/readme"
+  },
+  {
+    "from": "dp/knapsack/1049",
+    "to": "dp/knapsack/l1049/legacy/1049"
+  },
+  {
+    "from": "dp/knapsack/1240",
+    "to": "dp/linear/copy_paste/1240"
+  },
+  {
+    "from": "dp/knapsack/343.go",
+    "to": "dp/linear/l343/343.go"
+  },
+  {
+    "from": "dp/knapsack/474.go",
+    "to": "dp/knapsack/l474/474.go"
+  },
+  {
+    "from": "dp/knapsack/650",
+    "to": "dp/linear/copy_paste/650"
+  },
+  {
+    "from": "dp/knapsack/871",
+    "to": "heap_priority_queue/l871/legacy/from_knapsack/871"
+  },
+  {
+    "from": "dp/knapsack/931",
+    "to": "dp/grid/l931/legacy/931"
+  },
+  {
+    "from": "dp/knapsack/983",
+    "to": "dp/linear/l983/983"
+  },
+  {
+    "from": "dp/knapsack/coin/518.go",
+    "to": "dp/knapsack/l518/legacy/recursive/518.go"
+  },
+  {
+    "from": "dp/knapsack/coin/l322/322_test.go",
+    "to": "dp/knapsack/l322/322_test.go"
+  },
+  {
+    "from": "dp/knapsack/coin/l322/322.go",
+    "to": "dp/knapsack/l322/322.go"
+  },
+  {
+    "from": "dp/knapsack/coin/l518/518_test.go",
+    "to": "dp/knapsack/l518/518_test.go"
+  },
+  {
+    "from": "dp/knapsack/coin/l518/518.go",
+    "to": "dp/knapsack/l518/518.go"
+  },
+  {
+    "from": "dp/knapsack/coin/readme.md",
+    "to": "dp/knapsack/legacy/coin.readme.md"
+  },
+  {
+    "from": "dp/knapsack/readme.md",
+    "to": "dp/knapsack/legacy/knapsack.readme.md"
+  },
+  {
+    "from": "dp/LongestIncreaseSequence/300.go",
+    "to": "dp/linear/l300/300.go"
+  },
+  {
+    "from": "dp/merge_interval/1000",
+    "to": "dp/interval/l1000/legacy/1000"
+  },
+  {
+    "from": "dp/merge_interval/1039.go",
+    "to": "dp/interval/l1039/1039.go"
+  },
+  {
+    "from": "dp/merge_interval/1130",
+    "to": "dp/interval/l1130/1130"
+  },
+  {
+    "from": "dp/merge_interval/312",
+    "to": "dp/interval/l312/legacy/recursive/312"
+  },
+  {
+    "from": "dp/merge_interval/312_dp",
+    "to": "dp/interval/l312/legacy/iterative/312_dp"
+  },
+  {
+    "from": "dp/merge_interval/96",
+    "to": "dp/interval/l96/96"
+  },
+  {
+    "from": "dp/merge_interval/readme.md",
+    "to": "dp/interval/legacy/merge_interval.readme.md"
+  },
+  {
+    "from": "dp/optimize/l1014/1014_test.go",
+    "to": "dp/linear/l1014/1014_test.go"
+  },
+  {
+    "from": "dp/optimize/l1014/1014.go",
+    "to": "dp/linear/l1014/1014.go"
+  },
+  {
+    "from": "dp/optimize/l1031/1031_test.go",
+    "to": "dp/linear/l1031/1031_test.go"
+  },
+  {
+    "from": "dp/optimize/l1031/1031.go",
+    "to": "dp/linear/l1031/1031.go"
+  },
+  {
+    "from": "dp/optimize/readme.md",
+    "to": "dp/linear/legacy/optimize.readme.md"
+  },
+  {
+    "from": "dp/README.md",
+    "to": "dp/legacy/README.original.md"
+  },
+  {
+    "from": "dp/stock/readme",
+    "to": "dp/stock/legacy/readme"
+  },
+  {
+    "from": "dp/stone/1140.go",
+    "to": "dp/game/l1140/legacy/from_stone/1140.go"
+  },
+  {
+    "from": "dp/stone/877",
+    "to": "dp/game/l877/877"
+  },
+  {
+    "from": "dp/stone/l1690/1690_test.go",
+    "to": "dp/game/l1690/legacy/from_stone/1690_test.go"
+  },
+  {
+    "from": "dp/stone/l1690/1690.go",
+    "to": "dp/game/l1690/legacy/from_stone/1690.go"
+  },
+  {
+    "from": "dp/stone/l486/486_test.go",
+    "to": "dp/game/l486/variants/score_pair/486_test.go"
+  },
+  {
+    "from": "dp/stone/l486/486.go",
+    "to": "dp/game/l486/variants/score_pair/486.go"
+  },
+  {
+    "from": "dp/stone/readme.md",
+    "to": "dp/game/legacy/stone.readme.md"
+  },
+  {
+    "from": "dp/triangle/l120/120_test.go",
+    "to": "dp/grid/l120/120_test.go"
+  },
+  {
+    "from": "dp/triangle/l120/120.go",
+    "to": "dp/grid/l120/120.go"
+  },
+  {
+    "from": "dp/triangle/l1289/1289_test.go",
+    "to": "dp/grid/l1289/1289_test.go"
+  },
+  {
+    "from": "dp/triangle/l1289/1289.go",
+    "to": "dp/grid/l1289/1289.go"
+  },
+  {
+    "from": "dp/triangle/l62/62_test.go",
+    "to": "dp/grid/l62/62_test.go"
+  },
+  {
+    "from": "dp/triangle/l62/62.go",
+    "to": "dp/grid/l62/62.go"
+  },
+  {
+    "from": "dp/triangle/l63/63_test.go",
+    "to": "dp/grid/l63/63_test.go"
+  },
+  {
+    "from": "dp/triangle/l63/63.go",
+    "to": "dp/grid/l63/63.go"
+  },
+  {
+    "from": "dp/triangle/l64/64_test.go",
+    "to": "dp/grid/l64/64_test.go"
+  },
+  {
+    "from": "dp/triangle/l64/64.go",
+    "to": "dp/grid/l64/64.go"
+  },
+  {
+    "from": "dp/triangle/l70/70_test.go",
+    "to": "dp/linear/l70/70_test.go"
+  },
+  {
+    "from": "dp/triangle/l70/70.go",
+    "to": "dp/linear/l70/70.go"
+  },
+  {
+    "from": "dp/triangle/l931/931_test.go",
+    "to": "dp/grid/l931/931_test.go"
+  },
+  {
+    "from": "dp/triangle/l931/931.go",
+    "to": "dp/grid/l931/931.go"
+  }
+]

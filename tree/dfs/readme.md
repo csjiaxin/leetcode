@@ -303,7 +303,7 @@ func pseudoPalindromicPaths(root *TreeNode) int {
 运行这组测试（仓库未配置 go.mod）：
 
 ```sh
-GO111MODULE=off go test ./tree/dfs/...
+go test ./tree/dfs/...
 ```
 
 | 顺序 | LeetCode 题目 | 本地练习 | 重点 |

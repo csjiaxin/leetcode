@@ -1,5 +1,19 @@
 # 二分查找
 
+## 统一的可执行边界模板
+
+公共实现见 [template.go](template.go) 的 `FirstTrue(n, predicate)`，测试覆盖空范围以及每一种分界位置。它与本文的闭区间循环一致：内部搜索 `[0,n-1]`，返回第一个 true 的下标，无解返回 n。
+
+```go
+position := binarysearch.FirstTrue(len(nums), func(i int) bool {
+    return nums[i] >= target
+})
+```
+
+数组下标与答案二分都先证明谓词 `false...true`。旋转数组存在重复值、峰值沿坡寻找等情况仍需各自的排除依据；本文保留相应子模板。原来的根目录数字草稿与 1901 示例已归入对应 `l题号/legacy` 或 `variants/demo`，不会覆盖原练习。
+
+---
+
 ## 目录
 
 - [1. 核心思想](#core)

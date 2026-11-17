@@ -557,4 +557,38 @@ RainWater：
 - https://leetcode.com/problems/trapping-rain-water/discuss/17357/Sharing-my-simple-c%2B%2B-code%3A-O(n)-time-O(1)-space
 - https://leetcode.com/problems/trapping-rain-water/discuss/153992/Java-O(n)-time-and-O(1)-space-(with-explanations).
 
-原有实现：[11.go](rainwater/11.go)、[42.go](rainwater/42.go)。本文模板与原实现可能采用不同的等高处理或循环边界，不影响各自的不变量；本次只更新学习笔记，不修改原实现。
+原有实现：[11.go](l11/11.go)、[42.go](l42/variants/from_rainwater/42.go)。本文模板与原实现可能采用不同的等高处理或循环边界，不影响各自的不变量；原实现与测试保留在合并后的题目目录。
+
+## 目录归并：按移动规则选择模板
+
+以下是当前目录入口；上面的历史讲义继续保留。实现和测试成对迁移，不把未完成练习替换成另一份答案。
+
+| 不变量 | 当前题目入口 | 指针如何移动 |
+| --- | --- | --- |
+| 有序区间中排除不可能的数对 | [167](l167)、[15](l15)、[16](l16)、[18](l18)、[611](l611) | 和偏小移左端、偏大移右端；外层枚举另计复杂度 |
+| 两端已经匹配或交换完成 | [125](l125)、[344](l344)、[345](l345)、[680](l680)、[977](l977) | 从两侧向中间推进，允许题目规定的跳过 |
+| `nums[:write]` 是正确的有效前缀 | [26](l26)、[27](l27)、[80](l80)、[283](l283)、[443](l443) | read 扫描，满足保留条件才推进 write |
+| 两个序列各自已扫描前缀不再需要 | [88](l88)、[392](l392)、[844](l844)、[986](l986) | 由排序、匹配或区间结束点决定移动方向 |
+| 速度差或固定间距不变 | [141](l141)、[142](l142)、[19](l19)、[234](l234)、[876](l876)、[202](l202)、[287](l287) | 不强行套入相向指针循环 |
+| 已处理端点的容器/水位可确定 | [11](l11)、[42](l42) | 11 排除短板；42 结算水位，证明不同 |
+| 未使用数始终位于 `[low, high]` | [942](l942) | I 取最小值、D 取最大值，构造任意合法排列 |
+| 连续窗口状态可增量更新 | [滑动窗口汇总](../sliding_window/README.md) | 3、76、209、424、438、567、713、992、1004 已实际迁入该目录 |
+
+读写模板的移动规则可以复用，但保留条件必须由题目决定：
+
+```go
+write := 0
+for read, value := range nums {
+    // 此时 write <= read；nums[:write] 是已处理部分的正确结果。
+    _ = read
+    if keep(value) {
+        nums[write] = value
+        write++
+    }
+}
+// 有效结果为 nums[:write]；keep 是题目提供的保留条件。
+```
+
+`rainwater/l11` 已移至 [l11](l11)；原可运行的 42 演示完整保存在 [l42/variants/from_rainwater](l42/variants/from_rainwater)，主目录 [l42](l42) 的独立练习和原测试仍保留。接雨水的单调栈版本仍在 [monotonic_stack/l42](../monotonic_stack/l42)，因为它按凹槽层而非两侧水位结算，不合并成一个强制共用的循环。
+
+历史重复练习放在目标题目的 `variants/from_two_pointers`，仍是独立 Go 包；未完成的 panic、缺失返回和原测试不隐藏、不重定向。路径映射和已知未完成包见 [reorganization.json](reorganization.json)。

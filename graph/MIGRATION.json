@@ -1,0 +1,434 @@
+[
+  {
+    "from": "bfs/README.md",
+    "to": "graph/bfs/README.md"
+  },
+  {
+    "from": "bfs/grid/l1020/1020.go",
+    "to": "graph/dfs/grid/l1020/1020.go"
+  },
+  {
+    "from": "bfs/grid/l1020/1020_test.go",
+    "to": "graph/dfs/grid/l1020/1020_test.go"
+  },
+  {
+    "from": "bfs/grid/l1254/1254.go",
+    "to": "graph/dfs/grid/l1254/1254.go"
+  },
+  {
+    "from": "bfs/grid/l1254/1254_test.go",
+    "to": "graph/dfs/grid/l1254/1254_test.go"
+  },
+  {
+    "from": "bfs/grid/l130/130.go",
+    "to": "graph/dfs/grid/l130/130.go"
+  },
+  {
+    "from": "bfs/grid/l130/130_test.go",
+    "to": "graph/dfs/grid/l130/130_test.go"
+  },
+  {
+    "from": "bfs/grid/l1905/1905.go",
+    "to": "graph/dfs/grid/l1905/1905.go"
+  },
+  {
+    "from": "bfs/grid/l1905/1905_test.go",
+    "to": "graph/dfs/grid/l1905/1905_test.go"
+  },
+  {
+    "from": "bfs/grid/l200/200.go",
+    "to": "graph/dfs/grid/l200/200.go"
+  },
+  {
+    "from": "bfs/grid/l200/200_test.go",
+    "to": "graph/dfs/grid/l200/200_test.go"
+  },
+  {
+    "from": "bfs/grid/l695/695.go",
+    "to": "graph/dfs/grid/l695/695.go"
+  },
+  {
+    "from": "bfs/grid/l695/695_test.go",
+    "to": "graph/dfs/grid/l695/695_test.go"
+  },
+  {
+    "from": "bfs/grid/l733/733.go",
+    "to": "graph/dfs/grid/l733/733.go"
+  },
+  {
+    "from": "bfs/grid/l733/733_test.go",
+    "to": "graph/dfs/grid/l733/733_test.go"
+  },
+  {
+    "from": "bfs/grid/l827/827.go",
+    "to": "graph/dfs/grid/l827/827.go"
+  },
+  {
+    "from": "bfs/grid/l827/827_test.go",
+    "to": "graph/dfs/grid/l827/827_test.go"
+  },
+  {
+    "from": "bfs/grid/readme.md",
+    "to": "graph/dfs/grid/readme.md"
+  },
+  {
+    "from": "bfs/l1020/1020.go",
+    "to": "graph/bfs/l1020/1020.go"
+  },
+  {
+    "from": "bfs/l1091/1091.go",
+    "to": "graph/bfs/l1091/1091.go"
+  },
+  {
+    "from": "bfs/l1091/1091_test.go",
+    "to": "graph/bfs/l1091/1091_test.go"
+  },
+  {
+    "from": "bfs/l1129/1129.go",
+    "to": "graph/bfs/l1129/1129.go"
+  },
+  {
+    "from": "bfs/l1162/1162.go",
+    "to": "graph/bfs/l1162/1162.go"
+  },
+  {
+    "from": "bfs/l127/127.go",
+    "to": "graph/bfs/l127/127.go"
+  },
+  {
+    "from": "bfs/l1293/1293.go",
+    "to": "graph/bfs/l1293/1293.go"
+  },
+  {
+    "from": "bfs/l130/130.go",
+    "to": "graph/bfs/l130/130.go"
+  },
+  {
+    "from": "bfs/l1311/1311.go",
+    "to": "graph/bfs/l1311/1311.go"
+  },
+  {
+    "from": "bfs/l1345/1345.go",
+    "to": "graph/bfs/l1345/1345.go"
+  },
+  {
+    "from": "bfs/l1654/1654.go",
+    "to": "graph/bfs/l1654/1654.go"
+  },
+  {
+    "from": "bfs/l1926/1926.go",
+    "to": "graph/bfs/l1926/1926.go"
+  },
+  {
+    "from": "bfs/l279/279.go",
+    "to": "graph/bfs/l279/279.go"
+  },
+  {
+    "from": "bfs/l301/301.go",
+    "to": "graph/bfs/l301/301.go"
+  },
+  {
+    "from": "bfs/l322/322.go",
+    "to": "graph/bfs/l322/322.go"
+  },
+  {
+    "from": "bfs/l433/433.go",
+    "to": "graph/bfs/l433/433.go"
+  },
+  {
+    "from": "bfs/l542/542.go",
+    "to": "graph/bfs/l542/542.go"
+  },
+  {
+    "from": "bfs/l542/542_test.go",
+    "to": "graph/bfs/l542/542_test.go"
+  },
+  {
+    "from": "bfs/l752/752.go",
+    "to": "graph/bfs/l752/752.go"
+  },
+  {
+    "from": "bfs/l773/773.go",
+    "to": "graph/bfs/l773/773.go"
+  },
+  {
+    "from": "bfs/l815/815.go",
+    "to": "graph/bfs/l815/815.go"
+  },
+  {
+    "from": "bfs/l847/847.go",
+    "to": "graph/bfs/l847/847.go"
+  },
+  {
+    "from": "bfs/l864/864.go",
+    "to": "graph/bfs/l864/864.go"
+  },
+  {
+    "from": "bfs/l909/909.go",
+    "to": "graph/bfs/l909/909.go"
+  },
+  {
+    "from": "bfs/l934/934.go",
+    "to": "graph/bfs/l934/934.go"
+  },
+  {
+    "from": "bfs/l994/994.go",
+    "to": "graph/bfs/l994/994.go"
+  },
+  {
+    "from": "bfs/l994/994_test.go",
+    "to": "graph/bfs/l994/994_test.go"
+  },
+  {
+    "from": "dfs/101",
+    "to": "graph/dfs/tree/l101/101"
+  },
+  {
+    "from": "dfs/114",
+    "to": "graph/dfs/tree/l114/114"
+  },
+  {
+    "from": "dfs/131",
+    "to": "graph/dfs/backtracking/l131/131"
+  },
+  {
+    "from": "dfs/1443",
+    "to": "graph/dfs/tree/l1443/1443"
+  },
+  {
+    "from": "dfs/1443_tree",
+    "to": "graph/dfs/tree/l1443/variants/explicit_tree/1443_tree"
+  },
+  {
+    "from": "dfs/1519.go",
+    "to": "graph/dfs/tree/l1519/1519.go"
+  },
+  {
+    "from": "dfs/200",
+    "to": "graph/dfs/grid/l200/variants/legacy/200"
+  },
+  {
+    "from": "dfs/2316",
+    "to": "graph/dfs/reachability/l2316/2316"
+  },
+  {
+    "from": "dfs/329",
+    "to": "graph/dfs/memoized/l329/329"
+  },
+  {
+    "from": "dfs/79",
+    "to": "graph/dfs/backtracking/l79/79"
+  },
+  {
+    "from": "dfs/934",
+    "to": "graph/bfs/l934/variants/dfs_bfs/934"
+  },
+  {
+    "from": "dfs/95.go",
+    "to": "graph/dfs/backtracking/l95/95.go"
+  },
+  {
+    "from": "dfs/98",
+    "to": "graph/dfs/tree/l98/98"
+  },
+  {
+    "from": "dfs/readme.md",
+    "to": "graph/dfs/notes.md"
+  },
+  {
+    "from": "graph/1298.go",
+    "to": "graph/dfs/reachability/l1298/1298.go"
+  },
+  {
+    "from": "graph/1466",
+    "to": "graph/dfs/tree/l1466/1466"
+  },
+  {
+    "from": "graph/1971",
+    "to": "graph/dfs/reachability/l1971/1971"
+  },
+  {
+    "from": "graph/2192",
+    "to": "graph/topo_sort/l2192/2192"
+  },
+  {
+    "from": "graph/2368",
+    "to": "graph/dfs/reachability/l2368/2368"
+  },
+  {
+    "from": "graph/2477",
+    "to": "graph/dfs/tree/l2477/2477"
+  },
+  {
+    "from": "graph/851",
+    "to": "graph/dfs/memoized/l851/851"
+  },
+  {
+    "from": "graph/AllPairShortestPath/1334",
+    "to": "graph/all_pairs_shortest_path/l1334/1334"
+  },
+  {
+    "from": "graph/AllPairShortestPath/399.go",
+    "to": "graph/all_pairs_shortest_path/l399/399.go"
+  },
+  {
+    "from": "graph/AllPairShortestPath/Readme.md",
+    "to": "graph/all_pairs_shortest_path/Readme.md"
+  },
+  {
+    "from": "graph/AllPairShortestPath/floyd-warshall.go",
+    "to": "graph/all_pairs_shortest_path/floyd-warshall.go"
+  },
+  {
+    "from": "graph/AllPairShortestPath/tmp",
+    "to": "graph/all_pairs_shortest_path/tmp"
+  },
+  {
+    "from": "graph/MinimumSpanningTree/1584.go",
+    "to": "graph/minimum_spanning_tree/l1584/1584.go"
+  },
+  {
+    "from": "graph/MinimumSpanningTree/kruskal.go",
+    "to": "graph/minimum_spanning_tree/kruskal.go"
+  },
+  {
+    "from": "graph/MinimumSpanningTree/prim.go",
+    "to": "graph/minimum_spanning_tree/prim.go"
+  },
+  {
+    "from": "graph/MinimumSpanningTree/readme.md",
+    "to": "graph/minimum_spanning_tree/readme.md"
+  },
+  {
+    "from": "graph/README.md",
+    "to": "graph/NOTES.md"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/1368",
+    "to": "graph/single_source_shortest_path/l1368/1368"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/1514",
+    "to": "graph/single_source_shortest_path/l1514/variants/legacy/1514"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/1631.go",
+    "to": "graph/single_source_shortest_path/l1631/variants/legacy/1631.go"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/1976_undirect",
+    "to": "graph/single_source_shortest_path/l1976/1976_undirect"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/2039_undirect",
+    "to": "graph/single_source_shortest_path/l2039/2039_undirect"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/2359_directed",
+    "to": "graph/single_source_shortest_path/l2359/2359_directed"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/743",
+    "to": "graph/single_source_shortest_path/l743/variants/legacy/743"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/787.go",
+    "to": "graph/single_source_shortest_path/l787/787.go"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/README.md",
+    "to": "graph/single_source_shortest_path/README.md"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/bellman-ford.go",
+    "to": "graph/single_source_shortest_path/bellman_ford/bellman_ford.go"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/dijkstra.go",
+    "to": "graph/single_source_shortest_path/dijkstra/dijkstra.go"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/l1514/1514.go",
+    "to": "graph/single_source_shortest_path/l1514/1514.go"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/l1514/1514_test.go",
+    "to": "graph/single_source_shortest_path/l1514/1514_test.go"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/l1631/1631.go",
+    "to": "graph/single_source_shortest_path/l1631/1631.go"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/l1631/1631_test.go",
+    "to": "graph/single_source_shortest_path/l1631/1631_test.go"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/l743/743.go",
+    "to": "graph/single_source_shortest_path/l743/743.go"
+  },
+  {
+    "from": "graph/SingleSourceShortestPath/l743/743_test.go",
+    "to": "graph/single_source_shortest_path/l743/743_test.go"
+  },
+  {
+    "from": "graph/topo_sort/1203",
+    "to": "graph/topo_sort/l1203/1203"
+  },
+  {
+    "from": "graph/topo_sort/2050_directed",
+    "to": "graph/topo_sort/l2050/variants/legacy/2050_directed"
+  },
+  {
+    "from": "graph/topo_sort/207",
+    "to": "graph/topo_sort/l207/variants/legacy/207"
+  },
+  {
+    "from": "graph/topo_sort/210",
+    "to": "graph/topo_sort/l210/variants/legacy/210"
+  },
+  {
+    "from": "graph/topo_sort/2115.go",
+    "to": "graph/topo_sort/l2115/variants/legacy/2115.go"
+  },
+  {
+    "from": "union_find/README.md",
+    "to": "graph/union_find/README.md"
+  },
+  {
+    "from": "union_find/l1319/1319.go",
+    "to": "graph/union_find/l1319/1319.go"
+  },
+  {
+    "from": "union_find/l1319/1319_test.go",
+    "to": "graph/union_find/l1319/1319_test.go"
+  },
+  {
+    "from": "union_find/l547/547.go",
+    "to": "graph/union_find/l547/547.go"
+  },
+  {
+    "from": "union_find/l547/547_test.go",
+    "to": "graph/union_find/l547/547_test.go"
+  },
+  {
+    "from": "union_find/l684/684.go",
+    "to": "graph/union_find/l684/684.go"
+  },
+  {
+    "from": "union_find/l684/684_test.go",
+    "to": "graph/union_find/l684/684_test.go"
+  },
+  {
+    "from": "union_find/l721/721.go",
+    "to": "graph/union_find/l721/721.go"
+  },
+  {
+    "from": "union_find/l721/721_test.go",
+    "to": "graph/union_find/l721/721_test.go"
+  },
+  {
+    "from": "union_find/union_find.go",
+    "to": "graph/union_find/union_find.go"
+  }
+]

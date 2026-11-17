@@ -61,7 +61,7 @@ func dailyTemperatures(temperatures []int) []int {
 
 ## 3. [496. 下一个更大元素 I](https://leetcode.com/problems/next-greater-element-i/)
 
-[练习](l496_template/496.go) · [测试](l496_template/496_test.go)
+[练习](l496/variants/template/496.go) · [测试](l496/variants/template/496_test.go)
 
 **题意**：nums1是nums2的子集，两数组各自无重复。为nums1每个值查找它在nums2右侧的第一个更大值。
 
@@ -101,7 +101,7 @@ func nextGreaterElement(nums1 []int, nums2 []int) []int {
 
 ## 4. [84. 柱状图中最大的矩形](https://leetcode.com/problems/largest-rectangle-in-histogram/)
 
-[练习](l84_template/84.go) · [测试](l84_template/84_test.go)
+[练习](l84/variants/template/84.go) · [测试](l84/variants/template/84_test.go)
 
 **题意**：每根柱宽1，求能组成的最大矩形面积。
 
@@ -139,7 +139,7 @@ func largestRectangleArea(heights []int) int {
 
 ## 5. [907. 子数组的最小值之和](https://leetcode.com/problems/sum-of-subarray-minimums/)
 
-[练习](l907_template/907.go) · [测试](l907_template/907_test.go)
+[练习](l907/variants/template/907.go) · [测试](l907/variants/template/907_test.go)
 
 **题意**：所有非空子数组的最小值求和，对10^9+7取模。
 
@@ -445,3 +445,44 @@ func sumSubarrayMins(arr []int) int {
 | [962. 最大宽度坡](https://leetcode.com/problems/maximum-width-ramp/) | 先筛严格递减的候选左端点，右端从右往左弹栈结算 | 不是最近更大元素；匹配后最远右端已经确定 |
 
 **复习方法**：先独立写出状态、合法性或松弛条件，再指出相较本篇基础题改变的那一行；若前提不满足，主动换算法，不为统一模板牺牲正确性。
+
+## 目录归并：单调性、结算方向与重复值归属
+
+重复的 496、84、907 模板练习已分别并入 [l496/variants/template](l496/variants/template)、[l84/variants/template](l84/variants/template)、[l907/variants/template](l907/variants/template)，源码和原测试不变。503 的排列分类练习保存在 [l503/variants/from_permutation](l503/variants/from_permutation)。不同包保留各自函数名与测试，空函数仍是未完成练习。
+
+| 子模型 | 栈保存什么 / 什么时候可结算 | 题目入口 |
+| --- | --- | --- |
+| 下一个严格更大 | 尚未找到答案的下标；当前值严格大于栈顶时弹出 | [496](l496)、[503](l503)、[739](l739) |
+| 矩形边界 | 候选高度；遇更低高度时结算 `height*(right-left-1)` | [84](l84)、[85](l85) |
+| 最值贡献 | 用一严格一非严格边界给相等值唯一归属 | [907](l907)、[2104](l2104) |
+| 凹槽水层 | 当前更高柱子确定右边界；弹底后还须有左边界 | [42](l42) |
+| 带预算的贪心栈 | 较优新字符可以淘汰较差前缀，但必须仍能完成答案 | [402](l402)、[316](l316)、[321](l321) |
+| 非最近边界的候选淘汰 | 候选左端点、分块最大值、跨度等专有状态 | [962](l962)、[768](l768)、[901](l901)、[456](l456)、[1130](l1130)、[853](l853) |
+
+最近严格更大位置的可复用骨架如下；它不负责矩形清栈或贡献归属：
+
+```go
+func nextGreaterIndices(nums []int) []int {
+    next := make([]int, len(nums))
+    for i := range next { next[i] = -1 }
+    stack := []int{}
+    for right, value := range nums {
+        for len(stack) > 0 && nums[stack[len(stack)-1]] < value {
+            previous := stack[len(stack)-1]
+            stack = stack[:len(stack)-1]
+            next[previous] = right
+        }
+        stack = append(stack, right)
+    }
+    return next
+}
+```
+
+496 把位置结果转换为对应值；739 转换为等待距离；503 为循环数组处理第二遍，但不能把自己或相等值当作严格更大值。84/907 即使使用相似出栈循环，结算内容与相等值策略也不同。
+
+两处重新分类：
+
+- 原 856 已归入 [stack/l856](../stack/l856)，原练习在其 `variants/from_monotonic_stack`。嵌套层的分数累加没有单调值不变量。
+- 原 239 已归入 [sliding_window/l239](../sliding_window/l239)。它需要淘汰过期队首，是单调队列，不能只用栈顶操作表达窗口失效。
+
+本次仅归并目录和学习入口，不补完现有 panic、空函数或错误答案；原测试仍独立验证原源码。迁移清单见 [reorganization.json](../two_pointers/reorganization.json)。

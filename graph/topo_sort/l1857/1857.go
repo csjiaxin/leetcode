@@ -1,36 +1,15 @@
 package l1857
 
+import topotemplate "leetcode/graph/topo_sort/template"
+
 // Kahn 按依赖顺序处理节点；seeds 不重复且入度为零，next 同步枚举后继。
 // 返回处理数；入度和 seeds 均不修改，DP 状态由调用方初始化。
 func Kahn(indegree []int, seeds []int, next func(u int, yield func(v int)), onPop func(u int), relax func(u, v int)) int {
-	remaining := append([]int(nil), indegree...)
-	queue := append([]int(nil), seeds...)
-	for head := 0; head < len(queue); head++ {
-		u := queue[head]
-		if onPop != nil {
-			onPop(u)
-		}
-		next(u, func(v int) {
-			if relax != nil {
-				relax(u, v)
-			}
-			remaining[v]--
-			if remaining[v] == 0 {
-				queue = append(queue, v)
-			}
-		})
-	}
-	return len(queue)
+	return topotemplate.Kahn(indegree, seeds, next, onPop, relax)
 }
 
 func ZeroIndegree(indegree []int) []int {
-	seeds := make([]int, 0)
-	for u, degree := range indegree {
-		if degree == 0 {
-			seeds = append(seeds, u)
-		}
-	}
-	return seeds
+	return topotemplate.ZeroIndegree(indegree)
 }
 
 // https://leetcode.com/problems/largest-color-value-in-a-directed-graph/

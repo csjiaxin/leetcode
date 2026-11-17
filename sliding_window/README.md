@@ -30,7 +30,7 @@
 
 ## 2. [3. 无重复字符的最长子串](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
 
-[练习](l3_template/3.go) · [测试](l3_template/3_test.go)
+[练习](l3/variants/template/3.go) · [测试](l3/variants/template/3_test.go)
 
 **题意**：求没有重复字符的最长连续子串长度。
 
@@ -62,7 +62,7 @@ func lengthOfLongestSubstring(s string) int {
 
 ## 3. [1004. 最大连续1的个数 III](https://leetcode.com/problems/max-consecutive-ones-iii/)
 
-[练习](l1004_template/1004.go) · [测试](l1004_template/1004_test.go)
+[练习](l1004/variants/template/1004.go) · [测试](l1004/variants/template/1004_test.go)
 
 **题意**：最多把k个0翻成1，求最长连续1长度。
 
@@ -97,7 +97,7 @@ func longestOnes(nums []int, k int) int {
 
 ## 4. [209. 长度最小的子数组](https://leetcode.com/problems/minimum-size-subarray-sum/)
 
-[练习](l209_template/209.go) · [测试](l209_template/209_test.go)
+[练习](l209/variants/template/209.go) · [测试](l209/variants/template/209_test.go)
 
 **题意**：正整数数组中找和>=target的最短连续子数组，不存在返回0。
 
@@ -132,7 +132,7 @@ func minSubArrayLen(target int, nums []int) int {
 
 ## 5. [76. 最小覆盖子串](https://leetcode.com/problems/minimum-window-substring/)
 
-[练习](l76_template/76.go) · [测试](l76_template/76_test.go)
+[练习](l76/variants/template/76.go) · [测试](l76/variants/template/76_test.go)
 
 **题意**：找最短子串，覆盖t的全部字符，重复字符必须满足次数。
 
@@ -197,7 +197,7 @@ func minWindow(s string, t string) string {
 
 - 不要只用一次if收缩；一次移除未必够。
 - 最长合法与最短满足不是同一个while条件，更新时机也不同。
-- 含负数的和通常不满足单调收缩，考虑 [前缀状态](../Subarray/readme.md) 等方法。
+- 含负数的和通常不满足单调收缩，考虑 [前缀状态](../prefix_sum/state_hash/readme.md) 等方法。
 - 字节下标不等于任意Unicode字符下标；若转rune，返回字符串时也要处理位置转换。
 - 若要统计合法区间数量，见 [atMost](at_most/README.md)，不是每个右端点只加1。
 
@@ -391,3 +391,41 @@ go test -run '^$' sliding_window/l643/*.go
 | [2516. 每种字符至少取K个](https://leetcode.com/problems/take-k-of-each-character-from-left-and-right/) | 两端取走等价于保留中间窗口，每字符保留数<=总数-k | 任一字符总数不足k返回-1；k=0返回0 |
 
 **复习方法**：先独立写出状态、合法性或松弛条件，再指出相较本篇基础题改变的那一行；若前提不满足，主动换算法，不为统一模板牺牲正确性。
+
+## 目录归并：一个题号入口，保留独立练习
+
+本目录现在集中管理原来散落在 `two_pointers`、`permutation` 和 `at_most` 下的窗口题。重复源码与测试完整放入 `l题号/variants/来源` 独立包，不覆盖函数、不把未完成练习的测试改为调用另一份答案。
+
+| 模板 | 必须维持的不变量与答案时机 | 题目入口 |
+| --- | --- | --- |
+| 最长合法窗口 | 加右端；`while invalid` 移左端；修复后更新最长 | [3](l3)、[1004](l1004)、[424](l424)、[904](l904) |
+| 最短覆盖窗口 | 加右端；`while valid` 先记录答案再移左端 | [209](l209)、[76](l76) |
+| 定长窗口 | 加右端；超过指定长度才移左端；长度恰好时统计 | [438](l438)、[567](l567)、[643](l643) |
+| 向内收缩保持合法的区间计数 | 收缩到最小合法 left 后，固定 right 有 `right-left+1` 个合法起点 | [713](l713) |
+| 满足覆盖的区间计数 | 满足时固定 left，并将当前及以后所有 right 计入，再继续移左端 | [1358](l1358) |
+| 至多转恰好 | `exactly(k)=atMost(k)-atMost(k-1)`；atMost 的所有更短后缀也合法 | [992](l992)、[930](l930)、[1248](l1248) |
+| 单调队列 | 队首是有效窗口内最大值；队首过期、队尾淘汰劣值是两种操作 | [239](l239) |
+
+其中 1358 的常见实现也可在满足条件时累计后续右端点数量；不能不检查原实现的计数方向就改成统一回调。930 使用非负二进制和，1248 使用奇数数量，992 使用不同元素数量；它们共享 atMost 代数关系，但维护的状态不同。`atMost(k<0)` 应为 0。
+
+```text
+最长：add(right) → while 不合法：remove(left++) → 记录长度
+最短：add(right) → while 合法：记录长度 → remove(left++)
+定长：add(right) → 超长则 remove(left++) → 满长时记录
+计数：恢复合法 → answer += right-left+1
+```
+
+这些循环分别成立的前提不同，不用一个含糊的 `valid` 回调同时驱动。209 依赖正数，713 依赖正整数并需考虑 k<=1；含负数的普通区间和不能直接套用。
+
+当前变体入口：
+
+| 题号 | 保留的独立来源 |
+| --- | --- |
+| 3、76、209、1004 | 各题的 `variants/template` 和 `variants/from_two_pointers` |
+| 424、713 | 各题的 `variants/from_two_pointers` |
+| 438、567 | 各题的 `variants/from_two_pointers`、`variants/from_permutation` |
+| 992 | `variants/from_two_pointers`、`variants/from_at_most` |
+
+[567/variants/from_permutation](l567/variants/from_permutation) 保留了一份已实现的定长频次窗口；[567 主练习](l567) 的原未完成状态和测试也保持独立。`*_template` 的空函数并未补齐，也未排除在编译之外。[at_most/README.md](at_most/README.md) 继续作为公式专题笔记，但题目代码已归入统一题号目录。
+
+单测应按当前具体包运行，例如 `go test ./sliding_window/l3`；`go test ./sliding_window/...` 仍会如实包含未完成练习的编译或运行失败，不能把“目录已整理”理解为“题目全部完成”。迁移清单见 [reorganization.json](../two_pointers/reorganization.json)。

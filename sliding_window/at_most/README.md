@@ -35,7 +35,7 @@
 
 ## 2. [992. K 个不同整数的子数组](https://leetcode.com/problems/subarrays-with-k-different-integers/)
 
-[练习](l992/992.go) · [测试](l992/992_test.go)
+[练习](../l992/variants/from_at_most/992.go) · [测试](../l992/variants/from_at_most/992_test.go)
 
 **题意**：统计恰好包含 k 种不同整数的非空连续子数组。
 
@@ -82,7 +82,7 @@ func subarraysWithKDistinct(nums []int, k int) int {
 
 ## 3. [1248. 统计优美子数组](https://leetcode.com/problems/count-number-of-nice-subarrays/)
 
-[练习](l1248/1248.go) · [测试](l1248/1248_test.go)
+[练习](../l1248/1248.go) · [测试](../l1248/1248_test.go)
 
 **题意**：统计恰好包含 k 个奇数的非空连续子数组。
 
@@ -118,13 +118,13 @@ func numberOfSubarrays(nums []int, k int) int {
 
 **例子**：[2,1,2]、k=1，答案4。唯一奇数的左右两边都可选择是否带上偶数，不能只对每个右端点加1。
 
-**复杂度**：时间 O(n)，空间 O(1)。另一种解法是 [前缀奇数数量＋哈希表](../../Subarray/readme.md#lc1248)。
+**复杂度**：时间 O(n)，空间 O(1)。另一种解法是 [前缀奇数数量＋哈希表](../../prefix_sum/state_hash/readme.md#lc1248)。
 
 <a id="lc930"></a>
 
 ## 4. [930. 和相同的二元子数组](https://leetcode.com/problems/binary-subarrays-with-sum/)
 
-[练习](l930/930.go) · [测试](l930/930_test.go)
+[练习](../l930/930.go) · [测试](../l930/930_test.go)
 
 **题意**：数组仅含0、1，统计和恰好为 goal 的非空子数组。
 

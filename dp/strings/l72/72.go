@@ -1,37 +1,33 @@
 package l72
 
-import "math"
+import prefixdp "leetcode/dp/strings"
 
 // https://leetcode.com/problems/edit-distance/
+// dp[i][j] 表示 text1 的前 i 个字符变成 text2 的前 j 个字符所需的最少操作数。
 func minDistance(text1 string, text2 string) int {
-	n1 := len(text1)
-	n2 := len(text2)
-	dp := make([][]int, n1+1)
-	for i := 0; i < len(dp); i++ {
-		dp[i] = make([]int, n2+1)
-		for j := 0; j < len(dp[i]); j++ {
-			dp[i][j] = math.MaxInt
-		}
-	}
-	dp[0][0] = 0
-	for i := 1; i < len(dp); i++ {
-		dp[i][0] = i
-	}
-	for j := 1; j < n2+1; j++ {
-		dp[0][j] = j
-	}
-
-	for i := 1; i < len(dp); i++ {
-		iidx := i - 1
-		for j := 1; j < n2+1; j++ {
-			jidx := j - 1
-			if text1[iidx] == text2[jidx] {
-				dp[i][j] = dp[i-1][j-1]
-			} else {
-				val := min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
-				dp[i][j] = val + 1
+	m, n := len(text1), len(text2)
+	dp := prefixdp.Table[int](m, n,
+		func(i, j int) int {
+			if i == 0 {
+				return j // 空串变成目标前缀，需要插入 j 个字符。
 			}
-		}
-	}
-	return dp[n1][n2]
+			return i // 源前缀变成空串，需要删除 i 个字符。
+		},
+		func(i, j int, up, left, diagonal int) int {
+			if text1[i-1] == text2[j-1] {
+				return diagonal
+			}
+
+			// up、left、diagonal 分别对应删除、插入、替换。
+			best := up
+			if left < best {
+				best = left
+			}
+			if diagonal < best {
+				best = diagonal
+			}
+			return best + 1
+		},
+	)
+	return dp[m][n]
 }

@@ -1,56 +1,35 @@
-https://leetcode.com/discuss/study-guide/2360573/become-master-in-graph
+# 图算法：先确定问题，再选择模板
 
+[返回仓库目录](../README.md)
 
-https://leetcode.com/discuss/study-guide/1326900/graph-algorithms-problems-to-practice
-https://leetcode.com/discuss/interview-question/753236/List-of-graph-algorithms-for-coding-interview
+同样使用队列或递归，正确性依据可能完全不同。先写出**状态、边的含义、目标、不变量**，再选择下表中的骨架。
 
+| 要解决的问题 | 模板与目录 | 核心不变量 | 本仓库题目 |
+| --- | --- | --- | --- |
+| 等权最少步数、同步扩散 | [BFS / 多源 / 状态 BFS](bfs/README.md) | 首次入队即确定完整状态的最短距离 | 1091、994、542 等；题目文件是待实现练习，README 有参考代码 |
+| 连通块、边界可达区域 | [网格 FloodFill](dfs/grid/readme.md) | 标记后不撤销；每格至多处理一次 | 733、200、695、1020、1254、130、1905、827 |
+| 一般可达、树上汇总、路径枚举 | [DFS 模板族](dfs/README.md) | 全局访问、子树返回值、当前路径三种状态分别维护 | 1971、2316、1443、1519、79、131、95 等 |
+| 无向连通性、等价类合并 | [并查集](union_find/README.md) | 集合代表相同即属于同一分量 | 547、684、1319、721；通用实现可用，题目文件待实现 |
+| 前置依赖、DAG 状态传播 | [拓扑排序](topo_sort/readme.md) | 全部前置贡献就绪后才能出队 | 207、210、2115、1462、2050、1857、329、2192 |
+| 非负权单源最优路径 | [Dijkstra](single_source_shortest_path/README.md) | 弹出的非过期最优标签可以确定 | 743、1631、1514；README 有参考代码，题目文件待实现 |
+| 负边、边数限制 | [Bellman-Ford 与边数分层](single_source_shortest_path/README.md) | 第 k 轮只读取上一轮的有限边数状态 | 通用示例、787 |
+| 所有点对路径 | [Floyd-Warshall](all_pairs_shortest_path/Readme.md) | 第 k 阶段只允许前 k 个点作为中间点 | 1334、399 草稿 |
+| 无向图最小连通总代价 | [Kruskal / Prim](minimum_spanning_tree/readme.md) | 安全地把不同分量连接起来 | 通用示例、1584 |
+| 相邻节点分两组 | [二分图染色](bipartite/README.md) | 每条边两端颜色相反 | 785 |
+| 删除边后是否断开 | [桥与割点](bridge_articulation_point/README.md) | 子树能否绕过父边回到祖先 | 1192 |
+| 从每个起点分别求有向覆盖 | [有向连通与覆盖](connectivity/README.md) | 每次搜索有独立访问表 | 2101 |
 
-APSP( All pair shortest path)
-Floyd-Warshall
-1 Floyd-Warshall O(V3) DP[k][i][j]
+## 两个真正共享实现的模板
 
-1334 https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/
-399 https://leetcode.com/problems/evaluate-division/
-787 httpDijstras://leetcode.com/problems/cheapest-flights-within-k-stops/
-1462 https://leetcode.com/problems/course-schedule-iv/
-1617 https://leetcode.com/problems/count-subtrees-with-max-distance-between-cities/
+- [FloodFill](dfs/grid/flood_fill.go)：八道网格题共享四方向遍历，题目只决定可进入条件和访问后的汇总操作。题目包保留同名薄封装，已有测试与调用方式不变。
+- [Kahn](topo_sort/template/kahn.go)：六道题共享入度、队列与回调时序，题目负责建图、种子与 DP 转移。配方题的种子来自供应品，不能机械选择全部零入度名字。
 
+其他算法保持题目内的独立状态与类型。例如单词搜索必须恢复路径访问标记，岛屿统计不能恢复；Prim 的接入边权也不等于 Dijkstra 的源点距离。
 
-Single source Shortest Path Problem
-1 BFS(unweighted)
-weighted graph
-2 ( Directed, Single source shortest path/ Non-Negative edge O(E*lg V)) 2 Disjstra O(E+V)*lgV ( No negative edge)
-3 Bellman-Ford O(EV) (detect negative cycles)
-https://yunrui-li.medium.com/leetcode-graph-shortest-path-a-20df15321406
+已完成且有现有测试的主线是网格八题、拓扑六题（210、329、1462、1857、2050、2115）与二分图 785。通用算法和旧片段的完成情况见各族说明；207 也仍为待实现练习。
 
+## 练习与原始资料
 
-Connectivity
-1 union find
-2 BFS/DFS
+优先练习路径：200 → 1091 → 994 → 785 → 547 → 207 → 210 → 743 → 1631 → 2050 → 827。
 
-Negative cycle(weighted digraph)
-1 Bellman-Ford
-2 Floyd-Warshall
-
-Topological sort
-1 Picking cherry from the leaves to root, O(V+E)
-1.1 DFS
-1.2 indgree 
-
-DAG(Direct Acyclic graph)
-1 shortest path
-  Single source - topological sort O(V+E)
-2 longest path
-    weight * -1 -> shortest path
-
-Dijstra
-1 Lazy 
-2 Eager using (Index Priority Queue)
-
-Bridge/ Cut edges 
-Articulation point/ Cut vertex
-
-MST(Mininum Spanning Tree)
-1 Prim (From Vertex)https://www.youtube.com/watch?v=jsmMtJpPnhU O(E*lgE) -> O(E*lgV)
-2 Kruskals (From Edge) Use Union-Find as connectivity judging.
-
+目录中的 `variants/` 保存同题其他写法；无扩展名文件仍是原始笔记，不会被 Go 自动编译。旧 `.go` 空练习和未完成草稿保持原样，不能把目录已经归类理解为题目已经实现。[迁移清单](MIGRATION.json)逐文件记录旧路径和新路径；[原图算法笔记](NOTES.md)保留原始外部资料链接。

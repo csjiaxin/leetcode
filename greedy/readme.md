@@ -145,7 +145,7 @@
 
 ### [435. 无重叠区间](https://leetcode.com/problems/non-overlapping-intervals/)
 
-- **练习**：[435.go](l435/435.go) · [测试](l435/435_test.go)
+- **练习**：[435.go](interval_greedy/l435/435.go) · [测试](interval_greedy/l435/435_test.go)
 - **题意**：删除最少区间，使剩余区间互不重叠；端点相接允许保留。[[1,2],[2,3],[3,4],[1,3]] 的答案为 1。
 - **决策与状态**：按终点升序，保留结束最早的区间；维护最后保留的 end，后续仅当 `start>=end` 时保留并更新 end。答案为总数减最多保留数。
 - **为什么正确**：将最优安排的第一个区间换成结束最早的区间，后续原本可选区间仍可选，数量不会减少；对剩余部分重复即可。不应优先选择起点最早或长度最短的区间。
@@ -155,7 +155,7 @@
 
 ### [452. 用最少数量的箭引爆气球](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/)
 
-- **练习**：[452.go](l452/452.go) · [测试](l452/452_test.go)
+- **练习**：[452.go](interval_greedy/l452/452.go) · [测试](interval_greedy/l452/452_test.go)
 - **题意**：气球覆盖闭区间 [start,end]；一箭可射穿所有覆盖该坐标的气球，求最少箭数。[[1,2],[2,3]] 共用坐标 2，只需一箭。
 - **决策与状态**：按右端点升序，将第一箭放在最早右端点 arrow；后续若 `start<=arrow` 已被覆盖，不移动箭；仅当 `start>arrow` 时增加一箭，放在当前右端点。
 - **为什么正确**：最早结束的气球必须被射中，将射中它的箭右移至其右端点，不会失去原来同时覆盖的其他气球，因为这些气球的右端点都不更早。这个位置为后续覆盖留下最多机会。
@@ -165,7 +165,7 @@
 
 ### [134. 加油站](https://leetcode.com/problems/gas-station/)
 
-- **练习**：[134.go](l134/134.go) · [测试](l134/134_test.go)
+- **练习**：[134.go](gas_fuel/l134/variants/practice/134.go) · [测试](gas_fuel/l134/variants/practice/134_test.go)
 - **题意**：环形路线上第 i 站有 gas[i] 升油，到下一站消耗 cost[i]，油箱无限大、初始为空。返回能绕一圈的起点，无解返回 -1；题设有解则唯一。
 - **决策与状态**：令 net=gas[i]-cost[i]，维护 total（全程净油量）、tank（从当前候选起点的累计净油量）、start。若 tank<0，设置 start=i+1 并清零 tank。遍历后 total<0 则无解，否则返回 start。
 - **为什么正确**：从 start 到 i 首次失败，之前各前缀余额均非负。改从其中任意站 j 出发，到 i 的余额为“原失败余额减去此前非负前缀”，仍为负，故 start 到 i 全部可排除。总量非负时，最终候选可完成环路。
@@ -175,7 +175,7 @@
 
 ### [871. 最低加油次数](https://leetcode.com/problems/minimum-number-of-refueling-stops/)
 
-- **练习**：[871.go](l871/871.go) · [测试](l871/871_test.go)
+- **练习**：[871.go](gas_fuel/l871/variants/practice/871.go) · [测试](gas_fuel/l871/variants/practice/871_test.go)
 - **题意**：到 target 的路上有按位置递增的站点 [position,fuel]，每单位距离耗一升油，初始 startFuel，油箱无限大。每站可取全部油，求最少停靠次数，无法到达则 -1。
 - **决策与状态**：reach 初始为 startFuel。将所有 `position<=reach` 且尚未入堆的站点油量加入最大堆；若 reach<target，取堆中最大油量，加到 reach 并增加停靠数。空堆且未到目标则失败。
 - **为什么正确**：在当前必须增加一次加油的时刻，选择已可达站中最多的油量，使同样一次停靠获得的可达范围最大，不会比选更小油量差。候选站原本就在可达路径上，所以这是延迟确定过去在哪站加油，而非实际倒车。

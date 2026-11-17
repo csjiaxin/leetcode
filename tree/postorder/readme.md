@@ -141,7 +141,7 @@ type TreeNode struct {
 
 ## 3. [104. 二叉树的最大深度](https://leetcode.com/problems/maximum-depth-of-binary-tree/)：返回子树高度
 
-练习：[目录](l104/) · [函数](l104/104.go) · [测试](l104/104_test.go)
+练习：[目录](l104) · [函数](l104/104.go) · [测试](l104/104_test.go)
 
 **状态定义：** dfs(node) 返回以 node 为根的子树高度，按节点数计算。空树高度为 0。
 
@@ -161,7 +161,7 @@ func maxDepth(root *TreeNode) int {
 
 ## 4. [110. 平衡二叉树](https://leetcode.com/problems/balanced-binary-tree/)：高度 + 失败状态
 
-练习：[目录](l110/) · [函数](l110/110.go) · [测试](l110/110_test.go)
+练习：[目录](l110) · [函数](l110/110.go) · [测试](l110/110_test.go)
 
 仅有左右高度不足以判断整棵子树平衡：左右子树内部也必须平衡。因此用 -1 表示“这棵子树不平衡”，非负数表示真实高度。
 
@@ -183,7 +183,7 @@ func isBalanced(root *TreeNode) bool {
 
 ## 5. [543. 二叉树的直径](https://leetcode.com/problems/diameter-of-binary-tree/)：返回高度，更新直径
 
-练习：[目录](l543/) · [函数](l543/543.go) · [测试](l543/543_test.go)
+练习：[目录](l543) · [函数](l543/543.go) · [测试](l543/543_test.go)
 
 **返回 State：** height 是从当前节点向下走的最大节点数；diameter 是子树内部最大路径的边数。
 
@@ -222,7 +222,7 @@ func diameterOfBinaryTree(root *TreeNode) int {
 
 ## 6. [236. 二叉树的最近公共祖先](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/)：返回目标节点或祖先候选
 
-练习：[目录](l236/) · [函数](l236/236.go) · [测试](l236/236_test.go)
+练习：[目录](l236) · [函数](l236/236.go) · [测试](l236/236_test.go)
 
 标准题目保证 p、q 是树中两个不同节点。比较的是**节点指针身份**，不是 Val。
 
@@ -257,7 +257,7 @@ func lowestCommonAncestor(root, p, q *TreeNode) *TreeNode {
 
 ## 7. [124. 二叉树中的最大路径和](https://leetcode.com/problems/binary-tree-maximum-path-sum/)：返回单支贡献，更新完整路径
 
-练习：[目录](l124/) · [函数](l124/124.go) · [测试](l124/124_test.go)
+练习：[目录](l124) · [函数](l124/124.go) · [测试](l124/124_test.go)
 
 **返回 State：** down 是从当前节点出发向下的一条非空路径的最大和，可能为负；best 是子树内任意非空路径的最大和；valid 区分空树与合法结果。父节点只通过 down 接入支路，通过 best 继承已完成答案。
 
@@ -324,7 +324,7 @@ func maxPathSum(root *TreeNode) int {
 
 ## 8. [337. 打家劫舍 III](https://leetcode.com/problems/house-robber-iii/)：返回两个条件最优值，正式进入树形 DP
 
-练习：[目录](l337/) · [函数](l337/337.go) · [测试](l337/337_test.go)
+练习：[目录](l337) · [函数](l337/337.go) · [测试](l337/337_test.go)
 
 父节点是否被选择，会改变当前节点是否允许被选择。不能只返回一个不带条件的最优值，需要同时返回：
 
@@ -362,13 +362,13 @@ func rob(root *TreeNode) int {
 
 空节点 `(0,0)` 是方便合并的约定，不代表真的选择了空节点。根没有父节点限制，因此取两种状态的最大值。
 
-已有实现：[337.go](../../dp/house_robber/l337/337.go)。
+已有实现：[337.go](l337/variants/dp/337.go)。
 
 <a id="lc979"></a>
 
 ## 9. [979. 在二叉树中分配硬币](https://leetcode.com/problems/distribute-coins-in-binary-tree/)：返回净盈余，累计跨边流量
 
-练习：[目录](l979/) · [函数](l979/979.go) · [测试](l979/979_test.go)
+练习：[目录](l979) · [函数](l979/979.go) · [测试](l979/979_test.go)
 
 每个节点最终需要 1 枚硬币。定义：
 
@@ -413,7 +413,7 @@ func abs(x int) int {
 
 ## 10. [968. 监控二叉树](https://leetcode.com/problems/binary-tree-cameras/)：从后序贪心走向状态 DP
 
-练习：[目录](l968/) · [函数](l968/968.go) · [测试](l968/968_test.go)
+练习：[目录](l968) · [函数](l968/968.go) · [测试](l968/968_test.go)
 
 ### 10.1 三状态后序贪心
 
@@ -552,10 +552,10 @@ func minCameraCover(root *TreeNode) int {
 
 ```sh
 # 运行八个题目包的全部测试。
-GO111MODULE=off go test -v ./tree/dfs/...
+go test -v ./tree/dfs/...
 
 # 完成某题后执行对应测试。
-GO111MODULE=off go test -v ./tree/dfs/l104
+go test -v ./tree/dfs/l104
 ```
 
 以上模板每个节点最多处理一次，时间均为 **O(n)**，递归栈为 **O(h)**：平衡树 O(log n)，链状树 O(n)。统一 PostOrder 总是遍历整棵树，236 不在遇到目标时提前结束子树遍历；这不影响候选合并的正确性。968 的三状态 DP 每个节点只有常数个转移，也为 O(n)。

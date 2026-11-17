@@ -1,5 +1,20 @@
 # 拓扑排序：依赖顺序与DAG动态规划
 
+## 当前共享实现与目录
+
+六题共用 [template/kahn.go](template/kahn.go)，原包的 Kahn／ZeroIndegree 只保留兼容封装。[共享测试](template/kahn_test.go)验证全部前置到齐才出队、重边计数、入参切片所有权、环阻塞与显式种子。
+
+| 代码 | 使用方式 |
+| --- | --- |
+| [普通 Kahn](indegree_kahn.go) / [三色 DFS](dfs.go) | 直接返回完整拓扑序；DFS 结果需要反转后序 |
+| [六题共享 Kahn](template/kahn.go) | 固定调度，按题目设置 next、onPop、relax 与 DP 初值 |
+| 210、329、1462、1857、2050、2115 | 题目实现和原测试完整保留 |
+| [207](l207/207.go) | 待实现练习；参考解答在下文 |
+| [2192](l2192/2192) | 祖先集合传播的原始无扩展名笔记 |
+| [1203](l1203/1203) | 分组拓扑的原始无扩展名笔记 |
+
+207、210、2050 的原始片段移到各题 variants/legacy；[2115 旧 DFS 实现](l2115/variants/legacy/2115.go)独立成包，避免与通用模板的全局名字相撞。普通零入度队列表示所有依赖都已满足；2115 的外部原料没有供应时，即使入度为零也不能加入 seeds。
+
 本轮主线：[210](https://leetcode.com/problems/course-schedule-ii/) → [2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) → [1462](https://leetcode.com/problems/course-schedule-iv/) → [2050](https://leetcode.com/problems/parallel-courses-iii/) → [1857](https://leetcode.com/problems/largest-color-value-in-a-directed-graph/) → [329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/)。
 
 直接阅读[第 6 节：共同模板与六题适配](#dag-dp)。本文所有题解代码都调用同一份 `Kahn`／`ZeroIndegree` 模板；复制单题示例时，需同时复制第 6.1 节模板。六题本地实现与测试已完成，输入均不修改；每题包保留独立模板，便于单独提交。
@@ -227,7 +242,7 @@ next := func(u int, yield func(int)) {
 定向测试（只运行这六题，不依赖父目录的其他练习）：
 
 ```sh
-GO111MODULE=off go test -count=1 -cover ./graph/topo_sort/l210 ./graph/topo_sort/l2115 ./graph/topo_sort/l1462 ./graph/topo_sort/l2050 ./graph/topo_sort/l1857 ./graph/topo_sort/l329
+go test -count=1 -cover ./graph/topo_sort/l210 ./graph/topo_sort/l2115 ./graph/topo_sort/l1462 ./graph/topo_sort/l2050 ./graph/topo_sort/l1857 ./graph/topo_sort/l329
 ```
 
 测试包括示例、判环、重复边、输入不变及重复调用；1462 用 200 个随机 DAG 对照 Floyd 可达性，329 用 300 个随机矩阵对照记忆化 DFS。

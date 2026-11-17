@@ -1,5 +1,24 @@
 # Top K堆与双堆：按题目独立实现
 
+## 合并后的模板入口
+
+`l215_template`、`l295_template`、`l347_template`、`l703_template`、`l973_template` 已分别合并到同题的 `variants/template` 子包。各版本保留独立源码与测试，空练习不会被替换成主实现的测试结果。
+
+所有已接入的运行实现复用 [泛型优先队列](internal/pqueue/queue.go)：`New(less)`、`Push`、`Peek`、`Pop`。`less(a,b)` 表示 a 的优先级高于 b；Peek/Pop 前需保证非空。
+
+| 子系列 | 固定骨架 / 不变量 | 代表题 |
+| --- | --- | --- |
+| 固定容量 Top K | 入堆；大小超过 k 则移除最差候选；堆中保留当前最优 k 个 | 215、703、347、973 |
+| 双堆中位数 | 小的一半用最大堆，大的一半用最小堆；维持大小差和有序边界 | 295、480 |
+| 多路归并 | 每条有序来源只放一个当前候选；弹出后推进其来源 | 23、373、378、632 |
+| 资源与调度 | 释放已完成资源，再按策略选择可用资源；同时间事件顺序明确 | 1834、1882、2402 |
+| 动态最优候选 | 先加入所有可选候选，再取当前最优并更新后继 | 1642、630、871、767 |
+| 图上的优先扩展 | 弹出候选后检查是否过期，按题目路径代价松弛 | 743、1514、1631、407 |
+
+共同的是候选集的优先取出操作。Top K、调度、最短路径的合法性和更新顺序各有规则，下面的各节分别给出可直接迁移的模板。图状态的推导另见 [图算法](../graph/README.md)。
+
+---
+
 [返回总目录](../algorithm_templates/README.md)
 
 [扩展练习：迁移点与边界](#extended-practice) · [保留的原分类笔记](#legacy-notes)
@@ -32,7 +51,7 @@
 
 ## 2. [215. 数组中的第K个最大元素](https://leetcode.com/problems/kth-largest-element-in-an-array/)
 
-[练习](l215_template/215.go) · [测试](l215_template/215_test.go)
+[练习](l215/variants/template/215.go) · [测试](l215/variants/template/215_test.go)
 
 **题意**：返回多重集合意义的第k大，不是第k个不同值，题设1<=k<=n。
 
@@ -71,7 +90,7 @@ func findKthLargest(nums []int, k int) int {
 
 ## 3. [703. 数据流中的第K大元素](https://leetcode.com/problems/kth-largest-element-in-a-stream/)
 
-[练习](l703_template/703.go) · [测试](l703_template/703_test.go)
+[练习](l703/variants/template/703.go) · [测试](l703/variants/template/703_test.go)
 
 **题意**：初始化已有流，每次Add后返回当前第k大；题设保证调用返回时元素足够。
 
@@ -120,7 +139,7 @@ func (s *KthLargest) Add(val int) int {
 
 ## 4. [347. 前K个高频元素](https://leetcode.com/problems/top-k-frequent-elements/)
 
-[练习](l347_template/347.go) · [测试](l347_template/347_test.go)
+[练习](l347/variants/template/347.go) · [测试](l347/variants/template/347_test.go)
 
 **题意**：返回出现次数最多的k个不同值，顺序任意。
 
@@ -168,7 +187,7 @@ func topKFrequent(nums []int, k int) []int {
 
 ## 5. [973. 最接近原点的K个点](https://leetcode.com/problems/k-closest-points-to-origin/)
 
-[练习](l973_template/973.go) · [测试](l973_template/973_test.go)
+[练习](l973/variants/template/973.go) · [测试](l973/variants/template/973_test.go)
 
 **题意**：保留距离原点最近的k个点，输出顺序任意。
 
@@ -216,7 +235,7 @@ func kClosest(points [][]int, k int) [][]int {
 
 ## 6. [295. 数据流的中位数](https://leetcode.com/problems/find-median-from-data-stream/)
 
-[练习](l295_template/295.go) · [测试](l295_template/295_test.go)
+[练习](l295/variants/template/295.go) · [测试](l295/variants/template/295_test.go)
 
 **题意**：动态加入数字，查询中位数，保证查询时至少一个数字。
 

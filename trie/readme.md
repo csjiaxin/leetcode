@@ -497,6 +497,6 @@ func findWords(board [][]byte, words []string) []string {
 
 保留现有文件，不覆盖历史实现；新版练习统一放在l题号目录。
 
-- [14旧稿](14)、[1233路径分段旧稿](1233_ele)、[1268旧稿](1268)、[820旧稿](820.go)。
+- 对应练习：[14](l14/14.go)、[1233](l1233/1233.go)、[1268](l1268/1268.go)、[820](l820/820.go)。
 - [208原题](https://leetcode.com/problems/implement-trie-prefix-tree/)。
 - [原有 Google OA 讨论资料](https://leetcode.com/discuss/interview-question/350363/Google-or-OA-2018-or-Max-Distance)。
