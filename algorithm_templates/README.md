@@ -1,6 +1,6 @@
 # 算法模板总目录：先看不变量，再选择系列
 
-本仓库按状态、信息流向和合法性条件归并题目。同一题的不同实现集中在题目目录的 `variants` 中，旧草稿和原测试继续保留。目录合并不表示空函数已经完成，也不表示所有题都能共用同一条递推式。
+本仓库按状态、信息流向和合法性条件归并题目。同一题的不同实现集中在题目目录的 `variants` 中。各系列 README 展示固定模板与逐题适配，实际题解内嵌同样的模板；不同不变量保留各自子模板，避免为了统一而改变题意。
 
 ## 动态规划的八个家族
 
@@ -17,7 +17,7 @@
 | 字符串与双序列 | 两个前缀或回文区间 | max/min/计数/bool、字符关系、边界 | [strings](../dp/strings/readme.md) |
 | 跳跃题族 | 根据状态选择贪心、BFS 或 DAG DP | 可达范围、单位边、是否允许回访 | [jump_game](../dp/jump_game/README.md) |
 
-已有可执行的双前缀模板为 [Table](../dp/strings/template.go)。它统一边界和填表顺序；状态含义、转移和最终答案恢复由每题负责。
+双前缀 [Table](../dp/strings/readme.md) 统一边界和填表顺序；状态含义、转移和最终答案恢复由每题负责。每个解答文件包含自身需要的模板，不依赖仓库内的公共算法包。
 
 ## 遍历、依赖与路径
 
@@ -67,4 +67,4 @@
 4. 先写固定骨架，再只修改合法操作、转移或答案聚合。
 5. 在题目的独立包运行测试；不要以目录已整理推断实现已完成。
 
-目录迁移及验证说明见 [REORGANIZATION.md](REORGANIZATION.md)，机器可读路径表见 [reorganization.json](reorganization.json)。
+当前实现与验证说明见 [IMPLEMENTATION.md](IMPLEMENTATION.md)。此前的目录迁移说明见 [REORGANIZATION.md](REORGANIZATION.md)，机器可读路径表见 [reorganization.json](reorganization.json)。

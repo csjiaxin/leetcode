@@ -1,5 +1,162 @@
 # 贪心算法（Greedy）
 
+## 本页可复用模板：贪心与可达范围
+
+先复制以下 helper，再复制任一题适配器。实际题解在每个文件内嵌同名 helper，可独立提交，不导入仓库本地算法包。不同移动/贪心依据使用不同命名模板，不把“用了两个变量”当作同一不变量。
+
+```go
+import (
+	"container/heap"
+	"sort"
+)
+
+func RangeJumps(nums []int) int {
+	if len(nums) <= 1 {
+		return 0
+	}
+	end, farthest, steps := 0, 0, 0
+	for i := 0; i < len(nums)-1; i++ {
+		if i > farthest {
+			return -1
+		}
+		farthest = max(farthest, i+nums[i])
+		if i == end {
+			if farthest == end {
+				return -1
+			}
+			end = farthest
+			steps++
+			if end >= len(nums)-1 {
+				return steps
+			}
+		}
+	}
+	return -1
+}
+
+func MatchSorted(requirements, resources []int) int {
+	matched := 0
+	for _, resource := range resources {
+		if matched < len(requirements) && resource >= requirements[matched] {
+			matched++
+		}
+	}
+	return matched
+}
+
+func TakeByValue(items [][]int, capacity int) int {
+	sort.Slice(items, func(i, j int) bool { return items[i][1] > items[j][1] })
+	total := 0
+	for _, item := range items {
+		take := min(capacity, item[0])
+		total += take * item[1]
+		capacity -= take
+		if capacity == 0 {
+			break
+		}
+	}
+	return total
+}
+
+func SelectByEnd(intervals [][]int, separate func(start, end int) bool) int {
+	sort.Slice(intervals, func(i, j int) bool { return intervals[i][1] < intervals[j][1] })
+	chosen, end := 0, 0
+	for _, interval := range intervals {
+		if chosen == 0 || separate(interval[0], end) {
+			chosen++
+			end = interval[1]
+		}
+	}
+	return chosen
+}
+
+func CircuitStart(gas, cost []int) int {
+	if len(gas) == 0 {
+		return -1
+	}
+	total, tank, start := 0, 0, 0
+	for i, value := range gas {
+		net := value - cost[i]
+		total += net
+		tank += net
+		if tank < 0 {
+			start = i + 1
+			tank = 0
+		}
+	}
+	if total < 0 {
+		return -1
+	}
+	return start
+}
+
+func RefuelByCount(startFuel int, stations [][]int) []int64 {
+	reach := make([]int64, len(stations)+1)
+	for j := 1; j < len(reach); j++ {
+		reach[j] = -1
+	}
+	reach[0] = int64(startFuel)
+	for i, station := range stations {
+		for stops := i + 1; stops >= 1; stops-- {
+			if reach[stops-1] >= int64(station[0]) {
+				reach[stops] = max(reach[stops], reach[stops-1]+int64(station[1]))
+			}
+		}
+	}
+	return reach
+}
+
+type FuelHeap []int
+
+func (h FuelHeap) Len() int { return len(h) }
+
+func (h FuelHeap) Less(i, j int) bool { return h[i] > h[j] }
+
+func (h FuelHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
+
+func (h *FuelHeap) Push(value any) { *h = append(*h, value.(int)) }
+
+func (h *FuelHeap) Pop() any {
+	values := *h
+	last := values[len(values)-1]
+	*h = values[:len(values)-1]
+	return last
+}
+
+func GreedyRefuel(target, startFuel int, stations [][]int) int {
+	reach := int64(startFuel)
+	index, stops := 0, 0
+	candidates := &FuelHeap{}
+	heap.Init(candidates)
+	for reach < int64(target) {
+		for index < len(stations) && int64(stations[index][0]) <= reach {
+			heap.Push(candidates, stations[index][1])
+			index++
+		}
+		if candidates.Len() == 0 {
+			return -1
+		}
+		reach += int64(heap.Pop(candidates).(int))
+		stops++
+	}
+	return stops
+}
+```
+
+| 题目 | 采用的局部模板 | 实际实现 |
+| --- | --- | --- |
+| 55 | `RangeJumps` | [实际 Go 文件](l55/55.go) |
+| 45 | `RangeJumps` | [实际 Go 文件](l45/45.go) |
+| 455 | `MatchSorted` | [实际 Go 文件](l455/455.go) |
+| 1710 | `TakeByValue` | [实际 Go 文件](l1710/1710.go) |
+| 435 | `SelectByEnd` | [实际 Go 文件](interval_greedy/l435/435.go) |
+| 452 | `SelectByEnd` | [实际 Go 文件](interval_greedy/l452/452.go) |
+| 134 | `CircuitStart` | [实际 Go 文件](gas_fuel/l134/134.go) |
+| 871：按加油次数 DP | `RefuelByCount` | [实际 Go 文件](gas_fuel/l871/871.go) |
+| 871：最大堆贪心 | `FuelHeap + GreedyRefuel` | [实际 Go 文件](gas_fuel/l871/variants/practice/871.go) |
+
+为使整页 Go 示例可合并编译，重名适配器在文档中加题号/DP/Greedy 后缀；实际 Go 文件仍保留官方函数签名。链表节点等支撑类型仅在 helper 区声明一次。
+
 ## 目录
 
 - [1. 核心思想](#core)
@@ -202,3 +359,80 @@ go test ./greedy/l455 ./greedy/l1710 ./greedy/l55 ./greedy/l45 ./greedy/l435 ./g
 不要直接使用 `go test ./greedy/...` 验证未完成的练习；该路径也会包含其他已有子目录。
 
 已有的 `greedy/gas_fuel/`、`dp/jump_game/`、扩展名为空的草稿及区间专题内容全部保留；本系列不清空旧实现，也不覆盖其他练习。
+
+
+## 其余题目的模板适配器
+
+以下代码调用本页已经声明的 helper；复制到对应题解时使用实际 Go 文件中的官方函数名。
+
+### 55
+
+```go
+func canJump(nums []int) bool { return RangeJumps(nums) >= 0 }
+```
+
+### 45
+
+```go
+func jump(nums []int) int { return RangeJumps(nums) }
+```
+
+### 455
+
+```go
+func findContentChildren(g []int, s []int) int {
+	sort.Ints(g)
+	sort.Ints(s)
+	return MatchSorted(g, s)
+}
+```
+
+### 1710
+
+```go
+func maximumUnits(boxTypes [][]int, truckSize int) int { return TakeByValue(boxTypes, truckSize) }
+```
+
+### 435
+
+```go
+func eraseOverlapIntervals(intervals [][]int) int {
+	keep := SelectByEnd(intervals, func(start, end int) bool { return start >= end })
+	return len(intervals) - keep
+}
+```
+
+### 452
+
+```go
+func findMinArrowShots(points [][]int) int {
+	return SelectByEnd(points, func(start, end int) bool { return start > end })
+}
+```
+
+### 134
+
+```go
+func canCompleteCircuit(gas []int, cost []int) int { return CircuitStart(gas, cost) }
+```
+
+### 871：按加油次数 DP
+
+```go
+func minRefuelStopsDP(target int, startFuel int, stations [][]int) int {
+	for stops, reach := range RefuelByCount(startFuel, stations) {
+		if reach >= int64(target) {
+			return stops
+		}
+	}
+	return -1
+}
+```
+
+### 871：最大堆贪心
+
+```go
+func minRefuelStopsGreedy(target int, startFuel int, stations [][]int) int {
+	return GreedyRefuel(target, startFuel, stations)
+}
+```

@@ -84,20 +84,28 @@ rightMax[i] = max(height[i...n-1])
 ```go
 // trappedLayers settles a basin bottom only when both bounding walls exist.
 func trappedLayers(heights []int) int {
- stack:=[]int{};water:=0
- for right,h:=range heights {
-  for len(stack)>0 && heights[stack[len(stack)-1]]<h {
-   bottom:=stack[len(stack)-1];stack=stack[:len(stack)-1]
-   if len(stack)==0 {break}
-   left:=stack[len(stack)-1];level:=heights[left];if h<level {level=h}
-   water+=(right-left-1)*(level-heights[bottom])
-  }
-  stack=append(stack,right)
- }
- return water
+	stack := []int{}
+	water := 0
+	for right, h := range heights {
+		for len(stack) > 0 && heights[stack[len(stack)-1]] < h {
+			bottom := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			if len(stack) == 0 {
+				break
+			}
+			left := stack[len(stack)-1]
+			level := heights[left]
+			if h < level {
+				level = h
+			}
+			water += (right - left - 1) * (level - heights[bottom])
+		}
+		stack = append(stack, right)
+	}
+	return water
 }
 
-func trap(height []int) int {return trappedLayers(height)}
+func trap(height []int) int { return trappedLayers(height) }
 ```
 
 每个下标最多入栈、出栈一次，时间 O(n)，额外空间 O(n)。

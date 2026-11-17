@@ -8,6 +8,9 @@
 | --- | --- | --- |
 | [Kruskal](kruskal.go) | 边排序 → 找集合根 → 不同根才选边合并 | 已选边构成森林；用[并查集](../union_find/union_find.go)判断环 |
 | [Prim](prim.go) | 从一点开始 → 弹出最小接入边 → 跳过已加入节点 → 扩展边 | 当前已选节点构成一棵树；最便宜的跨割边安全 |
+| [稠密隐式图 Prim](l1584/1584.go) | 数组扫描最小 key → 接入节点 → 用 cost 更新其他 key | key[v] 是当前树到 v 的最小单边代价，无需显式存所有边 |
+
+下面两段展示控制流；完整可编译实现见上表链接。通用 `kruskal.go` 与 `prim.go` 组成同一个包：`MSTEdge`、`NewUnionFind` 和 `checkedAdd` 定义在 `kruskal.go`，Prim 复用其中的 `MSTEdge`／`checkedAdd`。单独复制算法时需一并带上所需声明；同包组装时每个顶层声明只保留一次，无需导入仓库内部包。
 
 ```go
 // Kruskal 骨架：edges 已按权重升序排列，uf 已初始化。
@@ -35,10 +38,79 @@ for queueNotEmpty() {
 
 | 题目／文件 | 现状与变化点 |
 | --- | --- |
-| [1584. 连接所有点的最小费用](https://leetcode.com/problems/min-cost-to-connect-all-points/) · [实现](l1584/1584.go) | 曼哈顿距离构造完全图的 Prim 旧写法，单独成包保留其 main 和堆类型 |
-| Kruskal / Prim 通用文件 | 原代码原样保留，原来缺少 NewUnionFind／checkedAdd 依赖；本次归类不补完旧草稿 |
+| [1584. 连接所有点的最小费用](https://leetcode.com/problems/min-cost-to-connect-all-points/) · [实现](l1584/1584.go) | 曼哈顿距离作为隐式完全图的 cost，调用同文件 DensePrim；保留演示 main，主解完整独立 |
+| Kruskal / Prim 通用文件 | 已补齐 NewUnionFind／checkedAdd，同包可编译；Kruskal 排序后合并，堆 Prim 选跨割边，两者均检查总权溢出及不连通 |
 
-复杂度：Kruskal 为 O(E log E)，堆 Prim 为 O(V+E log(E+1))；稠密图可考虑 O(V²) 的数组 Prim。
+复杂度：Kruskal 为 O(E log E)，堆 Prim 为 O(V+E log(E+1))；稠密图可用 O(V²) 时间、O(V) 额外空间的数组 Prim。
+
+## 稠密隐式图：固定 DensePrim 与题目适配
+
+完全图有 O(n²) 条边，但边权可以按需计算，无需先建立邻接矩阵或把所有边放入堆。先把节点0加入树，令 `key[v]=cost(0,v)`；随后反复选择树外 key 最小的节点，再以新接入节点更新其余 key。
+
+**不变量**：每轮开始时，key[v] 是树内任意节点到树外 v 的最小单边权。它是接入边的代价，不是从节点0出发的整条路径长度；更新为 `min(key[v],cost(u,v))`，不能写成 Dijkstra 的路径加法。
+
+以下 helper 要求节点编号为0..n-1、n非负，cost 对称且为每对节点提供有限边权；完全图在n>0时自然连通。边权可以为负，所有边权和最终总和须在int范围内。若需处理缺边或不连通，使用上面的通用带错误返回值版本，不能拿某个合法权值充当缺边标记。
+
+README 只声明一次 helper，选择一题适配函数接在同一 `package` 中即可；1584 主文件已包含完整副本和演示 main，可独立使用，无需仓库内部包。
+
+```go
+package template
+
+// DensePrim returns the MST cost of a complete undirected graph.
+// cost(i, j) must be symmetric, and all edge costs and their sum must fit in int.
+func DensePrim(n int, cost func(int, int) int) int {
+	if n <= 1 {
+		return 0
+	}
+	included := make([]bool, n)
+	key := make([]int, n)
+	included[0] = true
+	for vertex := 1; vertex < n; vertex++ {
+		key[vertex] = cost(0, vertex)
+	}
+	total := 0
+	for count := 1; count < n; count++ {
+		next := -1
+		for vertex := 0; vertex < n; vertex++ {
+			if !included[vertex] && (next == -1 || key[vertex] < key[next]) {
+				next = vertex
+			}
+		}
+		included[next] = true
+		total += key[next]
+		// key[v] is the cheapest single edge from the current tree to v.
+		for vertex := 0; vertex < n; vertex++ {
+			if !included[vertex] {
+				weight := cost(next, vertex)
+				if weight < key[vertex] {
+					key[vertex] = weight
+				}
+			}
+		}
+	}
+	return total
+}
+```
+
+### 1584：只提供曼哈顿距离
+
+```go
+func minCostConnectPoints(points [][]int) int {
+	return DensePrim(len(points), func(i, j int) int {
+		dx := points[i][0] - points[j][0]
+		if dx < 0 {
+			dx = -dx
+		}
+		dy := points[i][1] - points[j][1]
+		if dy < 0 {
+			dy = -dy
+		}
+		return dx + dy
+	})
+}
+```
+
+例子 `[[0,0],[2,2],[3,10],[5,2],[7,0]]` 的最小费用为20。空点集或单点为0。每次加入一点只扫描剩余节点，时间O(n²)、额外空间O(n)，不修改输入。
 
 ## 原始笔记（保留）
 

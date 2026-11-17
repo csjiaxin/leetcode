@@ -34,13 +34,16 @@
 ```go
 // windowAtMost counts valid suffixes; removing the left endpoint preserves validity.
 func windowAtMost(n int, add, remove func(int), invalid func() bool) int {
- left, count := 0, 0
- for right := 0; right < n; right++ {
-  add(right)
-  for left <= right && invalid() { remove(left); left++ }
-  count += right-left+1
- }
- return count
+	left, count := 0, 0
+	for right := 0; right < n; right++ {
+		add(right)
+		for left <= right && invalid() {
+			remove(left)
+			left++
+		}
+		count += right - left + 1
+	}
+	return count
 }
 ```
 
@@ -56,15 +59,22 @@ func windowAtMost(n int, add, remove func(int), invalid func() bool) int {
 
 ```go
 func subarraysWithKDistinct(nums []int, k int) int {
- atMost := func(limit int) int {
-  if limit < 0 { return 0 }
-  count := map[int]int{}
-  return windowAtMost(len(nums),
-   func(i int) { count[nums[i]]++ },
-   func(i int) { count[nums[i]]--; if count[nums[i]] == 0 { delete(count, nums[i]) } },
-   func() bool { return len(count) > limit })
- }
- return atMost(k)-atMost(k-1)
+	atMost := func(limit int) int {
+		if limit < 0 {
+			return 0
+		}
+		count := map[int]int{}
+		return windowAtMost(len(nums),
+			func(i int) { count[nums[i]]++ },
+			func(i int) {
+				count[nums[i]]--
+				if count[nums[i]] == 0 {
+					delete(count, nums[i])
+				}
+			},
+			func() bool { return len(count) > limit })
+	}
+	return atMost(k) - atMost(k-1)
 }
 ```
 
@@ -84,15 +94,17 @@ func subarraysWithKDistinct(nums []int, k int) int {
 
 ```go
 func numberOfSubarrays(nums []int, k int) int {
- atMost := func(limit int) int {
-  if limit < 0 { return 0 }
-  odd := 0
-  return windowAtMost(len(nums),
-   func(i int) { odd += nums[i]&1 },
-   func(i int) { odd -= nums[i]&1 },
-   func() bool { return odd > limit })
- }
- return atMost(k)-atMost(k-1)
+	atMost := func(limit int) int {
+		if limit < 0 {
+			return 0
+		}
+		odd := 0
+		return windowAtMost(len(nums),
+			func(i int) { odd += nums[i] & 1 },
+			func(i int) { odd -= nums[i] & 1 },
+			func() bool { return odd > limit })
+	}
+	return atMost(k) - atMost(k-1)
 }
 ```
 
@@ -112,15 +124,17 @@ func numberOfSubarrays(nums []int, k int) int {
 
 ```go
 func numSubarraysWithSum(nums []int, goal int) int {
- atMost := func(limit int) int {
-  if limit < 0 { return 0 }
-  sum := 0
-  return windowAtMost(len(nums),
-   func(i int) { sum += nums[i] },
-   func(i int) { sum -= nums[i] },
-   func() bool { return sum > limit })
- }
- return atMost(goal)-atMost(goal-1)
+	atMost := func(limit int) int {
+		if limit < 0 {
+			return 0
+		}
+		sum := 0
+		return windowAtMost(len(nums),
+			func(i int) { sum += nums[i] },
+			func(i int) { sum -= nums[i] },
+			func() bool { return sum > limit })
+	}
+	return atMost(goal) - atMost(goal-1)
 }
 ```
 

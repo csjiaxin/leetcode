@@ -25,7 +25,7 @@ Longest(values, initial, advance, needed)
 | [1371](https://leetcode.com/problems/find-the-longest-substring-containing-vowels-in-even-counts/) | 五种元音出现次数的奇偶 mask | 相同 mask | Longest |
 | [1248](https://leetcode.com/problems/count-number-of-nice-subarrays/) | 累计奇数个数 c | c-k | Count |
 
-实际可执行模板和五种适配示例由 [template_test.go](state_hash/template_test.go) 验证。各题原来的练习文件和测试保持原样，未完成题仍会显示其原有失败。
+实际可执行模板和五种适配示例由 [template_test.go](state_hash/template_test.go) 验证。五道题均已在源码中内嵌相应 Count 或 Longest 模板，README 中的适配器与实际实现一致。
 
 ## 差分的固定骨架
 

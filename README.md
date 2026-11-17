@@ -15,7 +15,9 @@
 | [枚举与变换](back_tracking/readme.md) | 回溯；另见[排列变换](permutation/readme.md) |
 | [字符串结构](string_match/readme.md) | KMP；另见[Trie](trie/readme.md) |
 
-同题的不同实现集中在 `l题号/variants`，原练习、历史片段和测试均保留。未完成函数依然参与测试；目录整理不等于把整个题库的所有练习补全。
+同题的不同实现集中在 `l题号/variants`。题解与 README 使用相同的系列模板，实际 `.go` 文件已内嵌所需模板，可独立复制提交；历史推导保留在各系列的 legacy 文档中。
+
+提交时省略本地测试使用的 `package l题号` 声明，保留标准库导入、官方函数和文件内模板；平台已有的节点定义沿用平台提供的版本。
 
 在仓库根目录使用 Go 模块模式。例如：
 
@@ -25,7 +27,7 @@ go test ./binary_search ./prefix_sum/state_hash
 python3 tools/check_catalog.py
 ```
 
-全量 `go test ./...` 包含原有空函数和历史草稿，已知会有失败；本次整理的验证边界见迁移记录。
+最新源码改写、文档重组验证与单文件编译结果见 [模板实现记录](algorithm_templates/IMPLEMENTATION.md)；此前的目录移动记录单独保留。
 
 ## 原有参考资料
 

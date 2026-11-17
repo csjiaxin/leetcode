@@ -6,6 +6,8 @@
 
 下文只声明一次模板，逐题代码块调用它；组合模板与任一题适配即可使用。实际单题文件已包含两者，可直接单文件提交，同一个包只保留一份模板声明。另保留 [200 的旧写法](l200/variants/legacy/200)，不会覆盖当前带测试的版本。
 
+130 保留本仓库原有的“返回新棋盘、输入只读”接口；原题要求原地修改时，可使用 [BFS 130 的原地版本](../../bfs/l130/130.go)。内联模板解决文件依赖，提交时仍需采用目标接口的修改语义。
+
 ## 目录
 
 - [1. 核心模型与不变量](#model)
@@ -221,3 +223,304 @@ go test -count=1 -cover ./graph/dfs/grid/...
 测试覆盖空网格、单格、单行/单列、对角不连通、全水全陆、边界通道、同色填充、无效子岛屿与邻岛去重；695 直接验证模板先标记、每格一次、重复起点无效。827 对所有行列数均为 1～3 的二值网格做独立暴力 BFS 对照。
 
 **一句话：原图只读，visited 永久记录访问历史；一次 Flood Fill 消化一个连通块，回调只负责汇总题目信息。**
+
+## 9. 其余七题的完整模板适配
+
+695 的完整示例见第 2 节；下列函数继续只填写 canEnter、visit 和答案汇总，统一调用前面已声明的 FloodFill。文档组合模板与任一适配即可使用，实际单题主文件已经同时包含两者。
+
+### 733：[本地完整文件](l733/733.go)
+
+```go
+// https://leetcode.com/problems/flood-fill/
+// 返回逐行复制的新图像，即使新旧颜色相同也不与输入共享行。
+func floodFill(image [][]int, sr, sc, color int) [][]int {
+	if image == nil {
+		return nil
+	}
+	result := make([][]int, len(image))
+	for r := range image {
+		if image[r] != nil {
+			result[r] = append(make([]int, 0, len(image[r])), image[r]...)
+		}
+	}
+	if len(image) == 0 || len(image[0]) == 0 {
+		return result
+	}
+	rows, cols := len(image), len(image[0])
+	if sr < 0 || sr >= rows || sc < 0 || sc >= cols {
+		return result
+	}
+	visited := make([][]bool, rows)
+	for r := range visited {
+		visited[r] = make([]bool, cols)
+	}
+	original := image[sr][sc]
+	FloodFill(rows, cols, sr, sc, visited,
+		func(r, c int) bool { return image[r][c] == original },
+		func(r, c int) { result[r][c] = color },
+	)
+	return result
+}
+```
+
+### 200：[本地完整文件](l200/200.go)
+
+```go
+// https://leetcode.com/problems/number-of-islands/
+func numIslands(grid [][]byte) int {
+	if len(grid) == 0 || len(grid[0]) == 0 {
+		return 0
+	}
+	rows, cols := len(grid), len(grid[0])
+	visited := make([][]bool, rows)
+	for r := range visited {
+		visited[r] = make([]bool, cols)
+	}
+	count := 0
+	for r := 0; r < rows; r++ {
+		for c := 0; c < cols; c++ {
+			if grid[r][c] != '1' || visited[r][c] {
+				continue
+			}
+			count++
+			FloodFill(rows, cols, r, c, visited,
+				func(r, c int) bool { return grid[r][c] == '1' },
+				func(r, c int) {},
+			)
+		}
+	}
+	return count
+}
+```
+
+### 1020：[本地完整文件](l1020/1020.go)
+
+```go
+// https://leetcode.com/problems/number-of-enclaves/
+func numEnclaves(grid [][]int) int {
+	if len(grid) == 0 || len(grid[0]) == 0 {
+		return 0
+	}
+	rows, cols := len(grid), len(grid[0])
+	visited := make([][]bool, rows)
+	for r := range visited {
+		visited[r] = make([]bool, cols)
+	}
+	markBoundary := func(r, c int) {
+		FloodFill(rows, cols, r, c, visited,
+			func(r, c int) bool { return grid[r][c] == 1 },
+			func(r, c int) {},
+		)
+	}
+	for r := 0; r < rows; r++ {
+		markBoundary(r, 0)
+		markBoundary(r, cols-1)
+	}
+	for c := 0; c < cols; c++ {
+		markBoundary(0, c)
+		markBoundary(rows-1, c)
+	}
+	count := 0
+	for r := 0; r < rows; r++ {
+		for c := 0; c < cols; c++ {
+			// 数剩余格子，不是连通块数。
+			if grid[r][c] == 1 && !visited[r][c] {
+				count++
+			}
+		}
+	}
+	return count
+}
+```
+
+### 1254：[本地完整文件](l1254/1254.go)
+
+```go
+// https://leetcode.com/problems/number-of-closed-islands/
+func closedIsland(grid [][]int) int {
+	if len(grid) == 0 || len(grid[0]) == 0 {
+		return 0
+	}
+	rows, cols := len(grid), len(grid[0])
+	visited := make([][]bool, rows)
+	for r := range visited {
+		visited[r] = make([]bool, cols)
+	}
+	fill := func(r, c int) {
+		FloodFill(rows, cols, r, c, visited,
+			func(r, c int) bool { return grid[r][c] == 0 },
+			func(r, c int) {},
+		)
+	}
+	// 此题 0 是陆地，先标记与边界相连的陆地。
+	for r := 0; r < rows; r++ {
+		fill(r, 0)
+		fill(r, cols-1)
+	}
+	for c := 0; c < cols; c++ {
+		fill(0, c)
+		fill(rows-1, c)
+	}
+	count := 0
+	for r := 0; r < rows; r++ {
+		for c := 0; c < cols; c++ {
+			if grid[r][c] == 0 && !visited[r][c] {
+				count++
+				fill(r, c)
+			}
+		}
+	}
+	return count
+}
+```
+
+### 130：[本地完整文件](l130/130.go)
+
+```go
+// https://leetcode.com/problems/surrounded-regions/
+// 非原地版本：不同于 LeetCode 的原地 solve 接口，本函数返回新棋盘。
+func solve(board [][]byte) [][]byte {
+	if board == nil {
+		return nil
+	}
+	result := make([][]byte, len(board))
+	for r := range board {
+		if board[r] != nil {
+			result[r] = append(make([]byte, 0, len(board[r])), board[r]...)
+		}
+	}
+	if len(board) == 0 || len(board[0]) == 0 {
+		return result
+	}
+	rows, cols := len(board), len(board[0])
+	visited := make([][]bool, rows)
+	for r := range visited {
+		visited[r] = make([]bool, cols)
+	}
+	markSafe := func(r, c int) {
+		FloodFill(rows, cols, r, c, visited,
+			func(r, c int) bool { return board[r][c] == 'O' },
+			func(r, c int) {},
+		)
+	}
+	for r := 0; r < rows; r++ {
+		markSafe(r, 0)
+		markSafe(r, cols-1)
+	}
+	for c := 0; c < cols; c++ {
+		markSafe(0, c)
+		markSafe(rows-1, c)
+	}
+	for r := 0; r < rows; r++ {
+		for c := 0; c < cols; c++ {
+			if board[r][c] == 'O' && !visited[r][c] {
+				result[r][c] = 'X'
+			}
+		}
+	}
+	return result
+}
+```
+
+### 1905：[本地完整文件](l1905/1905.go)
+
+```go
+// https://leetcode.com/problems/count-sub-islands/
+// grid1、grid2 为同形矩形网格，二者均不修改。
+func countSubIslands(grid1, grid2 [][]int) int {
+	if len(grid2) == 0 || len(grid2[0]) == 0 {
+		return 0
+	}
+	rows, cols := len(grid2), len(grid2[0])
+	visited := make([][]bool, rows)
+	for r := range visited {
+		visited[r] = make([]bool, cols)
+	}
+	count := 0
+	for r := 0; r < rows; r++ {
+		for c := 0; c < cols; c++ {
+			if grid2[r][c] != 1 || visited[r][c] {
+				continue
+			}
+			valid := true
+			FloodFill(rows, cols, r, c, visited,
+				func(r, c int) bool { return grid2[r][c] == 1 },
+				func(r, c int) {
+					// 只改变判定，不提前停止整块遍历。
+					if grid1[r][c] != 1 {
+						valid = false
+					}
+				},
+			)
+			if valid {
+				count++
+			}
+		}
+	}
+	return count
+}
+```
+
+### 827：[本地完整文件](l827/827.go)
+
+```go
+// https://leetcode.com/problems/making-a-large-island/
+func largestIsland(grid [][]int) int {
+	if len(grid) == 0 || len(grid[0]) == 0 {
+		return 0
+	}
+	rows, cols := len(grid), len(grid[0])
+	visited := make([][]bool, rows)
+	labels := make([][]int, rows)
+	for r := range visited {
+		visited[r] = make([]bool, cols)
+		labels[r] = make([]int, cols)
+	}
+	areas := map[int]int{}
+	id, best := 0, 0
+	for r := 0; r < rows; r++ {
+		for c := 0; c < cols; c++ {
+			if grid[r][c] != 1 || visited[r][c] {
+				continue
+			}
+			id++
+			FloodFill(rows, cols, r, c, visited,
+				func(r, c int) bool { return grid[r][c] == 1 },
+				func(r, c int) {
+					labels[r][c] = id
+					areas[id]++
+				},
+			)
+			if areas[id] > best {
+				best = areas[id]
+			}
+		}
+	}
+	directions := [4][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}
+	for r := 0; r < rows; r++ {
+		for c := 0; c < cols; c++ {
+			if grid[r][c] != 0 {
+				continue
+			}
+			area := 1
+			seen := map[int]bool{}
+			for _, d := range directions {
+				nr, nc := r+d[0], c+d[1]
+				if nr < 0 || nr >= rows || nc < 0 || nc >= cols {
+					continue
+				}
+				neighborID := labels[nr][nc]
+				// 按编号去重：同一块不能重复，不同块面积相同也都要加。
+				if neighborID != 0 && !seen[neighborID] {
+					seen[neighborID] = true
+					area += areas[neighborID]
+				}
+			}
+			if area > best {
+				best = area
+			}
+		}
+	}
+	return best
+}
+```

@@ -30,3 +30,56 @@
 
 ---
 
+
+
+## 本页可复用模板：按结束位置选择区间
+
+先复制以下 helper，再复制任一题适配器。实际题解在每个文件内嵌同名 helper，可独立提交，不导入仓库本地算法包。不同移动/贪心依据使用不同命名模板，不把“用了两个变量”当作同一不变量。
+
+```go
+import (
+	"sort"
+)
+
+func SelectByEnd(intervals [][]int, separate func(start, end int) bool) int {
+	sort.Slice(intervals, func(i, j int) bool { return intervals[i][1] < intervals[j][1] })
+	chosen, end := 0, 0
+	for _, interval := range intervals {
+		if chosen == 0 || separate(interval[0], end) {
+			chosen++
+			end = interval[1]
+		}
+	}
+	return chosen
+}
+```
+
+| 题目 | 采用的局部模板 | 实际实现 |
+| --- | --- | --- |
+| 435 | `SelectByEnd` | [实际 Go 文件](l435/435.go) |
+| 452 | `SelectByEnd` | [实际 Go 文件](l452/452.go) |
+
+为使整页 Go 示例可合并编译，重名适配器在文档中加题号/DP/Greedy 后缀；实际 Go 文件仍保留官方函数签名。链表节点等支撑类型仅在 helper 区声明一次。
+
+
+## 其余题目的模板适配器
+
+以下代码调用本页已经声明的 helper；复制到对应题解时使用实际 Go 文件中的官方函数名。
+
+### 435
+
+```go
+func eraseOverlapIntervals(intervals [][]int) int {
+	keep := SelectByEnd(intervals, func(start, end int) bool { return start >= end })
+	return len(intervals) - keep
+}
+```
+
+### 452
+
+```go
+func findMinArrowShots(points [][]int) int {
+	return SelectByEnd(points, func(start, end int) bool { return start > end })
+}
+```
+

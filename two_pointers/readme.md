@@ -1,5 +1,315 @@
 # 双指针（Two Pointers）
 
+## 本页可复用模板：双指针与确定后继
+
+先复制以下 helper，再复制任一题适配器。实际题解在每个文件内嵌同名 helper，可独立提交，不导入仓库本地算法包。不同移动/贪心依据使用不同命名模板，不把“用了两个变量”当作同一不变量。
+
+```go
+import (
+	"sort"
+	"strconv"
+)
+
+func Compact(nums []int, keep func(out []int, value int) bool) int {
+	write := 0
+	for _, value := range nums {
+		if keep(nums[:write], value) {
+			nums[write] = value
+			write++
+		}
+	}
+	return write
+}
+
+func Opposite(left, right int, step func(l, r int) (int, int)) (int, int) {
+	for left < right {
+		left, right = step(left, right)
+	}
+	return left, right
+}
+
+func Distance(a, b int64) int64 {
+	if a > b {
+		return a - b
+	}
+	return b - a
+}
+
+func Vowel(c byte) bool {
+	switch c {
+	case 'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U':
+		return true
+	}
+	return false
+}
+
+func Alnum(c byte) bool { return c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' }
+
+func Lower(c byte) byte {
+	if c >= 'A' && c <= 'Z' {
+		return c + ('a' - 'A')
+	}
+	return c
+}
+
+func PalindromeRange(s string, l, r int) bool {
+	answer := true
+	Opposite(l, r, func(l, r int) (int, int) {
+		if s[l] != s[r] {
+			answer = false
+			return r, r
+		}
+		return l + 1, r - 1
+	})
+	return answer
+}
+
+func AdvanceTwo(n, m int, step func(i, j int) (int, int)) (int, int) {
+	i, j := 0, 0
+	for i < n && j < m {
+		i, j = step(i, j)
+	}
+	return i, j
+}
+
+func MergeBack(dst []int, m int, src []int, n int) {
+	i, j, write := m-1, n-1, m+n-1
+	for j >= 0 {
+		if i >= 0 && dst[i] > src[j] {
+			dst[write] = dst[i]
+			i--
+		} else {
+			dst[write] = src[j]
+			j--
+		}
+		write--
+	}
+}
+
+func PreviousVisible(s string, i int) int {
+	skipped := 0
+	for i >= 0 {
+		if s[i] == '#' {
+			skipped++
+			i--
+		} else if skipped > 0 {
+			skipped--
+			i--
+		} else {
+			break
+		}
+	}
+	return i
+}
+
+func ForRuns[T comparable](values []T, visit func(start, end int)) {
+	for start := 0; start < len(values); {
+		end := start + 1
+		for end < len(values) && values[end] == values[start] {
+			end++
+		}
+		visit(start, end)
+		start = end
+	}
+}
+
+func Partition(nums []int, keepLeft func(int) bool) int {
+	left, right := 0, len(nums)-1
+	for left <= right {
+		if keepLeft(nums[left]) {
+			left++
+			continue
+		}
+		nums[left], nums[right] = nums[right], nums[left]
+		right--
+	}
+	return left
+}
+
+func ThreeWayPartition(nums []int, pivot int) {
+	low, scan, high := 0, 0, len(nums)-1
+	for scan <= high {
+		if nums[scan] < pivot {
+			nums[low], nums[scan] = nums[scan], nums[low]
+			low++
+			scan++
+		} else if nums[scan] > pivot {
+			nums[scan], nums[high] = nums[high], nums[scan]
+			high--
+		} else {
+			scan++
+		}
+	}
+}
+
+func ChooseEnds(n int, chooseLow func(i int) bool) []int {
+	answer := make([]int, n+1)
+	low, high := 0, n
+	for i := 0; i < n; i++ {
+		if chooseLow(i) {
+			answer[i] = low
+			low++
+		} else {
+			answer[i] = high
+			high--
+		}
+	}
+	answer[n] = low
+	return answer
+}
+
+type ListNode struct {
+	Val  int
+	Next *ListNode
+}
+
+func Floyd[S comparable](start S, next func(S) (S, bool)) (S, bool) {
+	slow, fast := start, start
+	for {
+		var ok bool
+		fast, ok = next(fast)
+		if !ok {
+			var zero S
+			return zero, false
+		}
+		fast, ok = next(fast)
+		if !ok {
+			var zero S
+			return zero, false
+		}
+		slow, ok = next(slow)
+		if !ok {
+			var zero S
+			return zero, false
+		}
+		if slow == fast {
+			return slow, true
+		}
+	}
+}
+
+func NodeStep(node *ListNode) (*ListNode, bool) {
+	if node == nil || node.Next == nil {
+		return nil, false
+	}
+	return node.Next, true
+}
+
+func CycleEntry[S comparable](start S, next func(S) (S, bool)) (S, bool) {
+	meeting, ok := Floyd(start, next)
+	if !ok {
+		var zero S
+		return zero, false
+	}
+	for start != meeting {
+		start, _ = next(start)
+		meeting, _ = next(meeting)
+	}
+	return start, true
+}
+
+func Middle(head *ListNode) *ListNode {
+	slow, fast := head, head
+	for fast != nil && fast.Next != nil {
+		slow = slow.Next
+		fast = fast.Next.Next
+	}
+	return slow
+}
+
+func ReverseList(head *ListNode) *ListNode {
+	var previous *ListNode
+	for head != nil {
+		next := head.Next
+		head.Next = previous
+		previous = head
+		head = next
+	}
+	return previous
+}
+
+func NthPredecessor(dummy *ListNode, n int) *ListNode {
+	if n <= 0 {
+		return nil
+	}
+	runner := dummy
+	for step := 0; step < n; step++ {
+		if runner.Next == nil {
+			return nil
+		}
+		runner = runner.Next
+	}
+	previous := dummy
+	for runner.Next != nil {
+		runner = runner.Next
+		previous = previous.Next
+	}
+	return previous
+}
+
+// joinSortedEnds removes one middle segment, not an arbitrary subsequence.
+func joinSortedEnds(arr []int) int {
+	n := len(arr)
+	if n < 2 {
+		return 0
+	}
+	right := n - 1
+	for right > 0 && arr[right-1] <= arr[right] {
+		right--
+	}
+	if right == 0 {
+		return 0
+	}
+	best := right
+	for left := 0; left < right && (left == 0 || arr[left-1] <= arr[left]); left++ {
+		for right < n && arr[left] > arr[right] {
+			right++
+		}
+		if length := right - left - 1; length < best {
+			best = length
+		}
+	}
+	return best
+}
+```
+
+| 题目 | 采用的局部模板 | 实际实现 |
+| --- | --- | --- |
+| 26 | `Compact` | [实际 Go 文件](l26/26.go) |
+| 80 | `Compact` | [实际 Go 文件](l80/80.go) |
+| 27 | `Compact` | [实际 Go 文件](l27/27.go) |
+| 283 | `Compact` | [实际 Go 文件](l283/283.go) |
+| 167 | `Opposite` | [实际 Go 文件](l167/167.go) |
+| 15 | `Opposite` | [实际 Go 文件](l15/15.go) |
+| 16 | `Opposite + Distance` | [实际 Go 文件](l16/16.go) |
+| 18 | `Opposite` | [实际 Go 文件](l18/18.go) |
+| 611 | `Opposite` | [实际 Go 文件](l611/611.go) |
+| 11 | `Opposite` | [实际 Go 文件](l11/11.go) |
+| 42 | `Opposite` | [实际 Go 文件](l42/42.go) |
+| 344 | `Opposite` | [实际 Go 文件](l344/344.go) |
+| 345 | `Opposite + Vowel` | [实际 Go 文件](l345/345.go) |
+| 125 | `Opposite + Alnum + Lower` | [实际 Go 文件](l125/125.go) |
+| 680 | `Opposite + PalindromeRange` | [实际 Go 文件](l680/680.go) |
+| 977 | `Opposite` | [实际 Go 文件](l977/977.go) |
+| 392 | `AdvanceTwo` | [实际 Go 文件](l392/392.go) |
+| 986 | `AdvanceTwo` | [实际 Go 文件](l986/986.go) |
+| 88 | `MergeBack` | [实际 Go 文件](l88/88.go) |
+| 844 | `PreviousVisible` | [实际 Go 文件](l844/844.go) |
+| 443 | `ForRuns` | [实际 Go 文件](l443/443.go) |
+| 905 | `Partition` | [实际 Go 文件](l905/905.go) |
+| 75 | `ThreeWayPartition` | [实际 Go 文件](l75/75.go) |
+| 942 | `ChooseEnds` | [实际 Go 文件](l942/942.go) |
+| 141 | `Floyd + NodeStep` | [实际 Go 文件](l141/141.go) |
+| 142 | `Floyd + CycleEntry + NodeStep` | [实际 Go 文件](l142/142.go) |
+| 202 | `Floyd` | [实际 Go 文件](l202/202.go) |
+| 287 | `Floyd + CycleEntry` | [实际 Go 文件](l287/287.go) |
+| 876 | `Middle` | [实际 Go 文件](l876/876.go) |
+| 234 | `Middle + ReverseList` | [实际 Go 文件](l234/234.go) |
+| 19 | `NthPredecessor` | [实际 Go 文件](l19/19.go) |
+| 1574：拼接有序前后缀 | `joinSortedEnds` | [实际 Go 文件](l1574/legacy/1574.go) |
+
+为使整页 Go 示例可合并编译，重名适配器在文档中加题号/DP/Greedy 后缀；实际 Go 文件仍保留官方函数签名。链表节点等支撑类型仅在 helper 区声明一次。
+
 双指针的核心不是“定义两个下标”，而是利用顺序、单调性或结构关系，让指针协同移动，避免重复枚举。
 
 题单入口：[LeetCode Two Pointers](https://leetcode.com/problem-list/two-pointers/)。本文按经典模型整理代表题，不是该动态题单的完整枚举。
@@ -90,14 +400,7 @@
 
 ```go
 func removeElement(nums []int, val int) int {
-	write := 0
-	for _, x := range nums {
-		if x != val {
-			nums[write] = x
-			write++
-		}
-	}
-	return write
+	return Compact(nums, func(_ []int, value int) bool { return value != val })
 }
 ```
 
@@ -106,16 +409,11 @@ func removeElement(nums []int, val int) int {
 ### 26 / 80：统一为最多保留 k 次
 
 ```go
-// 前提：nums 有序，k >= 1。结果保存在 nums[:write]。
 func keepAtMostK(nums []int, k int) int {
-	write := 0
-	for _, x := range nums {
-		if write < k || x != nums[write-k] {
-			nums[write] = x
-			write++
-		}
+	if k <= 0 {
+		return 0
 	}
-	return write
+	return Compact(nums, func(out []int, value int) bool { return len(out) < k || out[len(out)-k] != value })
 }
 ```
 
@@ -182,12 +480,9 @@ func keepAtMostK(nums []int, k int) int {
 ### Go 模板
 
 ```go
-import "sort"
-
-// 会原地排序 nums；需要保留输入时，先复制切片。
 func threeSum(nums []int) [][]int {
 	sort.Ints(nums)
-	ans := make([][]int, 0)
+	answer := [][]int{}
 	for i := 0; i+2 < len(nums); i++ {
 		if nums[i] > 0 {
 			break
@@ -195,29 +490,27 @@ func threeSum(nums []int) [][]int {
 		if i > 0 && nums[i] == nums[i-1] {
 			continue
 		}
-		l, r := i+1, len(nums)-1
-		for l < r {
-			// 在加法前转换，避免先用 int 求和再转换。
+		Opposite(i+1, len(nums)-1, func(l, r int) (int, int) {
 			sum := int64(nums[i]) + int64(nums[l]) + int64(nums[r])
-			switch {
-			case sum < 0:
-				l++
-			case sum > 0:
-				r--
-			default:
-				ans = append(ans, []int{nums[i], nums[l], nums[r]})
-				l++
-				r--
-				for l < r && nums[l] == nums[l-1] {
-					l++
-				}
-				for l < r && nums[r] == nums[r+1] {
-					r--
-				}
+			if sum < 0 {
+				return l + 1, r
 			}
-		}
+			if sum > 0 {
+				return l, r - 1
+			}
+			answer = append(answer, []int{nums[i], nums[l], nums[r]})
+			l++
+			r--
+			for l < r && nums[l] == nums[l-1] {
+				l++
+			}
+			for l < r && nums[r] == nums[r+1] {
+				r--
+			}
+			return l, r
+		})
 	}
-	return ans
+	return answer
 }
 ```
 
@@ -270,23 +563,15 @@ area(l,r') <= height[l] × (r'-l)
 
 ```go
 func maxArea(height []int) int {
-	l, r, best := 0, len(height)-1, 0
-	for l < r {
-		h := height[l]
-		if height[r] < h {
-			h = height[r]
-		}
-		area := h * (r - l)
-		if area > best {
-			best = area
-		}
+	answer := 0
+	Opposite(0, len(height)-1, func(l, r int) (int, int) {
+		answer = max(answer, (r-l)*min(height[l], height[r]))
 		if height[l] <= height[r] {
-			l++
-		} else {
-			r--
+			return l + 1, r
 		}
-	}
-	return best
+		return l, r - 1
+	})
+	return answer
 }
 ```
 
@@ -336,24 +621,18 @@ func maxArea(height []int) int {
 
 ```go
 func trap(height []int) int {
-	l, r := 0, len(height)-1
-	leftMax, rightMax, water := 0, 0, 0
-	for l <= r {
-		if height[l] > leftMax {
-			leftMax = height[l]
+	leftMax, rightMax, answer := 0, 0, 0
+	Opposite(0, len(height)-1, func(l, r int) (int, int) {
+		if height[l] <= height[r] {
+			leftMax = max(leftMax, height[l])
+			answer += leftMax - height[l]
+			return l + 1, r
 		}
-		if height[r] > rightMax {
-			rightMax = height[r]
-		}
-		if leftMax <= rightMax {
-			water += leftMax - height[l]
-			l++
-		} else {
-			water += rightMax - height[r]
-			r--
-		}
-	}
-	return water
+		rightMax = max(rightMax, height[r])
+		answer += rightMax - height[r]
+		return l, r - 1
+	})
+	return answer
 }
 ```
 
@@ -412,28 +691,7 @@ func trap(height []int) int {
 ### Go 模板
 
 ```go
-// LeetCode 已提供 ListNode，提交时不要重复定义。
-type ListNode struct {
-	Val  int
-	Next *ListNode
-}
-
-func detectCycle(head *ListNode) *ListNode {
-	slow, fast := head, head
-	for fast != nil && fast.Next != nil {
-		slow = slow.Next
-		fast = fast.Next.Next
-		if slow == fast {
-			entry := head
-			for entry != slow {
-				entry = entry.Next
-				slow = slow.Next
-			}
-			return entry
-		}
-	}
-	return nil
-}
+func detectCycle(head *ListNode) *ListNode { entry, _ := CycleEntry(head, NodeStep); return entry }
 ```
 
 时间 O(n)，额外空间 O(1)。判断节点是否相同必须比较指针，不能比较 Val；不同节点的值可能相同。题目中的 pos 只是描述尾节点连接位置，不是函数入参。
@@ -499,22 +757,7 @@ fast 距离   = 2*s
 ```
 
 ```go
-func sortColors(nums []int) {
-	low, i, high := 0, 0, len(nums)-1
-	for i <= high {
-		switch nums[i] {
-		case 0:
-			nums[low], nums[i] = nums[i], nums[low]
-			low++
-			i++
-		case 1:
-			i++
-		case 2:
-			nums[i], nums[high] = nums[high], nums[i]
-			high--
-		}
-	}
-}
+func sortColors(nums []int) { ThreeWayPartition(nums, 1) }
 ```
 
 时间 O(n)，额外空间 O(1)。前提是元素只有 0、1、2。**交换到右边之后不执行 i++**，因为换回来的元素尚未处理。
@@ -576,7 +819,7 @@ RainWater：
 
 读写模板的移动规则可以复用，但保留条件必须由题目决定：
 
-```go
+```text
 write := 0
 for read, value := range nums {
     // 此时 write <= read；nums[:write] 是已处理部分的正确结果。
@@ -589,6 +832,417 @@ for read, value := range nums {
 // 有效结果为 nums[:write]；keep 是题目提供的保留条件。
 ```
 
-`rainwater/l11` 已移至 [l11](l11)；原可运行的 42 演示完整保存在 [l42/variants/from_rainwater](l42/variants/from_rainwater)，主目录 [l42](l42) 的独立练习和原测试仍保留。接雨水的单调栈版本仍在 [monotonic_stack/l42](../monotonic_stack/l42)，因为它按凹槽层而非两侧水位结算，不合并成一个强制共用的循环。
+`rainwater/l11` 已移至 [l11](l11)；原可运行的 42 演示完整保存在 [l42/variants/from_rainwater](l42/variants/from_rainwater)，主目录 [l42](l42) 的独立练习和原测试现也使用同一 Opposite 模板。接雨水的单调栈版本仍在 [monotonic_stack/l42](../monotonic_stack/l42)，因为它按凹槽层而非两侧水位结算，不合并成一个强制共用的循环。
 
-历史重复练习放在目标题目的 `variants/from_two_pointers`，仍是独立 Go 包；未完成的 panic、缺失返回和原测试不隐藏、不重定向。路径映射和已知未完成包见 [reorganization.json](reorganization.json)。
+历史重复练习放在目标题目的 `variants/from_two_pointers`，仍是独立 Go 包；各来源现均按相同子模板独立实现，并运行原测试，不通过隐藏练习文件制造通过。路径映射和已知未完成包见 [reorganization.json](reorganization.json)。
+
+
+## 其余题目的模板适配器
+
+以下代码调用本页已经声明的 helper；复制到对应题解时使用实际 Go 文件中的官方函数名。
+
+### 26
+
+```go
+func removeDuplicates26(nums []int) int {
+	return Compact(nums, func(out []int, value int) bool { return len(out) < 1 || value != out[len(out)-1] })
+}
+```
+
+### 80
+
+```go
+func removeDuplicates80(nums []int) int {
+	return Compact(nums, func(out []int, value int) bool { return len(out) < 2 || value != out[len(out)-2] })
+}
+```
+
+### 283
+
+```go
+func moveZeroes(nums []int) {
+	length := Compact(nums, func(_ []int, value int) bool { return value != 0 })
+	for i := length; i < len(nums); i++ {
+		nums[i] = 0
+	}
+}
+```
+
+### 167
+
+```go
+func twoSum(numbers []int, target int) []int {
+	result := []int{}
+	Opposite(0, len(numbers)-1, func(l, r int) (int, int) {
+		sum := int64(numbers[l]) + int64(numbers[r])
+		if sum < int64(target) {
+			return l + 1, r
+		}
+		if sum > int64(target) {
+			return l, r - 1
+		}
+		result = []int{l + 1, r + 1}
+		return r, r
+	})
+	return result
+}
+```
+
+### 16
+
+```go
+func threeSumClosest(nums []int, target int) int {
+	if len(nums) < 3 {
+		return 0
+	}
+	sort.Ints(nums)
+	desired := int64(target)
+	best := int64(nums[0]) + int64(nums[1]) + int64(nums[2])
+	for i := 0; i+2 < len(nums); i++ {
+		if i > 0 && nums[i] == nums[i-1] {
+			continue
+		}
+		Opposite(i+1, len(nums)-1, func(l, r int) (int, int) {
+			sum := int64(nums[i]) + int64(nums[l]) + int64(nums[r])
+			if Distance(sum, desired) < Distance(best, desired) {
+				best = sum
+			}
+			if sum < desired {
+				return l + 1, r
+			}
+			if sum > desired {
+				return l, r - 1
+			}
+			return r, r
+		})
+		if best == desired {
+			break
+		}
+	}
+	return int(best)
+}
+```
+
+### 18
+
+```go
+func fourSum(nums []int, target int) [][]int {
+	sort.Ints(nums)
+	answer := [][]int{}
+	for i := 0; i+3 < len(nums); i++ {
+		if i > 0 && nums[i] == nums[i-1] {
+			continue
+		}
+		for j := i + 1; j+2 < len(nums); j++ {
+			if j > i+1 && nums[j] == nums[j-1] {
+				continue
+			}
+			Opposite(j+1, len(nums)-1, func(l, r int) (int, int) {
+				sum := int64(nums[i]) + int64(nums[j]) + int64(nums[l]) + int64(nums[r])
+				if sum < int64(target) {
+					return l + 1, r
+				}
+				if sum > int64(target) {
+					return l, r - 1
+				}
+				answer = append(answer, []int{nums[i], nums[j], nums[l], nums[r]})
+				l++
+				r--
+				for l < r && nums[l] == nums[l-1] {
+					l++
+				}
+				for l < r && nums[r] == nums[r+1] {
+					r--
+				}
+				return l, r
+			})
+		}
+	}
+	return answer
+}
+```
+
+### 611
+
+```go
+func triangleNumber(nums []int) int {
+	sort.Ints(nums)
+	answer := 0
+	for largest := 2; largest < len(nums); largest++ {
+		Opposite(0, largest-1, func(l, r int) (int, int) {
+			if int64(nums[l])+int64(nums[r]) > int64(nums[largest]) {
+				answer += r - l
+				return l, r - 1
+			}
+			return l + 1, r
+		})
+	}
+	return answer
+}
+```
+
+### 344
+
+```go
+func reverseString(s []byte) {
+	Opposite(0, len(s)-1, func(l, r int) (int, int) { s[l], s[r] = s[r], s[l]; return l + 1, r - 1 })
+}
+```
+
+### 345
+
+```go
+func reverseVowels(s string) string {
+	data := []byte(s)
+	Opposite(0, len(data)-1, func(l, r int) (int, int) {
+		if !Vowel(data[l]) {
+			return l + 1, r
+		}
+		if !Vowel(data[r]) {
+			return l, r - 1
+		}
+		data[l], data[r] = data[r], data[l]
+		return l + 1, r - 1
+	})
+	return string(data)
+}
+```
+
+### 125
+
+```go
+func isPalindrome125(s string) bool {
+	answer := true
+	Opposite(0, len(s)-1, func(l, r int) (int, int) {
+		if !Alnum(s[l]) {
+			return l + 1, r
+		}
+		if !Alnum(s[r]) {
+			return l, r - 1
+		}
+		if Lower(s[l]) != Lower(s[r]) {
+			answer = false
+			return r, r
+		}
+		return l + 1, r - 1
+	})
+	return answer
+}
+```
+
+### 680
+
+```go
+func validPalindrome(s string) bool {
+	answer := true
+	Opposite(0, len(s)-1, func(l, r int) (int, int) {
+		if s[l] != s[r] {
+			answer = PalindromeRange(s, l+1, r) || PalindromeRange(s, l, r-1)
+			return r, r
+		}
+		return l + 1, r - 1
+	})
+	return answer
+}
+```
+
+### 977
+
+```go
+func sortedSquares(nums []int) []int {
+	answer := make([]int, len(nums))
+	write := len(nums) - 1
+	l, _ := Opposite(0, len(nums)-1, func(l, r int) (int, int) {
+		a, b := nums[l]*nums[l], nums[r]*nums[r]
+		if a > b {
+			answer[write] = a
+			write--
+			return l + 1, r
+		}
+		answer[write] = b
+		write--
+		return l, r - 1
+	})
+	if len(nums) > 0 {
+		answer[0] = nums[l] * nums[l]
+	}
+	return answer
+}
+```
+
+### 392
+
+```go
+func isSubsequence(s string, t string) bool {
+	matched, _ := AdvanceTwo(len(s), len(t), func(i, j int) (int, int) {
+		if s[i] == t[j] {
+			return i + 1, j + 1
+		}
+		return i, j + 1
+	})
+	return matched == len(s)
+}
+```
+
+### 986
+
+```go
+func intervalIntersection(firstList [][]int, secondList [][]int) [][]int {
+	answer := [][]int{}
+	AdvanceTwo(len(firstList), len(secondList), func(i, j int) (int, int) {
+		left, right := max(firstList[i][0], secondList[j][0]), min(firstList[i][1], secondList[j][1])
+		if left <= right {
+			answer = append(answer, []int{left, right})
+		}
+		if firstList[i][1] < secondList[j][1] {
+			return i + 1, j
+		}
+		if firstList[i][1] > secondList[j][1] {
+			return i, j + 1
+		}
+		return i + 1, j + 1
+	})
+	return answer
+}
+```
+
+### 88
+
+```go
+func merge(nums1 []int, m int, nums2 []int, n int) { MergeBack(nums1, m, nums2, n) }
+```
+
+### 844
+
+```go
+func backspaceCompare(s string, t string) bool {
+	i, j := len(s)-1, len(t)-1
+	for i >= 0 || j >= 0 {
+		i, j = PreviousVisible(s, i), PreviousVisible(t, j)
+		if i < 0 || j < 0 {
+			return i == j
+		}
+		if s[i] != t[j] {
+			return false
+		}
+		i--
+		j--
+	}
+	return true
+}
+```
+
+### 443
+
+```go
+func compress(chars []byte) int {
+	write := 0
+	ForRuns(chars, func(start, end int) {
+		value := chars[start]
+		chars[write] = value
+		write++
+		if count := end - start; count > 1 {
+			for _, digit := range strconv.Itoa(count) {
+				chars[write] = byte(digit)
+				write++
+			}
+		}
+	})
+	return write
+}
+```
+
+### 905
+
+```go
+func sortArrayByParity(nums []int) []int {
+	Partition(nums, func(value int) bool { return value%2 == 0 })
+	return nums
+}
+```
+
+### 942
+
+```go
+func diStringMatch(s string) []int {
+	return ChooseEnds(len(s), func(i int) bool { return s[i] == 'I' })
+}
+```
+
+### 141
+
+```go
+func hasCycle(head *ListNode) bool { _, found := Floyd(head, NodeStep); return found }
+```
+
+### 202
+
+```go
+func isHappy(n int) bool {
+	next := func(value int) (int, bool) {
+		sum := 0
+		for value > 0 {
+			digit := value % 10
+			sum += digit * digit
+			value /= 10
+		}
+		return sum, true
+	}
+	meeting, _ := Floyd(n, next)
+	return meeting == 1
+}
+```
+
+### 287
+
+```go
+func findDuplicate(nums []int) int {
+	entry, _ := CycleEntry(0, func(i int) (int, bool) { return nums[i], true })
+	return entry
+}
+```
+
+### 876
+
+```go
+func middleNode(head *ListNode) *ListNode { return Middle(head) }
+```
+
+### 234
+
+```go
+func isPalindrome234(head *ListNode) bool {
+	second := ReverseList(Middle(head))
+	left, right := head, second
+	answer := true
+	for right != nil {
+		if left.Val != right.Val {
+			answer = false
+			break
+		}
+		left = left.Next
+		right = right.Next
+	}
+	ReverseList(second)
+	return answer
+}
+```
+
+### 19
+
+```go
+func removeNthFromEnd(head *ListNode, n int) *ListNode {
+	dummy := &ListNode{Next: head}
+	previous := NthPredecessor(dummy, n)
+	if previous != nil {
+		previous.Next = previous.Next.Next
+	}
+	return dummy.Next
+}
+```
+
+### 1574：拼接有序前后缀
+
+```go
+func findLengthOfShortestSubarray(arr []int) int { return joinSortedEnds(arr) }
+```

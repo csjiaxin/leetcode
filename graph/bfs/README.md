@@ -476,3 +476,793 @@ func updateMatrix(mat [][]int) [][]int {
 7. 复杂度按完整状态数与实际邻居生成成本计算了吗？
 
 **练习提示**：复盘时重点检查起点即终点、不可达、重复到达、多源竞争和扩展状态。可用 `go test ./graph/bfs/...` 编译全部题目并运行已有测试；无测试目录编译通过不等于其所有边界都已获测试覆盖。
+
+<a id="all-adapters"></a>
+
+## 6. 其余 21 题的完整模板适配
+
+前文给出 1091、994、542；下面补齐其余题目。每个代码块与第 1 节的同一份 bfs 组合，不重复声明队列遍历。1311 还需要标准库 sort；组合独立文件时，把导入放在 package 之后、所有声明之前。实际各题主文件已经包含所需导入及完整本地模板。
+
+### 1020：[本地完整文件](l1020/1020.go)
+
+```go
+// https://leetcode.com/problems/number-of-enclaves/
+func numEnclaves(grid [][]int) int {
+	rows, cols := len(grid), len(grid[0])
+	starts := [][2]int{}
+	land := 0
+	for r := range grid {
+		for c, value := range grid[r] {
+			if value != 1 {
+				continue
+			}
+			land++
+			if r == 0 || r == rows-1 || c == 0 || c == cols-1 {
+				starts = append(starts, [2]int{r, c})
+			}
+		}
+	}
+	directions := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	escaped := bfs(starts, func(cell [2]int) [][2]int {
+		next := make([][2]int, 0, 4)
+		for _, direction := range directions {
+			r, c := cell[0]+direction[0], cell[1]+direction[1]
+			if r >= 0 && r < rows && c >= 0 && c < cols && grid[r][c] == 1 {
+				next = append(next, [2]int{r, c})
+			}
+		}
+		return next
+	}, nil)
+	return land - len(escaped)
+}
+```
+
+### 1129：[本地完整文件](l1129/1129.go)
+
+```go
+// https://leetcode.com/problems/shortest-path-with-alternating-colors/
+func shortestAlternatingPaths(n int, redEdges [][]int, blueEdges [][]int) []int {
+	adjacent := [2][][]int{make([][]int, n), make([][]int, n)}
+	for color, edges := range [][][]int{redEdges, blueEdges} {
+		for _, edge := range edges {
+			adjacent[color][edge[0]] = append(adjacent[color][edge[0]], edge[1])
+		}
+	}
+	// Seeding both last colors allows either color for the first edge.
+	dist := bfs([][2]int{{0, 0}, {0, 1}}, func(state [2]int) [][2]int {
+		color := 1 - state[1]
+		next := make([][2]int, 0, len(adjacent[color][state[0]]))
+		for _, node := range adjacent[color][state[0]] {
+			next = append(next, [2]int{node, color})
+		}
+		return next
+	}, nil)
+	answer := make([]int, n)
+	for node := range answer {
+		answer[node] = -1
+		for color := 0; color < 2; color++ {
+			if distance, found := dist[[2]int{node, color}]; found && (answer[node] == -1 || distance < answer[node]) {
+				answer[node] = distance
+			}
+		}
+	}
+	return answer
+}
+```
+
+### 1162：[本地完整文件](l1162/1162.go)
+
+```go
+// https://leetcode.com/problems/as-far-from-land-as-possible/
+func maxDistance(grid [][]int) int {
+	rows, cols := len(grid), len(grid[0])
+	starts := [][2]int{}
+	for r := range grid {
+		for c, value := range grid[r] {
+			if value == 1 {
+				starts = append(starts, [2]int{r, c})
+			}
+		}
+	}
+	if len(starts) == 0 || len(starts) == rows*cols {
+		return -1
+	}
+	directions := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	answer := 0
+	bfs(starts, func(cell [2]int) [][2]int {
+		next := make([][2]int, 0, 4)
+		for _, direction := range directions {
+			r, c := cell[0]+direction[0], cell[1]+direction[1]
+			if r >= 0 && r < rows && c >= 0 && c < cols {
+				next = append(next, [2]int{r, c})
+			}
+		}
+		return next
+	}, func(_ [2]int, distance int) bool {
+		answer = distance
+		return false
+	})
+	return answer
+}
+```
+
+### 127：[本地完整文件](l127/127.go)
+
+```go
+// https://leetcode.com/problems/word-ladder/
+func ladderLength(beginWord string, endWord string, wordList []string) int {
+	if beginWord == endWord {
+		return 1
+	}
+	dictionary := make(map[string]bool, len(wordList))
+	for _, word := range wordList {
+		dictionary[word] = true
+	}
+	if !dictionary[endWord] {
+		return 0
+	}
+	answer := 0
+	bfs([]string{beginWord}, func(word string) []string {
+		next := []string{}
+		letters := []byte(word)
+		for i, original := range letters {
+			for replacement := byte('a'); replacement <= 'z'; replacement++ {
+				if replacement == original {
+					continue
+				}
+				letters[i] = replacement
+				candidate := string(letters)
+				if dictionary[candidate] {
+					next = append(next, candidate)
+				}
+			}
+			letters[i] = original
+		}
+		return next
+	}, func(word string, distance int) bool {
+		if word == endWord {
+			answer = distance + 1 // Count words, rather than transformations.
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 1293：[本地完整文件](l1293/1293.go)
+
+```go
+// https://leetcode.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/
+func shortestPath(grid [][]int, k int) int {
+	rows, cols := len(grid), len(grid[0])
+	directions := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	answer := -1
+	// The remaining budget belongs in the state; position alone is insufficient.
+	bfs([][3]int{{0, 0, k}}, func(state [3]int) [][3]int {
+		next := make([][3]int, 0, 4)
+		for _, direction := range directions {
+			r, c := state[0]+direction[0], state[1]+direction[1]
+			if r < 0 || r >= rows || c < 0 || c >= cols {
+				continue
+			}
+			remaining := state[2] - grid[r][c]
+			if remaining >= 0 {
+				next = append(next, [3]int{r, c, remaining})
+			}
+		}
+		return next
+	}, func(state [3]int, distance int) bool {
+		if state[0] == rows-1 && state[1] == cols-1 {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 130：[本地完整文件](l130/130.go)
+
+```go
+// https://leetcode.com/problems/surrounded-regions/
+func solve(board [][]byte) {
+	if len(board) == 0 || len(board[0]) == 0 {
+		return
+	}
+	rows, cols := len(board), len(board[0])
+	starts := [][2]int{}
+	for r := range board {
+		for c, value := range board[r] {
+			if value == 'O' && (r == 0 || r == rows-1 || c == 0 || c == cols-1) {
+				starts = append(starts, [2]int{r, c})
+			}
+		}
+	}
+	directions := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	safe := bfs(starts, func(cell [2]int) [][2]int {
+		next := make([][2]int, 0, 4)
+		for _, direction := range directions {
+			r, c := cell[0]+direction[0], cell[1]+direction[1]
+			if r >= 0 && r < rows && c >= 0 && c < cols && board[r][c] == 'O' {
+				next = append(next, [2]int{r, c})
+			}
+		}
+		return next
+	}, nil)
+	for r := range board {
+		for c, value := range board[r] {
+			if _, escaped := safe[[2]int{r, c}]; value == 'O' && !escaped {
+				board[r][c] = 'X'
+			}
+		}
+	}
+}
+```
+
+### 1311：[本地完整文件](l1311/1311.go)
+
+```go
+import "sort"
+
+// https://leetcode.com/problems/get-watched-videos-by-your-friends/
+func watchedVideosByFriends(watchedVideos [][]string, friends [][]int, id int, level int) []string {
+	frequency := map[string]int{}
+	atLevel := false
+	bfs([]int{id}, func(person int) []int {
+		if atLevel {
+			return nil // Every state at the requested depth is visited, never expanded.
+		}
+		return friends[person]
+	}, func(person, distance int) bool {
+		if distance == level {
+			atLevel = true
+			for _, title := range watchedVideos[person] {
+				frequency[title]++
+			}
+		}
+		return false
+	})
+	answer := make([]string, 0, len(frequency))
+	for title := range frequency {
+		answer = append(answer, title)
+	}
+	sort.Slice(answer, func(i, j int) bool {
+		if frequency[answer[i]] != frequency[answer[j]] {
+			return frequency[answer[i]] < frequency[answer[j]]
+		}
+		return answer[i] < answer[j]
+	})
+	return answer
+}
+```
+
+### 1345：[本地完整文件](l1345/1345.go)
+
+```go
+// https://leetcode.com/problems/jump-game-iv/
+func minJumps(arr []int) int {
+	groups := map[int][]int{}
+	for index, value := range arr {
+		groups[value] = append(groups[value], index)
+	}
+	answer := -1
+	bfs([]int{0}, func(index int) []int {
+		next := make([]int, 0, len(groups[arr[index]])+2)
+		if index > 0 {
+			next = append(next, index-1)
+		}
+		if index+1 < len(arr) {
+			next = append(next, index+1)
+		}
+		next = append(next, groups[arr[index]]...)
+		// Its first expansion already offers every member at the earliest distance.
+		delete(groups, arr[index])
+		return next
+	}, func(index, distance int) bool {
+		if index == len(arr)-1 {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 1654：[本地完整文件](l1654/1654.go)
+
+```go
+// https://leetcode.com/problems/minimum-jumps-to-reach-home/
+func minimumJumps(forbidden []int, a int, b int, x int) int {
+	blocked := make(map[int]bool, len(forbidden))
+	maxForbidden := 0
+	for _, position := range forbidden {
+		blocked[position] = true
+		if position > maxForbidden {
+			maxForbidden = position
+		}
+	}
+	// Beyond this bound, a detour can be shortened without crossing a forbidden point.
+	upper := maxForbidden + a
+	if x > upper {
+		upper = x
+	}
+	upper += b
+	if blocked[0] {
+		return -1
+	}
+	answer := -1
+	// The second field is 1 exactly when the last jump was backward.
+	bfs([][2]int{{0, 0}}, func(state [2]int) [][2]int {
+		next := make([][2]int, 0, 2)
+		if forward := state[0] + a; forward <= upper && !blocked[forward] {
+			next = append(next, [2]int{forward, 0})
+		}
+		if backward := state[0] - b; state[1] == 0 && backward >= 0 && !blocked[backward] {
+			next = append(next, [2]int{backward, 1})
+		}
+		return next
+	}, func(state [2]int, distance int) bool {
+		if state[0] == x {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 1926：[本地完整文件](l1926/1926.go)
+
+```go
+// https://leetcode.com/problems/nearest-exit-from-entrance-in-maze/
+func nearestExit(maze [][]byte, entrance []int) int {
+	rows, cols := len(maze), len(maze[0])
+	start := [2]int{entrance[0], entrance[1]}
+	directions := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	answer := -1
+	bfs([][2]int{start}, func(cell [2]int) [][2]int {
+		next := make([][2]int, 0, 4)
+		for _, direction := range directions {
+			r, c := cell[0]+direction[0], cell[1]+direction[1]
+			if r >= 0 && r < rows && c >= 0 && c < cols && maze[r][c] == '.' {
+				next = append(next, [2]int{r, c})
+			}
+		}
+		return next
+	}, func(cell [2]int, distance int) bool {
+		if cell != start && (cell[0] == 0 || cell[0] == rows-1 || cell[1] == 0 || cell[1] == cols-1) {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 279：[本地完整文件](l279/279.go)
+
+```go
+// https://leetcode.com/problems/perfect-squares/
+func numSquares(n int) int {
+	squares := []int{}
+	for value := 1; value*value <= n; value++ {
+		squares = append(squares, value*value)
+	}
+	answer := -1
+	bfs([]int{0}, func(sum int) []int {
+		next := []int{}
+		for _, square := range squares {
+			if sum+square > n {
+				break
+			}
+			next = append(next, sum+square)
+		}
+		return next
+	}, func(sum, distance int) bool {
+		if sum == n {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 301：[本地完整文件](l301/301.go)
+
+```go
+// https://leetcode.com/problems/remove-invalid-parentheses/
+func removeInvalidParentheses(s string) []string {
+	valid := func(text string) bool {
+		balance := 0
+		for _, character := range text {
+			if character == '(' {
+				balance++
+			} else if character == ')' {
+				balance--
+				if balance < 0 {
+					return false
+				}
+			}
+		}
+		return balance == 0
+	}
+	answer := []string{}
+	foundDepth := -1
+	bfs([]string{s}, func(text string) []string {
+		if foundDepth >= 0 {
+			return nil // Keep checking this depth, but generate no deeper states.
+		}
+		next := []string{}
+		for i := 0; i < len(text); i++ {
+			if text[i] != '(' && text[i] != ')' {
+				continue
+			}
+			if i > 0 && text[i] == text[i-1] {
+				continue // Removing either identical adjacent bracket gives the same string.
+			}
+			next = append(next, text[:i]+text[i+1:])
+		}
+		return next
+	}, func(text string, distance int) bool {
+		if foundDepth >= 0 && distance > foundDepth {
+			return true // Do not even validate the already queued deeper states.
+		}
+		if valid(text) {
+			foundDepth = distance
+			answer = append(answer, text)
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 322：[本地完整文件](l322/322.go)
+
+```go
+// https://leetcode.com/problems/coin-change/
+func coinChange(coins []int, amount int) int {
+	answer := -1
+	bfs([]int{0}, func(sum int) []int {
+		next := make([]int, 0, len(coins))
+		for _, coin := range coins {
+			if coin > 0 && coin <= amount-sum {
+				next = append(next, sum+coin)
+			}
+		}
+		return next
+	}, func(sum, distance int) bool {
+		if sum == amount {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 433：[本地完整文件](l433/433.go)
+
+```go
+// https://leetcode.com/problems/minimum-genetic-mutation/
+func minMutation(startGene string, endGene string, bank []string) int {
+	if startGene == endGene {
+		return 0
+	}
+	dictionary := make(map[string]bool, len(bank))
+	for _, gene := range bank {
+		dictionary[gene] = true
+	}
+	if !dictionary[endGene] {
+		return -1
+	}
+	answer := -1
+	bfs([]string{startGene}, func(gene string) []string {
+		next := []string{}
+		letters := []byte(gene)
+		for i, original := range letters {
+			for _, replacement := range []byte("ACGT") {
+				if replacement == original {
+					continue
+				}
+				letters[i] = replacement
+				candidate := string(letters)
+				if dictionary[candidate] {
+					next = append(next, candidate)
+				}
+			}
+			letters[i] = original
+		}
+		return next
+	}, func(gene string, distance int) bool {
+		if gene == endGene {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 752：[本地完整文件](l752/752.go)
+
+```go
+// https://leetcode.com/problems/open-the-lock/
+func openLock(deadends []string, target string) int {
+	dead := make(map[string]bool, len(deadends))
+	for _, state := range deadends {
+		dead[state] = true
+	}
+	if dead["0000"] {
+		return -1
+	}
+	answer := -1
+	bfs([]string{"0000"}, func(state string) []string {
+		next := make([]string, 0, 8)
+		digits := []byte(state)
+		for i, original := range digits {
+			for _, change := range []int{1, 9} {
+				digits[i] = byte((int(original-'0')+change)%10) + '0'
+				candidate := string(digits)
+				if !dead[candidate] {
+					next = append(next, candidate)
+				}
+			}
+			digits[i] = original
+		}
+		return next
+	}, func(state string, distance int) bool {
+		if state == target {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 773：[本地完整文件](l773/773.go)
+
+```go
+// https://leetcode.com/problems/sliding-puzzle/
+func slidingPuzzle(board [][]int) int {
+	encoded := make([]byte, 0, 6)
+	for _, row := range board {
+		for _, tile := range row {
+			encoded = append(encoded, byte(tile)+'0')
+		}
+	}
+	adjacent := [][]int{{1, 3}, {0, 2, 4}, {1, 5}, {0, 4}, {1, 3, 5}, {2, 4}}
+	answer := -1
+	bfs([]string{string(encoded)}, func(state string) []string {
+		tiles := []byte(state)
+		zero := 0
+		for tiles[zero] != '0' {
+			zero++
+		}
+		next := make([]string, 0, len(adjacent[zero]))
+		for _, neighbor := range adjacent[zero] {
+			tiles[zero], tiles[neighbor] = tiles[neighbor], tiles[zero]
+			next = append(next, string(tiles))
+			tiles[zero], tiles[neighbor] = tiles[neighbor], tiles[zero]
+		}
+		return next
+	}, func(state string, distance int) bool {
+		if state == "123450" {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 815：[本地完整文件](l815/815.go)
+
+```go
+// https://leetcode.com/problems/bus-routes/
+func numBusesToDestination(routes [][]int, source int, target int) int {
+	if source == target {
+		return 0
+	}
+	stopRoutes := map[int][]int{}
+	for route, stops := range routes {
+		for _, stop := range stops {
+			stopRoutes[stop] = append(stopRoutes[stop], route)
+		}
+	}
+	expandedRoute := make([]bool, len(routes))
+	answer := -1
+	// One edge connects two stops reachable by boarding the same bus.
+	bfs([]int{source}, func(stop int) []int {
+		next := []int{}
+		for _, route := range stopRoutes[stop] {
+			if expandedRoute[route] {
+				continue
+			}
+			expandedRoute[route] = true
+			next = append(next, routes[route]...)
+		}
+		return next
+	}, func(stop, distance int) bool {
+		if stop == target {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 847：[本地完整文件](l847/847.go)
+
+```go
+// https://leetcode.com/problems/shortest-path-visiting-all-nodes/
+func shortestPathLength(graph [][]int) int {
+	n := len(graph)
+	starts := make([][2]int, n)
+	for node := range graph {
+		starts[node] = [2]int{node, 1 << node}
+	}
+	all := (1 << n) - 1
+	answer := -1
+	bfs(starts, func(state [2]int) [][2]int {
+		next := make([][2]int, 0, len(graph[state[0]]))
+		for _, node := range graph[state[0]] {
+			next = append(next, [2]int{node, state[1] | (1 << node)})
+		}
+		return next
+	}, func(state [2]int, distance int) bool {
+		if state[1] == all {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 864：[本地完整文件](l864/864.go)
+
+```go
+// https://leetcode.com/problems/shortest-path-to-get-all-keys/
+func shortestPathAllKeys(grid []string) int {
+	rows, cols := len(grid), len(grid[0])
+	start := [3]int{}
+	allKeys := 0
+	for r, row := range grid {
+		for c := range row {
+			if row[c] == '@' {
+				start = [3]int{r, c, 0}
+			} else if row[c] >= 'a' && row[c] <= 'z' {
+				allKeys |= 1 << (row[c] - 'a')
+			}
+		}
+	}
+	directions := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	answer := -1
+	bfs([][3]int{start}, func(state [3]int) [][3]int {
+		next := make([][3]int, 0, 4)
+		for _, direction := range directions {
+			r, c := state[0]+direction[0], state[1]+direction[1]
+			if r < 0 || r >= rows || c < 0 || c >= cols || grid[r][c] == '#' {
+				continue
+			}
+			cell, keys := grid[r][c], state[2]
+			if cell >= 'A' && cell <= 'Z' && keys&(1<<(cell-'A')) == 0 {
+				continue
+			}
+			if cell >= 'a' && cell <= 'z' {
+				keys |= 1 << (cell - 'a')
+			}
+			next = append(next, [3]int{r, c, keys})
+		}
+		return next
+	}, func(state [3]int, distance int) bool {
+		if state[2] == allKeys {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 909：[本地完整文件](l909/909.go)
+
+```go
+// https://leetcode.com/problems/snakes-and-ladders/
+func snakesAndLadders(board [][]int) int {
+	n := len(board)
+	answer := -1
+	bfs([]int{1}, func(square int) []int {
+		next := make([]int, 0, 6)
+		for roll := 1; roll <= 6 && square+roll <= n*n; roll++ {
+			landing := square + roll
+			rowFromBottom := (landing - 1) / n
+			row, col := n-1-rowFromBottom, (landing-1)%n
+			if rowFromBottom%2 == 1 {
+				col = n - 1 - col
+			}
+			if board[row][col] != -1 {
+				landing = board[row][col] // Exactly one snake/ladder per roll.
+			}
+			next = append(next, landing)
+		}
+		return next
+	}, func(square, distance int) bool {
+		if square == n*n {
+			answer = distance
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
+
+### 934：[本地完整文件](l934/934.go)
+
+```go
+// https://leetcode.com/problems/shortest-bridge/
+func shortestBridge(grid [][]int) int {
+	rows, cols := len(grid), len(grid[0])
+	start := [2]int{}
+	found := false
+	for r := 0; r < rows && !found; r++ {
+		for c, value := range grid[r] {
+			if value == 1 {
+				start, found = [2]int{r, c}, true
+				break
+			}
+		}
+	}
+	directions := [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	adjacent := func(cell [2]int) [][2]int {
+		next := make([][2]int, 0, 4)
+		for _, direction := range directions {
+			r, c := cell[0]+direction[0], cell[1]+direction[1]
+			if r >= 0 && r < rows && c >= 0 && c < cols {
+				next = append(next, [2]int{r, c})
+			}
+		}
+		return next
+	}
+	island := bfs([][2]int{start}, func(cell [2]int) [][2]int {
+		next := [][2]int{}
+		for _, neighbor := range adjacent(cell) {
+			if grid[neighbor[0]][neighbor[1]] == 1 {
+				next = append(next, neighbor)
+			}
+		}
+		return next
+	}, nil)
+	starts := make([][2]int, 0, len(island))
+	for cell := range island {
+		starts = append(starts, cell)
+	}
+	answer := -1
+	bfs(starts, adjacent, func(cell [2]int, distance int) bool {
+		if _, firstIsland := island[cell]; grid[cell[0]][cell[1]] == 1 && !firstIsland {
+			answer = distance - 1 // The final land cell is not a flipped sea cell.
+			return true
+		}
+		return false
+	})
+	return answer
+}
+```
