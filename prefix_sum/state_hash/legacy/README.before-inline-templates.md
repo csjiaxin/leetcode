@@ -4,7 +4,7 @@
 
 可执行公共函数见 [template.go](../template.go)：`Count` 保存历史频次，`Longest` 保存最早位置。两者只适用于区间合法性能写成 `历史状态 == needed(当前状态)` 的单键关系，分别统一计数和最长长度的更新顺序。需要同时查询多个历史键或比较大小关系时，要另行设计聚合。
 
-例如 560 的适配为：
+例如 [560](https://leetcode.com/problems/subarray-sum-equals-k/) 的适配为：
 
 ```go
 answer := prefixstate.Count(nums, 0,
@@ -154,7 +154,7 @@ func findMaxLength(nums []int) int {
 
 **题意**：求最长子串，使 a/e/i/o/u 各自出现偶数次，0次也合法。
 
-**状态**：用五位掩码记录奇偶性，遇元音翻转对应位。两个前缀掩码相同，区间内每个元音都出现偶数次。与525一样保存最早下标。
+**状态**：用五位掩码记录奇偶性，遇元音翻转对应位。两个前缀掩码相同，区间内每个元音都出现偶数次。与[525](https://leetcode.com/problems/contiguous-array/)一样保存最早下标。
 
 ```go
 package template
@@ -197,7 +197,7 @@ func findTheLongestSubstring(s string) int {
 
 **题意**：统计恰好有 k 个奇数的连续子数组。
 
-**状态**：odd 为前缀奇数数目，查询 odd-k 的历史次数。它是560的“每个元素先变成0/1”的版本。
+**状态**：odd 为前缀奇数数目，查询 odd-k 的历史次数。它是[560](https://leetcode.com/problems/subarray-sum-equals-k/)的“每个元素先变成0/1”的版本。
 
 ```go
 package template
@@ -227,11 +227,11 @@ func numberOfSubarrays(nums []int, k int) int {
 
 | 题目 | 状态 | 查询历史 | 保存内容 |
 | --- | --- | --- | --- |
-| 560 | 前缀和 | prefix-k | 次数 |
-| 974 | 前缀余数 | 相同余数 | 次数 |
-| 525 | 1数量-0数量 | 相同balance | 最早下标 |
-| 1371 | 元音奇偶掩码 | 相同mask | 最早下标 |
-| 1248 | 前缀奇数数目 | odd-k | 次数 |
+| [560](https://leetcode.com/problems/subarray-sum-equals-k/) | 前缀和 | prefix-k | 次数 |
+| [974](https://leetcode.com/problems/subarray-sums-divisible-by-k/) | 前缀余数 | 相同余数 | 次数 |
+| [525](https://leetcode.com/problems/contiguous-array/) | 1数量-0数量 | 相同balance | 最早下标 |
+| [1371](https://leetcode.com/problems/find-the-longest-substring-containing-vowels-in-even-counts/) | 元音奇偶掩码 | 相同mask | 最早下标 |
+| [1248](https://leetcode.com/problems/count-number-of-nice-subarrays/) | 前缀奇数数目 | odd-k | 次数 |
 
 - 求数量初始化 freq[0]=1；求最长初始化 first[0]=-1，不要混淆。
 - 数量问题先查询再记录，否则可能计空区间；最长问题不要覆盖最早下标。
@@ -247,10 +247,10 @@ func numberOfSubarrays(nums []int, k int) int {
 
 ## 原分类笔记（保留）
 
-2289. Steps to Make Array Non-decreasing
+[2289](https://leetcode.com/problems/steps-to-make-array-non-decreasing/). Steps to Make Array Non-decreasing
 TODO
-1574. Shortest Subarray to be Removed to Make Array Sorted
-1856. Maximum Subarray Min-Product
+[1574](https://leetcode.com/problems/shortest-subarray-to-be-removed-to-make-array-sorted/). Shortest Subarray to be Removed to Make Array Sorted
+[1856](https://leetcode.com/problems/maximum-subarray-min-product/). Maximum Subarray Min-Product
 https://leetcode.com/problems/subarray-with-elements-greater-than-varying-threshold/
 
 https://www.google.com/search?q=leetcode+subarray&rlz=1C5CHFA_enAU971AU971&oq=leetcode+subarray&aqs=chrome..69i57j0i512l4j69i60l3.3465j0j7&sourceid=chrome&ie=UTF-8

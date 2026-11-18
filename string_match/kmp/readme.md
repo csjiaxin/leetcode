@@ -4,7 +4,7 @@
 
 PrefixFunction 维护当前前缀的最长相等真前后缀；失配沿 pi 回退。FindAll 扫描文本时不回退文本下标，匹配完整模式后回退状态以保留重叠匹配。整数相邻大小关系也可以先映射为 -1/0/1，再用相同泛型模板匹配。
 
-周期题沿 border 链筛选合法移位；1910 保存匹配状态栈用于删除恢复；1397 把 KMP 前缀长度作为受上下界约束的 DP 状态；2851 先数匹配旋转位置，再用二状态矩阵快速幂计算步数。模板统一匹配信息，额外约束分别建模。
+周期题沿 border 链筛选合法移位；[1910](https://leetcode.com/problems/remove-all-occurrences-of-a-substring/) 保存匹配状态栈用于删除恢复；[1397](https://leetcode.com/problems/find-all-good-strings/) 把 KMP 前缀长度作为受上下界约束的 DP 状态；[2851](https://leetcode.com/problems/string-transformation/) 先数匹配旋转位置，再用二状态矩阵快速幂计算步数。模板统一匹配信息，额外约束分别建模。
 
 ## 复制约定
 

@@ -16,12 +16,12 @@ Knapsack
 https://github.com/tianyicui/pack/blob/master/V2.pdf 背包问题九讲
 
 Merge
-546. Remove Boxes
+[546](https://leetcode.com/problems/remove-boxes/). Remove Boxes
 https://leetcode.com/problems/remove-boxes/discuss/101310/Java-top-down-and-bottom-up-DP-solutions
 
 
-801. Minimum Swaps To Make Sequences Increasing
+[801](https://leetcode.com/problems/minimum-swaps-to-make-sequences-increasing/). Minimum Swaps To Make Sequences Increasing
 
-871. Minimum Number of Refueling Stops
+[871](https://leetcode.com/problems/minimum-number-of-refueling-stops/). Minimum Number of Refueling Stops
 
-221. Maximal Square
+[221](https://leetcode.com/problems/maximal-square/). Maximal Square

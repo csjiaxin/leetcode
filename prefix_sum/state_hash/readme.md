@@ -4,7 +4,7 @@
 
 有效区间必须能表示为“历史状态 == needed(当前状态)”的单键关系。Count 先查频次再记录当前前缀；Longest 先用最早位置更新长度，再仅在首次出现时记录。空前缀分别初始化为频次 1、位置 -1。
 
-560 把和转换为 sum-k；974 规范化负数余数；1248 数奇数；525 保存 1 与 0 的数量差；1371 保存元音奇偶 mask。需要多个历史键、大小关系或区间最值时，需换聚合方式。
+[560](https://leetcode.com/problems/subarray-sum-equals-k/) 把和转换为 sum-k；[974](https://leetcode.com/problems/subarray-sums-divisible-by-k/) 规范化负数余数；[1248](https://leetcode.com/problems/count-number-of-nice-subarrays/) 数奇数；[525](https://leetcode.com/problems/contiguous-array/) 保存 1 与 0 的数量差；[1371](https://leetcode.com/problems/find-the-longest-substring-containing-vowels-in-even-counts/) 保存元音奇偶 mask。需要多个历史键、大小关系或区间最值时，需换聚合方式。
 
 ## 复制约定
 

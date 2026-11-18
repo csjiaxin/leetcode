@@ -40,9 +40,9 @@ func IntervalTable[T any](../
 两端不匹配：尝试去掉左端或右端，再按目标合并
 ~~~
 
-- [5：回文子串](../../strings/l5/5.go)：布尔状态，要求连续；相邻字符需要处理空内层。
-- [516：回文子序列](../../strings/l516/516.go)：最大长度，允许跳过字符。
-- [1312：最少插入](../../strings/l1312/1312.go)：最少操作数，不是最长长度。
+- [5：回文子串](https://leetcode.com/problems/longest-palindromic-substring/) · [代码](../../strings/l5/5.go)：布尔状态，要求连续；相邻字符需要处理空内层。
+- [516：回文子序列](https://leetcode.com/problems/longest-palindromic-subsequence/) · [代码](../../strings/l516/516.go)：最大长度，允许跳过字符。
+- [1312：最少插入](https://leetcode.com/problems/minimum-insertion-steps-to-make-a-string-palindrome/) · [代码](../../strings/l1312/1312.go)：最少操作数，不是最长长度。
 
 这些原有字符串实现保留原址，避免破坏字符串系列结构；本页交叉索引其区间状态。
 
@@ -53,14 +53,14 @@ dp[l][r] = 在合法 k 中选最优的
            dp[l][k] + dp[k+1][r] + mergeCost(l,k,r)
 ~~~
 
-- [1547](../l1547/1547.go)：固定切点坐标后，枚举第一次切割；新增费用是当前棍段长度。
-- [1130 历史实现](../l1130/1130)：合并左右树，附加两侧叶子最大值的乘积。
-- [96 历史实现](../l96/96)：枚举根，左右方案数相乘，再对不同根相加。它是计数，不是取 min。
-- [1039 历史实现](../l1039/1039.go)：保留原三角剖分写法。历史代码存在不代表每个边界已获得新验证。
+- [1547](https://leetcode.com/problems/minimum-cost-to-cut-a-stick/) · [代码](../l1547/1547.go)：固定切点坐标后，枚举第一次切割；新增费用是当前棍段长度。
+- [1130 历史实现](https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/) · [代码](../l1130/1130)：合并左右树，附加两侧叶子最大值的乘积。
+- [96 历史实现](https://leetcode.com/problems/unique-binary-search-trees/) · [代码](../l96/96)：枚举根，左右方案数相乘，再对不同根相加。它是计数，不是取 min。
+- [1039 历史实现](https://leetcode.com/problems/minimum-score-triangulation-of-polygon/) · [代码](../l1039/1039.go)：保留原三角剖分写法。历史代码存在不代表每个边界已获得新验证。
 
 ### 枚举最后操作，固定外边界
 
-[312](../l312/312.go) 的关键是选最后戳破的气球。左右外边界仍存在，子区间才能独立计算：
+[312](https://leetcode.com/problems/burst-balloons/) · [代码](../l312/312.go) 的关键是选最后戳破的气球。左右外边界仍存在，子区间才能独立计算：
 
 ~~~text
 在两侧补边界后，dp[l][r] 表示开区间 (l,r)
@@ -74,13 +74,13 @@ dp[l][r] = max(dp[l][k] + dp[k][r] + a[l]*a[k]*a[r])
 
 | 题目 | 不可省略的信息 |
 | --- | --- |
-| [375](../l375/375.go) | 先对猜测结果取最坏成本，再对猜测值取最小：min(cost+max(left,right)) |
-| [664](../l664/664.go) | 相同字符可以共享打印操作，不能只按一般加法切分 |
-| [1000](../l1000/1000.go) | 还需表示合并成多少堆，或证明该信息能由长度余数推出 |
-| [1000 旧三维片段](../l1000/legacy/1000) | 显式保存区间与堆数，保留不同方法 |
-| [1690 的区间变体](../../game/l1690/variants/interval/1690.go) | 当前玩家分差；主体归入 game，与石子博弈放在一起 |
+| [375](https://leetcode.com/problems/guess-number-higher-or-lower-ii/) · [代码](../l375/375.go) | 先对猜测结果取最坏成本，再对猜测值取最小：min(cost+max(left,right)) |
+| [664](https://leetcode.com/problems/strange-printer/) · [代码](../l664/664.go) | 相同字符可以共享打印操作，不能只按一般加法切分 |
+| [1000](https://leetcode.com/problems/minimum-cost-to-merge-stones/) · [代码](../l1000/1000.go) | 还需表示合并成多少堆，或证明该信息能由长度余数推出 |
+| [1000 旧三维片段](https://leetcode.com/problems/minimum-cost-to-merge-stones/) · [代码](../l1000/legacy/1000) | 显式保存区间与堆数，保留不同方法 |
+| [1690 的区间变体](https://leetcode.com/problems/stone-game-vii/) · [代码](../../game/l1690/variants/interval/1690.go) | 当前玩家分差；主体归入 game，与石子博弈放在一起 |
 
-1000 先检查 (n-1) 是否能被 K-1 整除。二维矩阵不是“状态天然二维”的保证，也不能把区间长度一维当成额外独立选择。
+[1000](https://leetcode.com/problems/minimum-cost-to-merge-stones/) 先检查 (n-1) 是否能被 K-1 整除。二维矩阵不是“状态天然二维”的保证，也不能把区间长度一维当成额外独立选择。
 
 ## 常见错误
 

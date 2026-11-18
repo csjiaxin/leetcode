@@ -10,7 +10,7 @@ position := binarysearch.FirstTrue(len(nums), func(i int) bool {
 })
 ```
 
-数组下标与答案二分都先证明谓词 `false...true`。旋转数组存在重复值、峰值沿坡寻找等情况仍需各自的排除依据；本文保留相应子模板。原来的根目录数字草稿与 1901 示例已归入对应 `l题号/legacy` 或 `variants/demo`，不会覆盖原练习。
+数组下标与答案二分都先证明谓词 `false...true`。旋转数组存在重复值、峰值沿坡寻找等情况仍需各自的排除依据；本文保留相应子模板。原来的根目录数字草稿与 [1901](https://leetcode.com/problems/find-a-peak-element-ii/) 示例已归入对应 `l题号/legacy` 或 `variants/demo`，不会覆盖原练习。
 
 ---
 
@@ -29,25 +29,25 @@ position := binarysearch.FirstTrue(len(nums), func(i int) bool {
 - [6. 常见错误](#pitfalls)
 - [7. 运行测试](#tests)
 - [8. 逐题说明与解释：firstTrue 与 check](#explanations)
-  - [704. 二分查找](#lc704)
-  - [34. 第一个和最后一个位置](#lc34)
-  - [153. 旋转数组最小值](#lc153)
-  - [33. 搜索旋转数组](#lc33)
-  - [81. 搜索旋转数组 II](#lc81)
-  - [162. 寻找峰值](#lc162)
-  - [1901. 寻找峰值 II](#lc1901)
-  - [875. 爱吃香蕉的珂珂](#lc875)
-  - [1011. D 天送达包裹](#lc1011)
-  - [410. 分割数组的最大值](#lc410)
-  - [1760. 袋子里最少数目的球](#lc1760)
-  - [2024. 考试的最大困扰度](#lc2024)
-  - [2498. 青蛙过河 II](#lc2498)
-  - [1170. 比较字符串最小字母出现频次](#lc1170)
-  - [1608. 特殊数组](#lc1608)
-  - [1855. 下标对的最大距离](#lc1855)
-  - [2089. 找出目标下标](#lc2089)
-  - [729. 我的日程安排表 I](#lc729)
-  - [888. 公平的糖果交换](#lc888)
+  - [704. 二分查找](https://leetcode.com/problems/binary-search/) · [本节](#lc704)
+  - [34. 第一个和最后一个位置](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/) · [本节](#lc34)
+  - [153. 旋转数组最小值](https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/) · [本节](#lc153)
+  - [33. 搜索旋转数组](https://leetcode.com/problems/search-in-rotated-sorted-array/) · [本节](#lc33)
+  - [81. 搜索旋转数组 II](https://leetcode.com/problems/search-in-rotated-sorted-array-ii/) · [本节](#lc81)
+  - [162. 寻找峰值](https://leetcode.com/problems/find-peak-element/) · [本节](#lc162)
+  - [1901. 寻找峰值 II](https://leetcode.com/problems/find-a-peak-element-ii/) · [本节](#lc1901)
+  - [875. 爱吃香蕉的珂珂](https://leetcode.com/problems/koko-eating-bananas/) · [本节](#lc875)
+  - [1011. D 天送达包裹](https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/) · [本节](#lc1011)
+  - [410. 分割数组的最大值](https://leetcode.com/problems/split-array-largest-sum/) · [本节](#lc410)
+  - [1760. 袋子里最少数目的球](https://leetcode.com/problems/minimum-limit-of-balls-in-a-bag/) · [本节](#lc1760)
+  - [2024. 考试的最大困扰度](https://leetcode.com/problems/maximize-the-confusion-of-an-exam/) · [本节](#lc2024)
+  - [2498. 青蛙过河 II](https://leetcode.com/problems/frog-jump-ii/) · [本节](#lc2498)
+  - [1170. 比较字符串最小字母出现频次](https://leetcode.com/problems/compare-strings-by-frequency-of-the-smallest-character/) · [本节](#lc1170)
+  - [1608. 特殊数组](https://leetcode.com/problems/special-array-with-x-elements-greater-than-or-equal-x/) · [本节](#lc1608)
+  - [1855. 下标对的最大距离](https://leetcode.com/problems/maximum-distance-between-a-pair-of-values/) · [本节](#lc1855)
+  - [2089. 找出目标下标](https://leetcode.com/problems/find-target-indices-after-sorting-array/) · [本节](#lc2089)
+  - [729. 我的日程安排表 I](https://leetcode.com/problems/my-calendar-i/) · [本节](#lc729)
+  - [888. 公平的糖果交换](https://leetcode.com/problems/fair-candy-swap/) · [本节](#lc888)
 
 <a id="core"></a>
 
@@ -243,15 +243,15 @@ nums        1      2      2      2      4
 
 | 题目 / 用途 | N 与搜索对象 | predicate：何时为 true | 分界点后的答案转换 | 必要检查 |
 | --- | --- | --- | --- | --- |
-| [34](#lc34)（[LeetCode](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/)）：首个目标位置 | N=n，数组下标 i | `nums[i]>=target` | 得到 lower | 与 upper 一起判断目标是否存在 |
-| [34](#lc34)（[LeetCode](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/)）：末个目标位置 | N=n，数组下标 i | `nums[i]>target` | 得到 upper，末下标为 upper-1 | lower=upper 时返回 `[-1,-1]`，不能直接访问 upper-1 |
-| [153](#lc153)（[LeetCode](https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/)）：旋转数组最小值 | N=n，数组下标 i | `nums[i]<=last` | 返回 nums[p] | 非空、无重复；last 固定为原数组末值；必有 p<n |
-| [1170](#lc1170)（[LeetCode](https://leetcode.com/problems/compare-strings-by-frequency-of-the-smallest-character/)）：严格大于查询频次的数量 | N=w，排序后的频次数组下标 j | `freqs[j]>q` | 返回 w-p | p=w 时返回 0；相等不计入 |
-| [1608](#lc1608)（[LeetCode](https://leetcode.com/problems/special-array-with-x-elements-greater-than-or-equal-x/)）：内层 count(x) | N=n，排序后的数组下标 i | `nums[i]>=x` | count(x)=n-p | p=n 表示数量为 0 |
-| [1608](#lc1608)（[LeetCode](https://leetcode.com/problems/special-array-with-x-elements-greater-than-or-equal-x/)）：外层候选 x | N=n+1，候选值 x∈[0,n] | `count(x)<=x` | p 即候选 x | 必须检查 count(p)=p，否则返回 -1；此处必有 p<=n |
-| [1855](#lc1855)（[LeetCode](https://leetcode.com/problems/maximum-distance-between-a-pair-of-values/)）：最后一个满足大小条件的下标 | N=n，nums2 的下标 j | `nums2[j]<nums1[i]` | 最后满足位置 j=p-1，用 j-i 更新最大距离 | nums2 非递增；仅在 j>=i 时更新；p=0 时没有满足位置 |
-| [2089](#lc2089)（[LeetCode](https://leetcode.com/problems/find-target-indices-after-sorting-array/)）：排序后的全部目标下标 | N=n，排序后的数组下标 i，调用两次 | `nums[i]>=target`；`nums[i]>target` | 得到 lower、upper，输出 lower 到 upper-1 | lower=upper 时输出空数组；下标属于排序后数组 |
-| [729](#lc729)（[LeetCode](https://leetcode.com/problems/my-calendar-i/)）：日程插入位置 | N=n，按起点排序的区间下标 j | `bookings[j].start>=start` | p 为插入位置，检查邻居后插入 | p>0 才检查前驱，p<n 才检查后继；p=n 是合法尾插位置 |
+| [34](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/) · [本节](#lc34)（[LeetCode](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/)）：首个目标位置 | N=n，数组下标 i | `nums[i]>=target` | 得到 lower | 与 upper 一起判断目标是否存在 |
+| [34](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/) · [本节](#lc34)（[LeetCode](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/)）：末个目标位置 | N=n，数组下标 i | `nums[i]>target` | 得到 upper，末下标为 upper-1 | lower=upper 时返回 `[-1,-1]`，不能直接访问 upper-1 |
+| [153](https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/) · [本节](#lc153)（[LeetCode](https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/)）：旋转数组最小值 | N=n，数组下标 i | `nums[i]<=last` | 返回 nums[p] | 非空、无重复；last 固定为原数组末值；必有 p<n |
+| [1170](https://leetcode.com/problems/compare-strings-by-frequency-of-the-smallest-character/) · [本节](#lc1170)（[LeetCode](https://leetcode.com/problems/compare-strings-by-frequency-of-the-smallest-character/)）：严格大于查询频次的数量 | N=w，排序后的频次数组下标 j | `freqs[j]>q` | 返回 w-p | p=w 时返回 0；相等不计入 |
+| [1608](https://leetcode.com/problems/special-array-with-x-elements-greater-than-or-equal-x/) · [本节](#lc1608)（[LeetCode](https://leetcode.com/problems/special-array-with-x-elements-greater-than-or-equal-x/)）：内层 count(x) | N=n，排序后的数组下标 i | `nums[i]>=x` | count(x)=n-p | p=n 表示数量为 0 |
+| [1608](https://leetcode.com/problems/special-array-with-x-elements-greater-than-or-equal-x/) · [本节](#lc1608)（[LeetCode](https://leetcode.com/problems/special-array-with-x-elements-greater-than-or-equal-x/)）：外层候选 x | N=n+1，候选值 x∈[0,n] | `count(x)<=x` | p 即候选 x | 必须检查 count(p)=p，否则返回 -1；此处必有 p<=n |
+| [1855](https://leetcode.com/problems/maximum-distance-between-a-pair-of-values/) · [本节](#lc1855)（[LeetCode](https://leetcode.com/problems/maximum-distance-between-a-pair-of-values/)）：最后一个满足大小条件的下标 | N=n，nums2 的下标 j | `nums2[j]<nums1[i]` | 最后满足位置 j=p-1，用 j-i 更新最大距离 | nums2 非递增；仅在 j>=i 时更新；p=0 时没有满足位置 |
+| [2089](https://leetcode.com/problems/find-target-indices-after-sorting-array/) · [本节](#lc2089)（[LeetCode](https://leetcode.com/problems/find-target-indices-after-sorting-array/)）：排序后的全部目标下标 | N=n，排序后的数组下标 i，调用两次 | `nums[i]>=target`；`nums[i]>target` | 得到 lower、upper，输出 lower 到 upper-1 | lower=upper 时输出空数组；下标属于排序后数组 |
+| [729](https://leetcode.com/problems/my-calendar-i/) · [本节](#lc729)（[LeetCode](https://leetcode.com/problems/my-calendar-i/)）：日程插入位置 | N=n，按起点排序的区间下标 j | `bookings[j].start>=start` | p 为插入位置，检查邻居后插入 | p>0 才检查前驱，p<n 才检查后继；p=n 是合法尾插位置 |
 
 **记忆三步：**
 
@@ -286,7 +286,7 @@ for l <= r {
 
 [875. 爱吃香蕉的珂珂](https://leetcode.com/problems/koko-eating-bananas/)：速度越大，耗时越少；每堆耗时用整数向上取整。
 
-[1011. 在 D 天内送达包裹的能力](https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/)、[410. 分割数组的最大值](https://leetcode.com/problems/split-array-largest-sum/)：容量或最大子数组和越大，需要的天数或组数越少。贪心判断时从左到右尽量装满，搜索范围为 `[max(nums),sum(nums)]`。其中 410 题的数组为非负数且 `k<=n`，所以可将不足 k 组继续拆分为恰好 k 个非空组。
+[1011. 在 D 天内送达包裹的能力](https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/)、[410. 分割数组的最大值](https://leetcode.com/problems/split-array-largest-sum/)：容量或最大子数组和越大，需要的天数或组数越少。贪心判断时从左到右尽量装满，搜索范围为 `[max(nums),sum(nums)]`。其中 [410](https://leetcode.com/problems/split-array-largest-sum/) 题的数组为非负数且 `k<=n`，所以可将不足 k 组继续拆分为恰好 k 个非空组。
 
 ### 最大可行值：true → false
 
@@ -359,7 +359,7 @@ go test ./binary_search/...
 - `check` 描述判定条件；传给 `firstTrue` 的条件必须为 **false→true**。check 若是 true→false，则搜索 `!check`，再减一。
 - 数组下标调用 `firstTrue(n, check)`，复用第 3 节闭区间模板。返回 n 是哨兵，不一定能直接访问。
 - 答案值域 `[lo,hi]` 使用偏移：`answer=lo+firstTrue(hi-lo+1, func(offset int) bool { return check(lo+offset) })`。offset 是下标，lo+offset 才是真实答案值；lo、hi 为初始固定边界。
-- 特殊结构不能只因命名为 check 就宣称单调。81 先线性定位旋转断点再用 firstTrue；162、1901 保留基于方向判定的闭区间二分，不把非单调 check 传给 firstTrue。
+- 特殊结构不能只因命名为 check 就宣称单调。[81](https://leetcode.com/problems/search-in-rotated-sorted-array-ii/) 先线性定位旋转断点再用 firstTrue；[162](https://leetcode.com/problems/find-peak-element/)、[1901](https://leetcode.com/problems/find-a-peak-element-ii/) 保留基于方向判定的闭区间二分，不把非单调 check 传给 firstTrue。
 
 下列片段用于理解模板组合，不写入练习 `.go` 文件。
 
@@ -409,7 +409,7 @@ go test ./binary_search/...
 ### [81. 搜索旋转排序数组 II](https://leetcode.com/problems/search-in-rotated-sorted-array-ii/)
 
 - **题意**：[33. 搜索旋转排序数组](https://leetcode.com/problems/search-in-rotated-sorted-array/) 的允许重复值版本，只需返回是否存在目标。例如 `[1,0,1,1,1]、target=0` 返回 true。
-- **先处理不单调性**：重复值下 `nums[i]<=last` 不一定 false→true，例如 `[1,2,0,1]` 的结果为 true、false、true、true，不单调；`[1,0,1,1,1]` 更是全部 true，无法识别真实断点，不能照搬 33 的旋转点 check。
+- **先处理不单调性**：重复值下 `nums[i]<=last` 不一定 false→true，例如 `[1,2,0,1]` 的结果为 true、false、true、true，不单调；`[1,0,1,1,1]` 更是全部 true，无法识别真实断点，不能照搬 [33](https://leetcode.com/problems/search-in-rotated-sorted-array/) 的旋转点 check。
 - **预处理**：空数组返回 false。线性找第一个 `nums[i]<nums[i-1]` 的下标作为 pivot；没有下降则 pivot=0，得到真正的有序起点。
 - **check**：虚拟有序访问 `value(i)=nums[(pivot+i)%n]`，定义 `check(i)=value(i)>=target`，此时才是 false→true。
 - **firstTrue 与答案**：`p=firstTrue(n,check)`；返回 `p<n && value(p)==target`。

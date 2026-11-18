@@ -60,9 +60,9 @@
 | 6 | [3036. 匹配模式数组的子数组数目 II](https://leetcode.com/problems/number-of-subarrays-that-match-a-pattern-ii/) | 将相邻数字的大小关系编码，再进行序列匹配 |
 | 7 | [3008. 找出数组中的美丽下标 II](https://leetcode.com/problems/find-beautiful-indices-in-the-given-array-ii/) | KMP 找全部匹配位置，再结合二分或双指针 |
 
-注：匹配模式数组的子数组数目 II 的题号是 3036。
+注：匹配模式数组的子数组数目 II 的题号是 [3036](https://leetcode.com/problems/number-of-subarrays-that-match-a-pattern-ii/)。
 
-先做 28 → 1392 → 459，再做 686 → 214；最后两道综合题暂时放后面。
+先做 [28](https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/) → [1392](https://leetcode.com/problems/longest-happy-prefix/) → [459](https://leetcode.com/problems/repeated-substring-pattern/)，再做 [686](https://leetcode.com/problems/repeated-string-match/) → [214](https://leetcode.com/problems/shortest-palindrome/)；最后两道综合题暂时放后面。
 
 ## 二、先理解前缀表
 
@@ -967,7 +967,7 @@ func findAll(text, pattern string) []int {
 }
 ```
 
-第 28 题只需第一个匹配位置，可以找到后立即返回；findAll 则收集所有匹配位置。
+第 [28](https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/) 题只需第一个匹配位置，可以找到后立即返回；findAll 则收集所有匹配位置。
 
 #### 完整匹配后，为什么还要回退？
 
@@ -1042,24 +1042,24 @@ j = pi[j-1] // 此时 j = 2，pi[1] = 1
 
 | 题目 | 如何转成模板问题 | 练完应掌握什么 |
 | --- | --- | --- |
-| [796. 旋转字符串](https://leetcode.com/problems/rotate-string/) | 先判断 s 与 goal 等长，再在 s+s 中查找 goal | 把循环位移变成普通子串匹配；是进入 686 前的热身题 |
+| [796. 旋转字符串](https://leetcode.com/problems/rotate-string/) | 先判断 s 与 goal 等长，再在 s+s 中查找 goal | 把循环位移变成普通子串匹配；是进入 [686](https://leetcode.com/problems/repeated-string-match/) 前的热身题 |
 | [1408. 数组中的字符串匹配](https://leetcode.com/problems/string-matching-in-an-array/) | 枚举不同单词，用一个作模式串，在另一个中查找 | 多次复用查找模板；数据较小，内置查找也足够，不是性能挑战题 |
 | [1668. 最大重复子字符串](https://leetcode.com/problems/maximum-repeating-substring/) | 找到 word 在 sequence 中的所有出现起点，再连接间隔恰好为 len(word) 的匹配 | 出现多次不等于连续重复；可令 dp[i] = dp[i-m]+1（起点 i 存在匹配时，m 为 word 长度） |
 
-建议顺序：28 → 796 → 686；1408、1668 作为可选巩固。
-1668 的计数依赖相邻副本紧密衔接，不能只统计 findAll 的结果个数。
+建议顺序：[28](https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/) → [796](https://leetcode.com/problems/rotate-string/) → [686](https://leetcode.com/problems/repeated-string-match/)；[1408](https://leetcode.com/problems/string-matching-in-an-array/)、[1668](https://leetcode.com/problems/maximum-repeating-substring/) 作为可选巩固。
+[1668](https://leetcode.com/problems/maximum-repeating-substring/) 的计数依赖相邻副本紧密衔接，不能只统计 findAll 的结果个数。
 
 ### B. 全部匹配位置与整数序列
 
 | 题目 | 如何转成模板问题 | 练完应掌握什么 |
 | --- | --- | --- |
-| [3034. 匹配模式数组的子数组数目 I](https://leetcode.com/problems/number-of-subarrays-that-match-a-pattern-i/) | 将相邻元素比较编码为 -1、0、1，再匹配 pattern | 作为 3036 的小规模热身，也可以先暴力写出对照答案 |
+| [3034. 匹配模式数组的子数组数目 I](https://leetcode.com/problems/number-of-subarrays-that-match-a-pattern-i/) | 将相邻元素比较编码为 -1、0、1，再匹配 pattern | 作为 [3036](https://leetcode.com/problems/number-of-subarrays-that-match-a-pattern-ii/) 的小规模热身，也可以先暴力写出对照答案 |
 | [1764. 通过连接另一个数组的子数组得到一个数组](https://leetcode.com/problems/form-array-by-concatenating-subarrays-of-another-array/) | 按顺序匹配每个 group，找到后从该匹配的末尾之后继续 | KMP 不限于字符串；每组贪心选最早匹配，为后续组留下最多空间 |
-| [3006. 找出数组中的美丽下标 I](https://leetcode.com/problems/find-beautiful-indices-in-the-given-array-i/) | 分别找 a、b 的全部起点，再检查起点距离是否不超过 k | 作为 3008 的热身；先用简单方法合并结果，再升级为双指针或二分 |
+| [3006. 找出数组中的美丽下标 I](https://leetcode.com/problems/find-beautiful-indices-in-the-given-array-i/) | 分别找 a、b 的全部起点，再检查起点距离是否不超过 k | 作为 [3008](https://leetcode.com/problems/find-beautiful-indices-in-the-given-array-ii/) 的热身；先用简单方法合并结果，再升级为双指针或二分 |
 
 整数序列版只需把比较对象改成整数元素，pi 构造和回退逻辑不变。
-3034／3036 中，长度 m 的比较模式对应原数组长度 m+1 的子数组。
-1764 是多个模式依次匹配，不能把 groups 直接拼成一个模式，因为组与组之间允许有间隔。
+[3034](https://leetcode.com/problems/number-of-subarrays-that-match-a-pattern-i/)／[3036](https://leetcode.com/problems/number-of-subarrays-that-match-a-pattern-ii/) 中，长度 m 的比较模式对应原数组长度 m+1 的子数组。
+[1764](https://leetcode.com/problems/form-array-by-concatenating-subarrays-of-another-array/) 是多个模式依次匹配，不能把 groups 直接拼成一个模式，因为组与组之间允许有间隔。
 
 ### C. 前缀表、border 链与周期
 
@@ -1076,11 +1076,11 @@ L = pi[n-1]
 | 题目 | 如何转成前缀表问题 | 练完应掌握什么 |
 | --- | --- | --- |
 | [3029. 将单词恢复初始状态所需的最短时间 I](https://leetcode.com/problems/minimum-time-to-revert-word-to-initial-state-i/) | 操作 t 次且 t*k<n 时，需要 word[t*k:] == word[:n-t*k]，也就是 n-t*k 是一个 border 长度 | 把操作过程变成“后缀是否等于前缀”；先在小数据下直接比较 |
-| [3031. 将单词恢复初始状态所需的最短时间 II](https://leetcode.com/problems/minimum-time-to-revert-word-to-initial-state-ii/) | 沿 border 链寻找长度 L，使 (n-L)%k == 0；候选时间为 (n-L)/k | 用前缀函数优化 3029；若无可用非空 border，答案为 ceil(n/k) |
+| [3031. 将单词恢复初始状态所需的最短时间 II](https://leetcode.com/problems/minimum-time-to-revert-word-to-initial-state-ii/) | 沿 border 链寻找长度 L，使 (n-L)%k == 0；候选时间为 (n-L)/k | 用前缀函数优化 [3029](https://leetcode.com/problems/minimum-time-to-revert-word-to-initial-state-i/)；若无可用非空 border，答案为 ceil(n/k) |
 
-3031 中先取不依赖 border 的兜底答案 ceil(n/k)，再找更小的合法时间。
-与 459 区分：459 要求整个字符串由子串完整重复，因此有整除条件；
-3029／3031 允许操作时补入任意字符，重点是保留下来的后缀能否与原串前缀对齐。
+[3031](https://leetcode.com/problems/minimum-time-to-revert-word-to-initial-state-ii/) 中先取不依赖 border 的兜底答案 ceil(n/k)，再找更小的合法时间。
+与 [459](https://leetcode.com/problems/repeated-substring-pattern/) 区分：[459](https://leetcode.com/problems/repeated-substring-pattern/) 要求整个字符串由子串完整重复，因此有整除条件；
+[3029](https://leetcode.com/problems/minimum-time-to-revert-word-to-initial-state-i/)／[3031](https://leetcode.com/problems/minimum-time-to-revert-word-to-initial-state-ii/) 允许操作时补入任意字符，重点是保留下来的后缀能否与原串前缀对齐。
 例如 word = "ababa"、k = 2，保留 "aba" 就能一步恢复，不要求 n 能被 k 整除。
 
 ### D. KMP 状态与其他数据结构结合
@@ -1091,8 +1091,8 @@ L = pi[n-1]
 | [1397. 找到所有好字符串](https://leetcode.com/problems/find-all-good-strings/) | 将 j 看作已构造字符串末尾匹配 evil 前缀的长度；j 达到 len(evil) 的转移直接舍弃 | KMP 自动机 + 数位 DP，另外维护上下界限制；不是简单调用 findAll |
 | [2851. 字符串转换](https://leetcode.com/problems/string-transformation/) | 在 s+s 中匹配 t，统计起点位于 [0,n) 的有效循环位移 | KMP + 计数 DP／矩阵快速幂；重复字符可能对应多个有效位移，起点 n 不能重复计数 |
 
-1910 适合在掌握 findAll 后练“状态恢复”。
-1397、2851 需要额外算法基础，现阶段可以跳过，不要把它们当作基础模板题。
+[1910](https://leetcode.com/problems/remove-all-occurrences-of-a-substring/) 适合在掌握 findAll 后练“状态恢复”。
+[1397](https://leetcode.com/problems/find-all-good-strings/)、[2851](https://leetcode.com/problems/string-transformation/) 需要额外算法基础，现阶段可以跳过，不要把它们当作基础模板题。
 
 ### E. 看到题目时，如何选择模板？
 

@@ -1,11 +1,11 @@
-1	56. 合并区间	按起点排序，合并重叠区间
-2	57. 插入区间	分成“左侧、重叠部分、右侧”处理
-3	986. 区间列表的交集	双指针，计算两个区间的交集
-4	435. 无重叠区间	按终点排序，优先保留结束早的区间
-5	452. 用最少数量的箭引爆气球	区间贪心，在合适的公共位置射箭
-6	1094. 拼车	差分／扫描线，维护同时在车上的人数
-7	2406. 将区间分为最少组数	最大同时重叠数量；可用扫描线或最小堆
-8	218. 天际线问题	扫描线＋最大堆，维护当前有效建筑的最高高度
+1	[56](https://leetcode.com/problems/merge-intervals/). 合并区间	按起点排序，合并重叠区间
+2	[57](https://leetcode.com/problems/insert-interval/). 插入区间	分成“左侧、重叠部分、右侧”处理
+3	[986](https://leetcode.com/problems/interval-list-intersections/). 区间列表的交集	双指针，计算两个区间的交集
+4	[435](https://leetcode.com/problems/non-overlapping-intervals/). 无重叠区间	按终点排序，优先保留结束早的区间
+5	[452](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/). 用最少数量的箭引爆气球	区间贪心，在合适的公共位置射箭
+6	[1094](https://leetcode.com/problems/car-pooling/). 拼车	差分／扫描线，维护同时在车上的人数
+7	[2406](https://leetcode.com/problems/divide-intervals-into-minimum-number-of-groups/). 将区间分为最少组数	最大同时重叠数量；可用扫描线或最小堆
+8	[218](https://leetcode.com/problems/the-skyline-problem/). 天际线问题	扫描线＋最大堆，维护当前有效建筑的最高高度
 # 区间贪心：按结束位置排序
 
 原 `greedy/l435`、`greedy/l452` 合并到本目录。两个问题都按结束位置升序扫描，保留当前选择的最右端点，差别在于相接端点是否需要开始一个新选择。
@@ -56,8 +56,8 @@ func SelectByEnd(intervals [][]int, separate func(start, end int) bool) int {
 
 | 题目 | 采用的局部模板 | 实际实现 |
 | --- | --- | --- |
-| 435 | `SelectByEnd` | [实际 Go 文件](l435/435.go) |
-| 452 | `SelectByEnd` | [实际 Go 文件](l452/452.go) |
+| [435](https://leetcode.com/problems/non-overlapping-intervals/) | `SelectByEnd` | [实际 Go 文件](l435/435.go) |
+| [452](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/) | `SelectByEnd` | [实际 Go 文件](l452/452.go) |
 
 为使整页 Go 示例可合并编译，重名适配器在文档中加题号/DP/Greedy 后缀；实际 Go 文件仍保留官方函数签名。链表节点等支撑类型仅在 helper 区声明一次。
 
@@ -66,7 +66,7 @@ func SelectByEnd(intervals [][]int, separate func(start, end int) bool) int {
 
 以下代码调用本页已经声明的 helper；复制到对应题解时使用实际 Go 文件中的官方函数名。
 
-### 435
+### [435](https://leetcode.com/problems/non-overlapping-intervals/)
 
 ```go
 func eraseOverlapIntervals(intervals [][]int) int {
@@ -75,7 +75,7 @@ func eraseOverlapIntervals(intervals [][]int) int {
 }
 ```
 
-### 452
+### [452](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/)
 
 ```go
 func findMinArrowShots(points [][]int) int {

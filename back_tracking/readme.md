@@ -36,13 +36,13 @@ type boardCell struct{ row, col int }
 - [1. 什么时候考虑回溯？](#when)
 - [2. 通用解题步骤与骨架](#framework)
 - [3. 子集与组合：用 start 避免重复顺序](#combination)
-  - [78. 子集](#lc78)
-  - [77. 组合](#lc77)
-  - [39. 组合总和](#lc39)
-  - [40. 组合总和 II：同层去重](#lc40)
+  - [78. 子集](https://leetcode.com/problems/subsets/) · [本节](#lc78)
+  - [77. 组合](https://leetcode.com/problems/combinations/) · [本节](#lc77)
+  - [39. 组合总和](https://leetcode.com/problems/combination-sum/) · [本节](#lc39)
+  - [40. 组合总和 II：同层去重](https://leetcode.com/problems/combination-sum-ii/) · [本节](#lc40)
 - [4. 排列：用 used 标记当前路径](#permutation)
-  - [46. 全排列](#lc46)
-  - [47. 全排列 II：重复元素](#lc47)
+  - [46. 全排列](https://leetcode.com/problems/permutations/) · [本节](#lc46)
+  - [47. 全排列 II：重复元素](https://leetcode.com/problems/permutations-ii/) · [本节](#lc47)
 - [5. 切割：131. 分割回文串](#partition)
 - [6. 网格路径：79. 单词搜索](#grid)
 - [7. 约束放置：51. N 皇后](#constraint)
@@ -130,7 +130,7 @@ path = path[:len(path)-1]
 | 所有子集 | 进入每层时就收集 | 中间节点本身也是答案 |
 
 <a id="lc78"></a>
-### 78. 子集
+### [78](https://leetcode.com/problems/subsets/). 子集
 
 [LeetCode 78](https://leetcode.com/problems/subsets/) · [本地练习](l78/78.go)
 
@@ -160,7 +160,7 @@ func subsets(nums []int) [][]int {
 例如 `[1,2]` 的答案是 `[]、[1]、[1,2]、[2]`。时间 `O(n·2^n)`（含复制），辅助空间 `O(n)`，不含答案。本地已有实现使用迭代扩展法，也正确；上面展示的是回溯写法。
 
 <a id="lc77"></a>
-### 77. 组合
+### [77](https://leetcode.com/problems/combinations/). 组合
 
 [LeetCode 77](https://leetcode.com/problems/combinations/) · [本地练习](l77/77.go)
 
@@ -209,13 +209,13 @@ func combine(n int, k int) [][]int {
 
 | 模型 | 路径 | 下一层枚举范围 / 不变量 |
 | --- | --- | --- |
-| 不重复排列 | [46](l46) | 每层枚举全部下标，`used` 表示当前路径已选元素 |
-| 重复排列 | [47](l47) | 在未使用元素中选择，并在同层去重；不能禁止不同层使用相同数值 |
-| 组合与子集 | [77](l77)、[78](l78)、[90](l90) | start 之后选择；90 同层去重 |
-| 可重复使用候选 | [39](l39) | 允许重复时递归继续使用当前候选下标，不机械写 i+1 |
-| 字符串分段 | [131](l131) | start 是尚未划分的首位置，候选子串必须满足回文等约束 |
-| 棋盘/路径约束 | [79](l79)、[51](l51) | 检查邻接和已访问状态，或列与两条对角线冲突 |
-| 位置约束计数 | [526](l526) | 位置 pos 和数值 v 满足整除条件，终点加一 |
+| 不重复排列 | [46](https://leetcode.com/problems/permutations/) · [本地](l46) | 每层枚举全部下标，`used` 表示当前路径已选元素 |
+| 重复排列 | [47](https://leetcode.com/problems/permutations-ii/) · [本地](l47) | 在未使用元素中选择，并在同层去重；不能禁止不同层使用相同数值 |
+| 组合与子集 | [77](https://leetcode.com/problems/combinations/) · [本地](l77)、[78](https://leetcode.com/problems/subsets/) · [本地](l78)、[90](https://leetcode.com/problems/subsets-ii/) · [本地](l90) | start 之后选择；[90](https://leetcode.com/problems/subsets-ii/) 同层去重 |
+| 可重复使用候选 | [39](https://leetcode.com/problems/combination-sum/) · [本地](l39) | 允许重复时递归继续使用当前候选下标，不机械写 i+1 |
+| 字符串分段 | [131](https://leetcode.com/problems/palindrome-partitioning/) · [本地](l131) | start 是尚未划分的首位置，候选子串必须满足回文等约束 |
+| 棋盘/路径约束 | [79](https://leetcode.com/problems/word-search/) · [本地](l79)、[51](https://leetcode.com/problems/n-queens/) · [本地](l51) | 检查邻接和已访问状态，或列与两条对角线冲突 |
+| 位置约束计数 | [526](https://leetcode.com/problems/beautiful-arrangement/) · [本地](l526) | 位置 pos 和数值 v 满足整除条件，终点加一 |
 
 共同骨架是“选择 → 递归 → 撤销”，不是完全相同的候选集合：
 
@@ -231,14 +231,14 @@ dfs(状态):
 
 关键不变量：进入和退出一次递归调用时，父层可观察到的 path/used/约束必须相同。保存答案时复制切片，避免后续撤销覆盖旧答案。剪枝必须证明后续不可能形成合法答案；全局去重和同层去重不能混淆。
 
-本次已将实际算法统一为本页 searchChoices 适配器，并修复 51 的历史多余括号及各独立变体的未完成函数；原测试均保留。字典序下一个排列仍归 [permutation](../permutation/readme.md)，无需为只找一个相邻排列枚举 n! 个结果。完整映射见 [reorganization.json](../two_pointers/reorganization.json)。
+本次已将实际算法统一为本页 searchChoices 适配器，并修复 [51](https://leetcode.com/problems/n-queens/) 的历史多余括号及各独立变体的未完成函数；原测试均保留。字典序下一个排列仍归 [permutation](../permutation/readme.md)，无需为只找一个相邻排列枚举 n! 个结果。完整映射见 [reorganization.json](../two_pointers/reorganization.json)。
 
 
 ## 逐题模板适配器补全
 
 下列函数使用本页已声明的同名子模板；不是将不同不变量强行改为同一弹栈或移动条件。
 
-### 39
+### [39](https://leetcode.com/problems/combination-sum/)
 
 ```go
 func combinationSum(candidates []int, target int) [][]int {
@@ -269,7 +269,7 @@ func combinationSum(candidates []int, target int) [][]int {
 }
 ```
 
-### 46
+### [46](https://leetcode.com/problems/permutations/)
 
 ```go
 func permute(nums []int) [][]int {
@@ -295,7 +295,7 @@ func permute(nums []int) [][]int {
 }
 ```
 
-### 47
+### [47](https://leetcode.com/problems/permutations-ii/)
 
 ```go
 func permuteUnique(nums []int) [][]int {
@@ -324,7 +324,7 @@ func permuteUnique(nums []int) [][]int {
 }
 ```
 
-### 51
+### [51](https://leetcode.com/problems/n-queens/)
 
 ```go
 func solveNQueens(n int) [][]string {
@@ -382,7 +382,7 @@ func solveNQueens(n int) [][]string {
 }
 ```
 
-### 79
+### [79](https://leetcode.com/problems/word-search/)
 
 ```go
 func exist(board [][]byte, word string) bool {
@@ -437,7 +437,7 @@ func exist(board [][]byte, word string) bool {
 }
 ```
 
-### 90
+### [90](https://leetcode.com/problems/subsets-ii/)
 
 ```go
 func subsetsWithDup(nums []int) [][]int {
@@ -462,7 +462,7 @@ func subsetsWithDup(nums []int) [][]int {
 }
 ```
 
-### 131
+### [131](https://leetcode.com/problems/palindrome-partitioning/)
 
 ```go
 func partition(s string) [][]string {
@@ -501,7 +501,7 @@ func partition(s string) [][]string {
 }
 ```
 
-### 526
+### [526](https://leetcode.com/problems/beautiful-arrangement/)
 
 ```go
 func countArrangement(n int) int {

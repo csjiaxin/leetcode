@@ -199,9 +199,9 @@ func PathDFS[S any](
 
 **返回值的含义**：`return state, nil` 表示只传递值状态；`return state, func() { ... }` 表示还需要退出清理。回调返回不会结束遍历，模板接下来仍会访问左右孩子。`defer undo()` 登记在当前这层 `PathDFS` 中，等左右孩子都返回后才执行；不要在 `enter` 中用 `defer` 提前清理。
 
-六题都使用这个模板。112、113、437 的完整回调见前文；以下补齐其余三题：
+六题都使用这个模板。[112](https://leetcode.com/problems/path-sum/)、[113](https://leetcode.com/problems/path-sum-ii/)、[437](https://leetcode.com/problems/path-sum-iii/) 的完整回调见前文；以下补齐其余三题：
 
-#### 129：把路径当作十进制数字
+#### [129](https://leetcode.com/problems/sum-root-to-leaf-numbers/)：把路径当作十进制数字
 
 ```go
 func sumNumbers(root *TreeNode) int {
@@ -219,7 +219,7 @@ func sumNumbers(root *TreeNode) int {
 
 只在叶子处累计，不能把中间前缀数字也算入答案。按题目约束，数字与答案可用 `int`。
 
-#### 1448：传递祖先最大值
+#### [1448](https://leetcode.com/problems/count-good-nodes-in-binary-tree/)：传递祖先最大值
 
 ```go
 func goodNodes(root *TreeNode) int {
@@ -240,7 +240,7 @@ func goodNodes(root *TreeNode) int {
 
 先用祖先最大值判断，再把更新后的最大值交给孩子。根节点必然是好节点；用根值初始化而不是 0，可以正确处理全负数树。
 
-#### 1457：用位掩码传递出现次数的奇偶性
+#### [1457](https://leetcode.com/problems/pseudo-palindromic-paths-in-a-binary-tree/)：用位掩码传递出现次数的奇偶性
 
 ```go
 func pseudoPalindromicPaths(root *TreeNode) int {
@@ -262,16 +262,16 @@ func pseudoPalindromicPaths(root *TreeNode) int {
 
 | 题目 | 传给孩子的 state | enter 中的查询/记录 | 共享状态登记与 undo |
 | --- | --- | --- | --- |
-| 112 | 当前路径和 | 在叶子判断目标和 | 无，返回 nil |
-| 129 | 当前数字 `parent*10+Val` | 在叶子累加数字 | 无，返回 nil |
-| 1448 | 更新后的祖先最大值 | 用更新前的最大值判断好节点 | 无，返回 nil |
-| 113 | 当前路径和 | 路径 append 后，在合法叶子复制路径 | append 路径；退出时截短 |
-| 1457 | 更新后的奇偶位掩码 | 在叶子判断至多一个置位位 | 无，返回 nil |
-| 437 | 当前前缀和 | 先累计 `freq[prefix-target]` | 再增加频次；退出时减少并删除零频键 |
+| [112](https://leetcode.com/problems/path-sum/) | 当前路径和 | 在叶子判断目标和 | 无，返回 nil |
+| [129](https://leetcode.com/problems/sum-root-to-leaf-numbers/) | 当前数字 `parent*10+Val` | 在叶子累加数字 | 无，返回 nil |
+| [1448](https://leetcode.com/problems/count-good-nodes-in-binary-tree/) | 更新后的祖先最大值 | 用更新前的最大值判断好节点 | 无，返回 nil |
+| [113](https://leetcode.com/problems/path-sum-ii/) | 当前路径和 | 路径 append 后，在合法叶子复制路径 | append 路径；退出时截短 |
+| [1457](https://leetcode.com/problems/pseudo-palindromic-paths-in-a-binary-tree/) | 更新后的奇偶位掩码 | 在叶子判断至多一个置位位 | 无，返回 nil |
+| [437](https://leetcode.com/problems/path-sum-iii/) | 当前前缀和 | 先累计 `freq[prefix-target]` | 再增加频次；退出时减少并删除零频键 |
 
-初始状态按题目选择：求和/数字/位掩码通常是 0；1448 可在根非空时用 `root.Val`；437 的共享频次表预先放入 `{0: 1}`。
+初始状态按题目选择：求和/数字/位掩码通常是 0；[1448](https://leetcode.com/problems/count-good-nodes-in-binary-tree/) 可在根非空时用 `root.Val`；[437](https://leetcode.com/problems/path-sum-iii/) 的共享频次表预先放入 `{0: 1}`。
 
-**模板的边界**：这个版本统一遍历所有节点，不提供找到答案后短路或剪枝；112 的专用实现可以提前返回，更简洁。若需要剪枝，可扩展回调返回值，但剪枝前仍必须恢复已修改的共享状态。练习时优先理解骨架，不必强行套泛型。
+**模板的边界**：这个版本统一遍历所有节点，不提供找到答案后短路或剪枝；[112](https://leetcode.com/problems/path-sum/) 的专用实现可以提前返回，更简洁。若需要剪枝，可扩展回调返回值，但剪枝前仍必须恢复已修改的共享状态。练习时优先理解骨架，不必强行套泛型。
 
 ### 5.2 对应的递归执行顺序
 
@@ -295,7 +295,7 @@ func pseudoPalindromicPaths(root *TreeNode) int {
 - **按值传递的局部状态**：如整数、布尔值、仅含值字段的结构体，通常自动隔离。
 - **共享可变状态**：如闭包路径切片、map、指针指向的数据，需要考虑恢复。
 - 结构体或切片“按值传递”不等于深拷贝；内部的 map、切片、指针仍可能共享数据。
-- 是否有返回值不是前序/后序的判断标准：437 也返回计数，但核心路径状态仍是自顶向下传递的。
+- 是否有返回值不是前序/后序的判断标准：[437](https://leetcode.com/problems/path-sum-iii/) 也返回计数，但核心路径状态仍是自顶向下传递的。
 
 **一句话：前序把祖先状态带给孩子，回溯让状态只属于当前路径；前缀状态＋哈希表把“枚举路径起点”变成“查询匹配的祖先前缀”。**
 
@@ -303,9 +303,9 @@ func pseudoPalindromicPaths(root *TreeNode) int {
 
 ## 6. 建议练习顺序与题目目录
 
-各目录中的 Go 文件均包含独立的 `TreeNode`、LeetCode 链接、相同的 `PathDFS[S]` 模板及基于回调的题解，可单独阅读和使用。模板在每题中保留一份，便于提交到 LeetCode；对应的 `*_test.go` 覆盖示例、边界与分支状态隔离，113 额外检查路径快照，437 额外用固定种子的随机树与暴力枚举对照。
+各目录中的 Go 文件均包含独立的 `TreeNode`、LeetCode 链接、相同的 `PathDFS[S]` 模板及基于回调的题解，可单独阅读和使用。模板在每题中保留一份，便于提交到 LeetCode；对应的 `*_test.go` 覆盖示例、边界与分支状态隔离，[113](https://leetcode.com/problems/path-sum-ii/) 额外检查路径快照，[437](https://leetcode.com/problems/path-sum-iii/) 额外用固定种子的随机树与暴力枚举对照。
 
-统一使用第 5 节的模板：112、129、1448、1457 返回值状态及 `nil`；113 返回路径和及截短路径的 `undo`；437 返回前缀和及撤销频次的 `undo`。这版 112 不短路，最坏时间与其余计数题一样为 O(n)；113 还需计入复制输出路径的开销。
+统一使用第 5 节的模板：[112](https://leetcode.com/problems/path-sum/)、[129](https://leetcode.com/problems/sum-root-to-leaf-numbers/)、[1448](https://leetcode.com/problems/count-good-nodes-in-binary-tree/)、[1457](https://leetcode.com/problems/pseudo-palindromic-paths-in-a-binary-tree/) 返回值状态及 `nil`；[113](https://leetcode.com/problems/path-sum-ii/) 返回路径和及截短路径的 `undo`；[437](https://leetcode.com/problems/path-sum-iii/) 返回前缀和及撤销频次的 `undo`。这版 [112](https://leetcode.com/problems/path-sum/) 不短路，最坏时间与其余计数题一样为 O(n)；[113](https://leetcode.com/problems/path-sum-ii/) 还需计入复制输出路径的开销。
 
 在仓库根目录运行这组测试：
 

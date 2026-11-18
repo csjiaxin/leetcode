@@ -6,18 +6,18 @@
 
 | 题目 | 状态与操作时机 | 单点初值 |
 | --- | --- | --- |
-| 312 | 清空原下标 l..r；固定外邻居后枚举最后戳破者 | 仅有一个气球时的三个数乘积 |
-| 1547 | l..r 是待切的切点；枚举第一次切割，外侧坐标决定段长 | 一次切割的整段长度 |
-| 1039 | 顶点 l..r 的三角剖分；枚举与边界边相连的第三顶点 | 0；两点也没有三角形 |
-| 375 | 先对错误分支取最坏 max，再对猜测取最好 min | 单个候选无需付费，0 |
-| 664 | 最少打印次数；相同字符可复用一次打印 | 1 |
-| 1000 | 压到当前长度可达到的最少堆数，分割步长为 k-1 | 0 |
+| [312](https://leetcode.com/problems/burst-balloons/) | 清空原下标 l..r；固定外邻居后枚举最后戳破者 | 仅有一个气球时的三个数乘积 |
+| [1547](https://leetcode.com/problems/minimum-cost-to-cut-a-stick/) | l..r 是待切的切点；枚举第一次切割，外侧坐标决定段长 | 一次切割的整段长度 |
+| [1039](https://leetcode.com/problems/minimum-score-triangulation-of-polygon/) | 顶点 l..r 的三角剖分；枚举与边界边相连的第三顶点 | 0；两点也没有三角形 |
+| [375](https://leetcode.com/problems/guess-number-higher-or-lower-ii/) | 先对错误分支取最坏 max，再对猜测取最好 min | 单个候选无需付费，0 |
+| [664](https://leetcode.com/problems/strange-printer/) | 最少打印次数；相同字符可复用一次打印 | 1 |
+| [1000](https://leetcode.com/problems/minimum-cost-to-merge-stones/) | 压到当前长度可达到的最少堆数，分割步长为 k-1 | 0 |
 
-312 直接使用原数组闭区间 `[l,r]`，不创建补边界数组。固定的左外邻居是 `nums[l-1]`，右外邻居是 `nums[r+1]`；下标越界时才把邻居值视为 1。区间内部最后戳破者使用原下标 `last`，因此本次得分为 `neighbor(l-1) * nums[last] * neighbor(r+1)`。改变区间约定必须同时调整边界与空区间处理，不能只改循环符号。
+[312](https://leetcode.com/problems/burst-balloons/) 直接使用原数组闭区间 `[l,r]`，不创建补边界数组。固定的左外邻居是 `nums[l-1]`，右外邻居是 `nums[r+1]`；下标越界时才把邻居值视为 1。区间内部最后戳破者使用原下标 `last`，因此本次得分为 `neighbor(l-1) * nums[last] * neighbor(r+1)`。改变区间约定必须同时调整边界与空区间处理，不能只改循环符号。
 
-1000 中每次减少 k-1 堆，所以最终可合并为一堆的前提是 `(n-1)%(k-1)==0`；区间长度决定剩余堆数，只有能再合成一堆时才增加区间总和。
+[1000](https://leetcode.com/problems/minimum-cost-to-merge-stones/) 中每次减少 k-1 堆，所以最终可合并为一堆的前提是 `(n-1)%(k-1)==0`；区间长度决定剩余堆数，只有能再合成一堆时才增加区间总和。
 
-每格枚举分割点通常 O(n³) 时间、O(n²) 空间；1000 的合法分割步长可减少常数。字符串区间适配器见 [字符串系列](../strings/readme.md)，博弈区间适配器见 [game](../game/README.md)。
+每格枚举分割点通常 O(n³) 时间、O(n²) 空间；[1000](https://leetcode.com/problems/minimum-cost-to-merge-stones/) 的合法分割步长可减少常数。字符串区间适配器见 [字符串系列](../strings/readme.md)，博弈区间适配器见 [game](../game/README.md)。
 
 ## 复制与运行约定
 
@@ -49,7 +49,7 @@ func IntervalTable[T any](n int, base func(i int) T, step func(l, r int, dp [][]
 
 ## 逐题适配器
 
-### 312
+### [312](https://leetcode.com/problems/burst-balloons/)
 
 [代码](l312/312.go) · [测试](l312/312_test.go)
 
@@ -96,7 +96,7 @@ func maxCoins(nums []int) int {
 
 例如 `nums = [3,1,5]`，清空 `[1,1]` 的得分是 `3*1*5`；清空 `[0,2]` 时若最后戳原下标 1，则最后一步是 `1*nums[1]*1`，再加左右子区间得分。整个过程不需要下标加一或补边界数组。
 
-### 1547
+### [1547](https://leetcode.com/problems/minimum-cost-to-cut-a-stick/)
 
 [代码](l1547/1547.go) · [测试](l1547/1547_test.go)
 
@@ -140,7 +140,7 @@ func minCost(n int, cuts []int) int {
 }
 ```
 
-### 1039
+### [1039](https://leetcode.com/problems/minimum-score-triangulation-of-polygon/)
 
 [代码](l1039/1039.go) · [测试](l1039/1039_test.go)
 
@@ -170,7 +170,7 @@ func minScoreTriangulation(values []int) int {
 }
 ```
 
-### 375
+### [375](https://leetcode.com/problems/guess-number-higher-or-lower-ii/)
 
 [代码](l375/375.go) · [测试](l375/375_test.go)
 
@@ -204,7 +204,7 @@ func getMoneyAmount(n int) int {
 }
 ```
 
-### 664
+### [664](https://leetcode.com/problems/strange-printer/)
 
 [代码](l664/664.go) · [测试](l664/664_test.go)
 
@@ -238,7 +238,7 @@ func strangePrinter(s string) int {
 }
 ```
 
-### 1000
+### [1000](https://leetcode.com/problems/minimum-cost-to-merge-stones/)
 
 [代码](l1000/1000.go) · [测试](l1000/1000_test.go)
 

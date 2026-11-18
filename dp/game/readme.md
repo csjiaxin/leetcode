@@ -6,15 +6,15 @@
 
 | 模型 | 适配器必须定义的内容 | 题目 |
 | --- | --- | --- |
-| 必胜性 | 存在一步能使对手必败；终态规则不可省略 | 1025、1510、464 |
-| 当前玩家最终分差 | 本步得分减去下一状态的对手分差；初值允许为负 | 486、1406、1690、1140 |
-| IntervalTable 后序填表 | 保留相同区间含义，以长度替代递归调度 | 1690 区间变体、486 双方收益变体 |
+| 必胜性 | 存在一步能使对手必败；终态规则不可省略 | [1025](https://leetcode.com/problems/divisor-game/)、[1510](https://leetcode.com/problems/stone-game-iv/)、[464](https://leetcode.com/problems/can-i-win/) |
+| 当前玩家最终分差 | 本步得分减去下一状态的对手分差；初值允许为负 | [486](https://leetcode.com/problems/predict-the-winner/)、[1406](https://leetcode.com/problems/stone-game-iii/)、[1690](https://leetcode.com/problems/stone-game-vii/)、[1140](https://leetcode.com/problems/stone-game-ii/) |
+| IntervalTable 后序填表 | 保留相同区间含义，以长度替代递归调度 | [1690](https://leetcode.com/problems/stone-game-vii/) 区间变体、[486](https://leetcode.com/problems/predict-the-winner/) 双方收益变体 |
 
-例如 486 拿走端点得到的是该端点数值；1690 拿走端点得到的却是剩余石子总和，两者虽然都是区间分差，得分项不同。1140 下面使用分差 D，所以先手实得分数为 `(总分+D)/2`；不能把 D 直接当作先手总分。
+例如 [486](https://leetcode.com/problems/predict-the-winner/) 拿走端点得到的是该端点数值；[1690](https://leetcode.com/problems/stone-game-vii/) 拿走端点得到的却是剩余石子总和，两者虽然都是区间分差，得分项不同。[1140](https://leetcode.com/problems/stone-game-ii/) 下面使用分差 D，所以先手实得分数为 `(总分+D)/2`；不能把 D 直接当作先手总分。
 
-464 的入口 desiredTotal<=0 为真；递归中一手达到目标是当前玩家直接获胜，不把它当成轮到对手的同一个入口特判。状态须包含完整限制：used mask、剩余区间或后缀起点与 M。
+[464](https://leetcode.com/problems/can-i-win/) 的入口 desiredTotal<=0 为真；递归中一手达到目标是当前玩家直接获胜，不把它当成轮到对手的同一个入口特判。状态须包含完整限制：used mask、剩余区间或后缀起点与 M。
 
-原 stone 的 1690 panic 练习已经按同一模板补全，原测试保留。递归版与区间迭代、双方收益版仍作为独立方法展示。
+原 stone 的 [1690](https://leetcode.com/problems/stone-game-vii/) panic 练习已经按同一模板补全，原测试保留。递归版与区间迭代、双方收益版仍作为独立方法展示。
 
 ## 复制与运行约定
 
@@ -66,7 +66,7 @@ func IntervalTable[T any](n int, base func(i int) T, step func(l, r int, dp [][]
 
 ## 逐题适配器
 
-### 1025
+### [1025](https://leetcode.com/problems/divisor-game/)
 
 [代码](l1025/1025.go) · [测试](l1025/1025_test.go)
 
@@ -91,7 +91,7 @@ func divisorGame(n int) bool {
 }
 ```
 
-### 1510
+### [1510](https://leetcode.com/problems/stone-game-iv/)
 
 [代码](l1510/1510.go) · [测试](l1510/1510_test.go)
 
@@ -116,7 +116,7 @@ func winnerSquareGame(n int) bool {
 }
 ```
 
-### 464
+### [464](https://leetcode.com/problems/can-i-win/)
 
 [代码](l464/464.go) · [测试](l464/464_test.go)
 
@@ -158,7 +158,7 @@ func canIWin(maxChoosableInteger int, desiredTotal int) bool {
 }
 ```
 
-### 486
+### [486](https://leetcode.com/problems/predict-the-winner/)
 
 [代码](l486/486.go) · [测试](l486/486_test.go)
 
@@ -187,7 +187,7 @@ func predictTheWinner(nums []int) bool {
 }
 ```
 
-### 1406
+### [1406](https://leetcode.com/problems/stone-game-iii/)
 
 [代码](l1406/1406.go) · [测试](l1406/1406_test.go)
 
@@ -227,7 +227,7 @@ func stoneGameIII(stoneValue []int) string {
 }
 ```
 
-### 1690
+### [1690](https://leetcode.com/problems/stone-game-vii/)
 
 [代码](l1690/1690.go) · [测试](l1690/1690_test.go)
 
@@ -261,7 +261,7 @@ func stoneGameVII(stones []int) int {
 }
 ```
 
-### 1140
+### [1140](https://leetcode.com/problems/stone-game-ii/)
 
 [代码](l1140/1140.go) · [测试](l1140/1140_test.go)
 
@@ -307,7 +307,7 @@ func stoneGameII(piles []int) int {
 }
 ```
 
-### 1690 · 历史独立版本
+### [1690](https://leetcode.com/problems/stone-game-vii/) · 历史独立版本
 
 [代码](l1690/legacy/from_stone/1690.go) · [测试](l1690/legacy/from_stone/1690_test.go)
 
@@ -341,7 +341,7 @@ func stoneGameVII(stones []int) int {
 }
 ```
 
-### 1140 · 历史独立版本
+### [1140](https://leetcode.com/problems/stone-game-ii/) · 历史独立版本
 
 [代码](l1140/legacy/from_stone/1140.go)
 
@@ -386,7 +386,7 @@ func stoneGameII(piles []int) int {
 }
 ```
 
-### 1690 · interval 变体
+### [1690](https://leetcode.com/problems/stone-game-vii/) · interval 变体
 
 [代码](l1690/variants/interval/1690.go) · [测试](l1690/variants/interval/1690_test.go)
 
@@ -414,7 +414,7 @@ func stoneGameVII(stones []int) int {
 }
 ```
 
-### 486 · score_pair 变体
+### [486](https://leetcode.com/problems/predict-the-winner/) · score_pair 变体
 
 [代码](l486/variants/score_pair/486.go) · [测试](l486/variants/score_pair/486_test.go)
 

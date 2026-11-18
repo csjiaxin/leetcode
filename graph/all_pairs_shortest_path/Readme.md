@@ -100,11 +100,11 @@ func checkedAdd(a, b int64) (int64, bool) {
 }
 ```
 
-## 399：一致比值关系的适配
+## [399](https://leetcode.com/problems/evaluate-division/)：一致比值关系的适配
 
 原题保证给定除法关系一致、值为正。把变量映射成节点，a/b=w对应正向w与反向1/w；已知变量的自身比值为1。路径合成改为乘法。因为一致关系下所有可达路径给出相同比值，better固定返回false，只补充尚未知晓的关系；这不表示在求最大乘积或最短距离，不能直接套到矛盾关系上。
 
-下面只展示适配函数，与同一份FloydClosure合并即可，无需额外导入包。实际399主文件已包含helper和演示main；原来混入城市草稿的内容保存在[原混合草稿归档](l399/legacy/399_mixed_original)。
+下面只展示适配函数，与同一份FloydClosure合并即可，无需额外导入包。实际[399](https://leetcode.com/problems/evaluate-division/)主文件已包含helper和演示main；原来混入城市草稿的内容保存在[原混合草稿归档](l399/legacy/399_mixed_original)。
 
 ```go
 func calcEquation(equations [][]string, values []float64, queries [][]string) []float64 {

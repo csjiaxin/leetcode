@@ -88,9 +88,9 @@ func PostOrder[S any](
 | [979](https://leetcode.com/problems/distribute-coins-in-binary-tree/) | {balance,moves} | {0,0} | balance=Val-1+L.balance+R.balance；moves=L.moves+R.moves+abs(L.balance)+abs(R.balance) |
 | [968](https://leetcode.com/problems/binary-tree-cameras/) | {A,B,C} 三种代价 | {INF,0,0} | 按第 10.2 节状态转移；根取 min(A,B) |
 
-124 中 valid 区分“空树没有非空路径”和“合法路径和为 0”，避免把空树的 best=0 当作答案。也可用安全的负无穷表示空树 best，但要小心溢出。
+[124](https://leetcode.com/problems/binary-tree-maximum-path-sum/) 中 valid 区分“空树没有非空路径”和“合法路径和为 0”，避免把空树的 best=0 当作答案。也可用安全的负无穷表示空树 best，但要小心溢出。
 
-### 1.2 示例：543 不用全局变量也能套模板
+### 1.2 示例：[543](https://leetcode.com/problems/diameter-of-binary-tree/) 不用全局变量也能套模板
 
 ```go
 func diameterWithState(root *TreeNode) int {
@@ -108,7 +108,7 @@ func diameterWithState(root *TreeNode) int {
 }
 ```
 
-本文所有解法统一使用 PostOrder，543、124、979 也将完整答案保存在 State 中，不使用外部累计变量。实际刷题时也可改写为局部 dfs，控制流程与状态含义不变。通用遍历总是先处理左右子树，因此不提供按题意提前剪枝；110 的失败状态、236 的目标命中只在 merge 中合并。每个节点仍只访问一次。
+本文所有解法统一使用 PostOrder，[543](https://leetcode.com/problems/diameter-of-binary-tree/)、[124](https://leetcode.com/problems/binary-tree-maximum-path-sum/)、[979](https://leetcode.com/problems/distribute-coins-in-binary-tree/) 也将完整答案保存在 State 中，不使用外部累计变量。实际刷题时也可改写为局部 dfs，控制流程与状态含义不变。通用遍历总是先处理左右子树，因此不提供按题意提前剪枝；[110](https://leetcode.com/problems/balanced-binary-tree/) 的失败状态、[236](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/) 的目标命中只在 merge 中合并。每个节点仍只访问一次。
 
 **适用范围：** 这八道题都能由左右子树状态自底向上合并，因此可使用此模板。它不是所有二叉树 DFS 的万能解法：根到叶路径约束常需向下传参，换根 DP 常需两遍遍历，不能机械套用。
 
@@ -155,7 +155,7 @@ func maxDepth(root *TreeNode) int {
 
 父节点只需要左右高度，当前高度为 `max(left,right)+1`。本题返回值就是最终答案。
 
-**边界：** 空树为 0，叶子为 1。先约定高度按节点数还是边数，后面 543 依赖这个约定。
+**边界：** 空树为 0，叶子为 1。先约定高度按节点数还是边数，后面 [543](https://leetcode.com/problems/diameter-of-binary-tree/) 依赖这个约定。
 
 <a id="lc110"></a>
 
@@ -307,7 +307,7 @@ func maxPathSum(root *TreeNode) int {
 
 **全负数：** 当前 best 从包含 node.Val 的路径开始，仅比较 valid 子树的 best，不能无条件与空树的 0 比较。`max(0,child.down)` 表示不接入负贡献子树，不代表可以丢弃当前节点。
 
-### 543 与 124 的统一模板
+### [543](https://leetcode.com/problems/diameter-of-binary-tree/) 与 [124](https://leetcode.com/problems/binary-tree-maximum-path-sum/) 的统一模板
 
 | 含义 | 543 直径 | 124 最大路径和 |
 |---|---|---|
@@ -558,11 +558,11 @@ go test -v ./tree/dfs/...
 go test -v ./tree/dfs/l104
 ```
 
-以上模板每个节点最多处理一次，时间均为 **O(n)**，递归栈为 **O(h)**：平衡树 O(log n)，链状树 O(n)。统一 PostOrder 总是遍历整棵树，236 不在遇到目标时提前结束子树遍历；这不影响候选合并的正确性。968 的三状态 DP 每个节点只有常数个转移，也为 O(n)。
+以上模板每个节点最多处理一次，时间均为 **O(n)**，递归栈为 **O(h)**：平衡树 O(log n)，链状树 O(n)。统一 PostOrder 总是遍历整棵树，[236](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/) 不在遇到目标时提前结束子树遍历；这不影响候选合并的正确性。[968](https://leetcode.com/problems/binary-tree-cameras/) 的三状态 DP 每个节点只有常数个转移，也为 O(n)。
 
 递归栈不算 O(1) 空间；极深树需要留意运行环境的栈限制，必要时改为显式栈后序遍历。
 
-推荐按 **104 → 110 → 543 → 236 → 124 → 337 → 979 → 968** 刷题：
+推荐按 **[104](https://leetcode.com/problems/maximum-depth-of-binary-tree/) → [110](https://leetcode.com/problems/balanced-binary-tree/) → [543](https://leetcode.com/problems/diameter-of-binary-tree/) → [236](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/) → [124](https://leetcode.com/problems/binary-tree-maximum-path-sum/) → [337](https://leetcode.com/problems/house-robber-iii/) → [979](https://leetcode.com/problems/distribute-coins-in-binary-tree/) → [968](https://leetcode.com/problems/binary-tree-cameras/)** 刷题：
 
 1. 写一句状态定义，不看代码先确定返回值。
 2. 写空节点状态，再手算叶子状态。
@@ -570,7 +570,7 @@ go test -v ./tree/dfs/l104
 4. 单独写出“返回值”和“答案更新式”，确认是否同义。
 5. 最后补单节点、偏斜树与该题特有边界测试。
 
-重点将 **543 与 124 并排练习**，再将 **337 与 968 的条件状态并排比较**。
+重点将 **[543](https://leetcode.com/problems/diameter-of-binary-tree/) 与 [124](https://leetcode.com/problems/binary-tree-maximum-path-sum/) 并排练习**，再将 **[337](https://leetcode.com/problems/house-robber-iii/) 与 [968](https://leetcode.com/problems/binary-tree-cameras/) 的条件状态并排比较**。
 
 **口诀：先定义返回，空树定边界；左右取信息，当前做合并；单支交父亲，双支更答案；条件若不同，多状态来存。**
 
@@ -737,7 +737,7 @@ balance 是通过父边交换的净数量；moves 是子树内部成本。当前
 | [979](https://leetcode.com/problems/distribute-coins-in-binary-tree/) | {balance:0,moves:0} | {Val-1,0} | moves，合法输入下 balance=0 |
 | [968](https://leetcode.com/problems/binary-tree-cameras/) DP | {A:INF,B:0,C:0} | {1,INF,0} | min(A,B)，不允许等待父节点 |
 
-968 的 INF 表示不可行，做加法时结果可能大于 INF，仍视为不可行；实现可以截断到 INF。不能用最大 int 直接相加导致溢出。
+[968](https://leetcode.com/problems/binary-tree-cameras/) 的 INF 表示不可行，做加法时结果可能大于 INF，仍视为不可行；实现可以截断到 INF。不能用最大 int 直接相加导致溢出。
 
 如果空状态推导不出正确的叶子状态，优先重新检查状态定义与合并公式，而不是到处补叶子特判。
 

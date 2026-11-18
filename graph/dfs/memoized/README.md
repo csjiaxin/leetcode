@@ -44,4 +44,4 @@ func longestFrom(graph [][]int, start int) int {
 | [329. 矩阵中的最长递增路径](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) | [DFS 笔记](l329/329) · [拓扑版本与测试](../../topo_sort/l329/329.go) | 只走严格更大的格子；长度 = 1 + 后继最大长度 |
 | [851. 喧闹和富有](https://leetcode.com/problems/loud-and-rich/) | [DFS 笔记](l851/851) | 按题意的财富偏序查更富的人；缓存最安静者 |
 
-若每个状态只完成一次，复杂度是状态数加依赖边数；329 为 O(mn)，851 为 O(V+E)。DFS 与拓扑 DP 可以解决相同 DAG，但计算方向与初始化要与状态定义保持一致。
+若每个状态只完成一次，复杂度是状态数加依赖边数；[329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) 为 O(mn)，[851](https://leetcode.com/problems/loud-and-rich/) 为 O(V+E)。DFS 与拓扑 DP 可以解决相同 DAG，但计算方向与初始化要与状态定义保持一致。

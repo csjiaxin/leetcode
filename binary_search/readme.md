@@ -4,7 +4,7 @@
 
 FirstTrue 的循环不变量是：答案始终在尚未排除的闭区间与右侧返回哨兵中；谓词必须先 false 后 true。查找元素、重复边界、答案二分都只改变谓词与答案转换。
 
-81 含重复值、162/1901 寻找任意峰值采用独立的二分排除内核；它们不能把不单调的坡度伪装成 FirstTrue 的全局单调谓词。2024 对长度做二分，固定长度检查分别统计两种字符；2498 的可行性利用有序石子的隔点跳跃约束。
+[81](https://leetcode.com/problems/search-in-rotated-sorted-array-ii/) 含重复值、[162](https://leetcode.com/problems/find-peak-element/)/[1901](https://leetcode.com/problems/find-a-peak-element-ii/) 寻找任意峰值采用独立的二分排除内核；它们不能把不单调的坡度伪装成 FirstTrue 的全局单调谓词。[2024](https://leetcode.com/problems/maximize-the-confusion-of-an-exam/) 对长度做二分，固定长度检查分别统计两种字符；[2498](https://leetcode.com/problems/frog-jump-ii/) 的可行性利用有序石子的隔点跳跃约束。
 
 ## 复制约定
 

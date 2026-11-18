@@ -6,13 +6,13 @@
 
 | 子模板 | 适用条件与不变量 | 题目 |
 | --- | --- | --- |
-| RangeJumps | 非负向前跳，当前层可达位置构成连续区间；扫描整层更新下一层最远边界 | 55、45 |
-| JumpBFS | 边代价都为 1，完整位置入队即标记；首次到达得到最短步数 | 1306、1345 |
-| MemoJump | 只能跳向严格更低位置，状态依赖无环；缓存从当前位置出发的最大访问数 | 1340 |
+| RangeJumps | 非负向前跳，当前层可达位置构成连续区间；扫描整层更新下一层最远边界 | [55](https://leetcode.com/problems/jump-game/)、[45](https://leetcode.com/problems/jump-game-ii/) |
+| JumpBFS | 边代价都为 1，完整位置入队即标记；首次到达得到最短步数 | [1306](https://leetcode.com/problems/jump-game-iii/)、[1345](https://leetcode.com/problems/jump-game-iv/) |
+| MemoJump | 只能跳向严格更低位置，状态依赖无环；缓存从当前位置出发的最大访问数 | [1340](https://leetcode.com/problems/jump-game-v/) |
 
-45 的一次加步发生在扫描完当前层，而不是每一步贪心落到最远位置；额外支持不可达时检测边界无法推进。1306 可双向且目标是值为零的位置，不能用最远边界。1345 同值组展开一次后删除，使所有组的总扫描量为 O(n)。
+[45](https://leetcode.com/problems/jump-game-ii/) 的一次加步发生在扫描完当前层，而不是每一步贪心落到最远位置；额外支持不可达时检测边界无法推进。[1306](https://leetcode.com/problems/jump-game-iii/) 可双向且目标是值为零的位置，不能用最远边界。[1345](https://leetcode.com/problems/jump-game-iv/) 同值组展开一次后删除，使所有组的总扫描量为 O(n)。
 
-1340 需要分别向左右扫描，遇到不低的柱子就停止该方向，更远的落点也被挡住；返回的访问数包含起点。最坏 O(nd) 时间、O(n) 状态空间。
+[1340](https://leetcode.com/problems/jump-game-v/) 需要分别向左右扫描，遇到不低的柱子就停止该方向，更远的落点也被挡住；返回的访问数包含起点。最坏 O(nd) 时间、O(n) 状态空间。
 
 ## 复制与运行约定
 
@@ -103,7 +103,7 @@ func MemoJump[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
 
 ## 逐题适配器
 
-### 55
+### [55](https://leetcode.com/problems/jump-game/)
 
 [代码](l55/55.go) · [测试](l55/55_test.go)
 
@@ -118,7 +118,7 @@ func MemoJump[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
 func canJump(nums []int) bool { return RangeJumps(nums) >= 0 }
 ```
 
-### 45
+### [45](https://leetcode.com/problems/jump-game-ii/)
 
 [代码](l45/45.go) · [测试](l45/45_test.go)
 
@@ -133,7 +133,7 @@ func canJump(nums []int) bool { return RangeJumps(nums) >= 0 }
 func jump(nums []int) int { return RangeJumps(nums) }
 ```
 
-### 1306
+### [1306](https://leetcode.com/problems/jump-game-iii/)
 
 [代码](l1306/1306.go) · [测试](l1306/1306_test.go)
 
@@ -153,7 +153,7 @@ func canReach(arr []int, start int) bool {
 }
 ```
 
-### 1345
+### [1345](https://leetcode.com/problems/jump-game-iv/)
 
 [代码](l1345/1345.go) · [测试](l1345/1345_test.go)
 
@@ -181,7 +181,7 @@ func minJumps(arr []int) int {
 }
 ```
 
-### 1340
+### [1340](https://leetcode.com/problems/jump-game-v/)
 
 [代码](l1340/1340.go) · [测试](l1340/1340_test.go)
 

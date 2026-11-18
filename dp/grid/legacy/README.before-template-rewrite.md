@@ -18,13 +18,13 @@ ways[start] = 1
 
 | 题目 | 状态/区别 |
 | --- | --- |
-| [62](../l62/62.go)、[历史 62](../l62/legacy/62) | 右/下路径数 |
-| [63](../l63/63.go)、[历史 63](../l63/legacy/63) | 障碍格不可传播；起点可能被挡 |
-| [64](../l64/64.go) | 最小路径和，路径代价包含当前格 |
-| [120](../l120/120.go) | 三角形，父层只有相邻两个合法来源 |
-| [931](../l931/931.go)、[历史递归片段](../l931/legacy/931) | 上一行三个相邻位置 |
-| [1289](../l1289/1289.go) | 上一行不同列；可维护不同列的最小与次小值 |
-| [174](../l174/174.go) | 从终点倒推进入格子所需血量，至少为 1；不是路径和最小化 |
+| [62](https://leetcode.com/problems/unique-paths/) · [代码](../l62/62.go)、[历史 62](../l62/legacy/62) | 右/下路径数 |
+| [63](https://leetcode.com/problems/unique-paths-ii/) · [代码](../l63/63.go)、[历史 63](../l63/legacy/63) | 障碍格不可传播；起点可能被挡 |
+| [64](https://leetcode.com/problems/minimum-path-sum/) · [代码](../l64/64.go) | 最小路径和，路径代价包含当前格 |
+| [120](https://leetcode.com/problems/triangle/) · [代码](../l120/120.go) | 三角形，父层只有相邻两个合法来源 |
+| [931](https://leetcode.com/problems/minimum-falling-path-sum/) · [代码](../l931/931.go)、[历史递归片段](../l931/legacy/931) | 上一行三个相邻位置 |
+| [1289](https://leetcode.com/problems/minimum-falling-path-sum-ii/) · [代码](../l1289/1289.go) | 上一行不同列；可维护不同列的最小与次小值 |
+| [174](https://leetcode.com/problems/dungeon-game/) · [代码](../l174/174.go) | 从终点倒推进入格子所需血量，至少为 1；不是路径和最小化 |
 
 ## 2. 以当前格子为边界的区域状态
 
@@ -37,9 +37,9 @@ ways[start] = 1
 
 side 表示以当前格为右下角的最大边长，不是矩形面积。第一行和第一列要独立处理，或使用补零边界。
 
-- [221](../l221/221.go)：最大边长的平方。
-- [1277](../l1277/1277.go)：累加所有 side，统计全部正方形。
-- [85](../l85/85)：历史未完成片段，不能据此声称矩形沿用正方形递推。
+- [221](https://leetcode.com/problems/maximal-square/) · [代码](../l221/221.go)：最大边长的平方。
+- [1277](https://leetcode.com/problems/count-square-submatrices-with-all-ones/) · [代码](../l1277/1277.go)：累加所有 side，统计全部正方形。
+- [85](https://leetcode.com/problems/maximal-rectangle/) · [代码](../l85/85)：历史未完成片段，不能据此声称矩形沿用正方形递推。
 
 ## 3. 额外步数或多个移动者
 
@@ -55,19 +55,19 @@ for 当前层:
 
 | 题目/版本 | 完整状态 |
 | --- | --- |
-| [576](../l576/576) | 位置、剩余步数；离开棋盘贡献一次成功 |
-| [688](../l688/688) | 位置、剩余步数；按合法/非法移动累加概率，非法位置为 0 |
-| [741 迭代](../l741/741.go)、[递归](../l741/variants/recursion/741.go) | 两名同步移动者；步数相同，可推出一个坐标，避免四维冗余 |
-| [1463 递归](../l1463/variants/recursion/1463.go) | 行号与两列位置；同格奖励只计一次 |
-| [1594](../l1594/1594.go) | 每格同时保存最大、最小乘积，负数会交换最优方向 |
+| [576](https://leetcode.com/problems/out-of-boundary-paths/) · [代码](../l576/576) | 位置、剩余步数；离开棋盘贡献一次成功 |
+| [688](https://leetcode.com/problems/knight-probability-in-chessboard/) · [代码](../l688/688) | 位置、剩余步数；按合法/非法移动累加概率，非法位置为 0 |
+| [741 迭代](https://leetcode.com/problems/cherry-pickup/) · [代码](../l741/741.go)、[递归](../l741/variants/recursion/741.go) | 两名同步移动者；步数相同，可推出一个坐标，避免四维冗余 |
+| [1463 递归](https://leetcode.com/problems/cherry-pickup-ii/) · [代码](../l1463/variants/recursion/1463.go) | 行号与两列位置；同格奖励只计一次 |
+| [1594](https://leetcode.com/problems/maximum-non-negative-product-in-a-matrix/) · [代码](../l1594/1594.go) | 每格同时保存最大、最小乘积，负数会交换最优方向 |
 
 [l1463/1463.go](../l1463/1463.go) 仍保留原 panic 草稿及原测试；可运行递归版本位于 variants。原调试可执行文件和 l221 中的空占位文件也原样保留，不把它们当作源码模板。
 
 ## 4. 隐式 DAG 与转移优化
 
-- [2684](../l2684/2684.go)：按列推进，合法边由相邻列的值比较决定。
-- [329](../l329/329.go)：严格递增形成 DAG，可以记忆化搜索或按依赖排序；任意四向网格不能直接套无环 DP。
-- [1937](../l1937/1937.go)：行间任意列转移带距离代价，用左右扫描维护最优来源，而不是每格枚举上一行全部列。
+- [2684](https://leetcode.com/problems/maximum-number-of-moves-in-a-grid/) · [代码](../l2684/2684.go)：按列推进，合法边由相邻列的值比较决定。
+- [329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) · [代码](../l329/329.go)：严格递增形成 DAG，可以记忆化搜索或按依赖排序；任意四向网格不能直接套无环 DP。
+- [1937](https://leetcode.com/problems/maximum-number-of-points-with-cost/) · [代码](../l1937/1937.go)：行间任意列转移带距离代价，用左右扫描维护最优来源，而不是每格枚举上一行全部列。
 
 [legacy_geometry/l391](../legacy_geometry/l391/391.go) 是原有几何题空草稿，不属于本节网格 DP；它仍照常参与 Go 构建并报告原有缺少返回值的问题。[原网格笔记](../legacy/grid.readme.md)保留历史资料。
 

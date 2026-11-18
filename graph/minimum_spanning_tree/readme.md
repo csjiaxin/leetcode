@@ -51,7 +51,7 @@ for queueNotEmpty() {
 
 以下 helper 要求节点编号为0..n-1、n非负，cost 对称且为每对节点提供有限边权；完全图在n>0时自然连通。边权可以为负，所有边权和最终总和须在int范围内。若需处理缺边或不连通，使用上面的通用带错误返回值版本，不能拿某个合法权值充当缺边标记。
 
-README 只声明一次 helper，选择一题适配函数接在同一 `package` 中即可；1584 主文件已包含完整副本和演示 main，可独立使用，无需仓库内部包。
+README 只声明一次 helper，选择一题适配函数接在同一 `package` 中即可；[1584](https://leetcode.com/problems/min-cost-to-connect-all-points/) 主文件已包含完整副本和演示 main，可独立使用，无需仓库内部包。
 
 ```go
 package template
@@ -92,7 +92,7 @@ func DensePrim(n int, cost func(int, int) int) int {
 }
 ```
 
-### 1584：只提供曼哈顿距离
+### [1584](https://leetcode.com/problems/min-cost-to-connect-all-points/)：只提供曼哈顿距离
 
 ```go
 func minCostConnectPoints(points [][]int) int {

@@ -6,12 +6,12 @@
 
 | 模板 | 固定不变量 | 题目 |
 | --- | --- | --- |
-| 单源最短路 | 首次入队确定最少步数 | 1091、1926、909、752、127、433、773、279、322 |
-| 多源同时扩散 | 所有源距离为 0，一起入队 | 994、542、1162；934 先找到整座岛作为源 |
-| 扩展状态 BFS | 只合并完整状态相同的搜索分支 | 1293 的剩余消除次数、864 的钥匙集合、847 的访问集合、1129 的边颜色、1654 的上一跳方向 |
-| 其余建模与可达性 | 需要分别说明步数含义与重复扩展范围 | 130、1020、1311、1345、815、301 |
+| 单源最短路 | 首次入队确定最少步数 | [1091](https://leetcode.com/problems/shortest-path-in-binary-matrix/)、[1926](https://leetcode.com/problems/nearest-exit-from-entrance-in-maze/)、[909](https://leetcode.com/problems/snakes-and-ladders/)、[752](https://leetcode.com/problems/open-the-lock/)、[127](https://leetcode.com/problems/word-ladder/)、[433](https://leetcode.com/problems/minimum-genetic-mutation/)、[773](https://leetcode.com/problems/sliding-puzzle/)、[279](https://leetcode.com/problems/perfect-squares/)、[322](https://leetcode.com/problems/coin-change/) |
+| 多源同时扩散 | 所有源距离为 0，一起入队 | [994](https://leetcode.com/problems/rotting-oranges/)、[542](https://leetcode.com/problems/01-matrix/)、[1162](https://leetcode.com/problems/as-far-from-land-as-possible/)；[934](https://leetcode.com/problems/shortest-bridge/) 先找到整座岛作为源 |
+| 扩展状态 BFS | 只合并完整状态相同的搜索分支 | [1293](https://leetcode.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/) 的剩余消除次数、[864](https://leetcode.com/problems/shortest-path-to-get-all-keys/) 的钥匙集合、[847](https://leetcode.com/problems/shortest-path-visiting-all-nodes/) 的访问集合、[1129](https://leetcode.com/problems/shortest-path-with-alternating-colors/) 的边颜色、[1654](https://leetcode.com/problems/minimum-jumps-to-reach-home/) 的上一跳方向 |
+| 其余建模与可达性 | 需要分别说明步数含义与重复扩展范围 | [130](https://leetcode.com/problems/surrounded-regions/)、[1020](https://leetcode.com/problems/number-of-enclaves/)、[1311](https://leetcode.com/problems/get-watched-videos-by-your-friends/)、[1345](https://leetcode.com/problems/jump-game-iv/)、[815](https://leetcode.com/problems/bus-routes/)、[301](https://leetcode.com/problems/remove-invalid-parentheses/) |
 
-本目录24道题的 `.go` 文件均使用下方通用 BFS 辅助函数，每个主解文件都复制完整 helper，可独立提交，不依赖仓库内部包；已有测试保持原样。130、1020 的另一套已完成实现归入 [DFS 网格连通块](../dfs/grid/readme.md)，二者的接口与输入修改约定独立保留。[934 的 DFS＋BFS 旧笔记](l934/variants/dfs_bfs/934)也保留。
+本目录24道题的 `.go` 文件均使用下方通用 BFS 辅助函数，每个主解文件都复制完整 helper，可独立提交，不依赖仓库内部包；已有测试保持原样。[130](https://leetcode.com/problems/surrounded-regions/)、[1020](https://leetcode.com/problems/number-of-enclaves/) 的另一套已完成实现归入 [DFS 网格连通块](../dfs/grid/readme.md)，二者的接口与输入修改约定独立保留。[934 的 DFS＋BFS 旧笔记](https://leetcode.com/problems/shortest-bridge/) · [代码](l934/variants/dfs_bfs/934)也保留。
 
 [返回仓库目录](../README.md)
 
@@ -124,7 +124,7 @@ func shortestDistance(graph [][]int, starts []int, target int) int {
 | 下一步距离为当前距离+1 | 枚举相邻格、旋转密码、修改字符等 |
 | 处理到目标或队列耗尽 | `stop(state,distance)` 判断目标；传 `nil` 得到整张距离表 |
 
-`neighbors(state)` 只返回合法的一步后继；helper 在入队前统一去重并赋值。`stop` 在出队后、生成邻居前执行，返回 `true` 立即停止；`nil` 会遍历全部可达状态。提前停止时返回的 `dist` 只包含已发现的状态。求单个目标的题目在回调中保存答案，避免搜索余下的状态。1311 只生成到指定层；301 收集第一个有合法括号串的整层，此后不再生成更深状态，遇到已入队的下一层立即结束。
+`neighbors(state)` 只返回合法的一步后继；helper 在入队前统一去重并赋值。`stop` 在出队后、生成邻居前执行，返回 `true` 立即停止；`nil` 会遍历全部可达状态。提前停止时返回的 `dist` 只包含已发现的状态。求单个目标的题目在回调中保存答案，避免搜索余下的状态。[1311](https://leetcode.com/problems/get-watched-videos-by-your-friends/) 只生成到指定层；[301](https://leetcode.com/problems/remove-invalid-parentheses/) 收集第一个有合法括号串的整层，此后不再生成更深状态，遇到已入队的下一层立即结束。
 
 README 中只声明一次 helper，下面的题解代码块与其放在同一包中即可运行；各练习主文件已各自附上完整副本，符合独立提交要求。Go 泛型需要 Go 1.18 及以上。
 
@@ -172,13 +172,13 @@ while 队列非空:
 | 问题 | 完整状态 | 为什么不能更少？ |
 | --- | --- | --- |
 | 普通静态迷宫 | `(row,col)` | 到同一格后可走方向一致 |
-| 752 转盘锁 | 四位密码 | 不能只记录最后旋转的那一位 |
-| 1293 消除障碍 | `(row,col,remain)` | 同一格，剩余消除次数影响后续通行能力 |
-| 864 收集钥匙 | `(row,col,keyMask)` | 回到同一格时可能多了开锁能力 |
-| 847 访问所有节点 | `(node,visitedMask)` | 同一节点，已访问集合不同，距离目标的进度不同 |
-| 1129 交替颜色路径 | `(node,lastColor)` | 下一条可用边取决于上一条边的颜色 |
+| [752](https://leetcode.com/problems/open-the-lock/) 转盘锁 | 四位密码 | 不能只记录最后旋转的那一位 |
+| [1293](https://leetcode.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/) 消除障碍 | `(row,col,remain)` | 同一格，剩余消除次数影响后续通行能力 |
+| [864](https://leetcode.com/problems/shortest-path-to-get-all-keys/) 收集钥匙 | `(row,col,keyMask)` | 回到同一格时可能多了开锁能力 |
+| [847](https://leetcode.com/problems/shortest-path-visiting-all-nodes/) 访问所有节点 | `(node,visitedMask)` | 同一节点，已访问集合不同，距离目标的进度不同 |
+| [1129](https://leetcode.com/problems/shortest-path-with-alternating-colors/) 交替颜色路径 | `(node,lastColor)` | 下一条可用边取决于上一条边的颜色 |
 
-例如1293中先到某格时剩余0次，后到时剩余1次；后者可能穿过终点前的障碍，前者却不行。只用 `visited[row][col]` 会错误丢掉可行解。
+例如[1293](https://leetcode.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/)中先到某格时剩余0次，后到时剩余1次；后者可能穿过终点前的障碍，前者却不行。只用 `visited[row][col]` 会错误丢掉可行解。
 
 最容易写对的版本：
 
@@ -204,7 +204,7 @@ while 队列非空:
 所有节点都访问过：mask == (1 << n) - 1
 ```
 
-这不是把不同状态强行合并，而是把集合编码为整数。847的源为 `(i,1<<i)`，访问过的节点允许再次经过；不能用普通“路径中禁止重复节点”的做法。
+这不是把不同状态强行合并，而是把集合编码为整数。[847](https://leetcode.com/problems/shortest-path-visiting-all-nodes/)的源为 `(i,1<<i)`，访问过的节点允许再次经过；不能用普通“路径中禁止重复节点”的做法。
 
 <a id="complexity"></a>
 ### 复杂度、算法边界与双向 BFS
@@ -212,9 +212,9 @@ while 队列非空:
 复杂度应按**完整状态图**计算：显式图为 `O(V+E)` 时间、`O(V)` 空间；隐式图还需计算生成一个邻居的成本。
 
 - R×C四/八方向网格：状态数 `RC`，每个状态常数个邻居，时间空间 `O(RC)`。
-- 1293：最多 `RC(k+1)` 个状态，完整状态版本时间空间 `O(RC(k+1))`。
-- 847：最多 `n·2^n` 个状态，时间上界 `O((n+E)·2^n)`，空间 `O(n·2^n)`；E为原图边数。
-- 127：逐位置替换字符生成邻居时，还要算字符串构造和哈希成本，不能只按字典单词数估算时间。
+- [1293](https://leetcode.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/)：最多 `RC(k+1)` 个状态，完整状态版本时间空间 `O(RC(k+1))`。
+- [847](https://leetcode.com/problems/shortest-path-visiting-all-nodes/)：最多 `n·2^n` 个状态，时间上界 `O((n+E)·2^n)`，空间 `O(n·2^n)`；E为原图边数。
+- [127](https://leetcode.com/problems/word-ladder/)：逐位置替换字符生成邻居时，还要算字符串构造和哈希成本，不能只按字典单词数估算时间。
 
 | 条件 | 应考虑的方法 |
 | --- | --- |
@@ -388,13 +388,13 @@ func updateMatrix(mat [][]int) [][]int {
 
 | 题目 | 源点 | 邻居 | 距离单位 |
 | --- | --- | --- | --- |
-| 1091 | 左上角 | 八方向 | 格子数，helper 源为0，结果加1 |
-| 994 | 所有腐烂橘子 | 四方向 | 分钟，源为0 |
-| 542 | 所有0 | 四方向 | 边数，源为0 |
+| [1091](https://leetcode.com/problems/shortest-path-in-binary-matrix/) | 左上角 | 八方向 | 格子数，helper 源为0，结果加1 |
+| [994](https://leetcode.com/problems/rotting-oranges/) | 所有腐烂橘子 | 四方向 | 分钟，源为0 |
+| [542](https://leetcode.com/problems/01-matrix/) | 所有0 | 四方向 | 边数，源为0 |
 
 - 入队时标记，不是出队时标记，避免重复发现。
 - 分层时提前固定end，新加入的格子属于下一层。
-- 994没有新鲜橘子返回0，有新鲜但不可达返回-1。
+- [994](https://leetcode.com/problems/rotting-oranges/)没有新鲜橘子返回0，有新鲜但不可达返回-1。
 - 额外资源如钥匙、剩余障碍消除次数需要进入状态，不能仅按坐标去重。
 - 带权问题请看 [Dijkstra](../single_source_shortest_path/README.md)；已有分类：[graph](../NOTES.md)。
 
@@ -430,7 +430,7 @@ func updateMatrix(mat [][]int) [][]int {
 | --- | --- | --- | --- |
 | [752. 打开转盘锁](https://leetcode.com/problems/open-the-lock/) | [l752](l752/752.go) | 四位密码为状态，每位循环加减1，共8个邻居 | 起点禁用优先判断；合法起点等于终点时答案0 |
 | [127. 单词接龙](https://leetcode.com/problems/word-ladder/) | [l127](l127/127.go) | 单词为状态，每次只换一位，结果必须在字典内 | 答案计单词数；终点不在字典无解；可双向BFS |
-| [433. 最小基因变化](https://leetcode.com/problems/minimum-genetic-mutation/) | [l433](l433/433.go) | 基因串为状态，每位尝试A/C/G/T且必须在基因库内 | 答案计变化次数，不像127计字符串个数 |
+| [433. 最小基因变化](https://leetcode.com/problems/minimum-genetic-mutation/) | [l433](l433/433.go) | 基因串为状态，每位尝试A/C/G/T且必须在基因库内 | 答案计变化次数，不像[127](https://leetcode.com/problems/word-ladder/)计字符串个数 |
 | [773. 滑动谜题](https://leetcode.com/problems/sliding-puzzle/) | [l773](l773/773.go) | 2×3棋盘编码为字符串，空位与合法邻位交换 | 预先列出每个空位下标的邻居；目标为123450 |
 | [279. 完全平方数](https://leetcode.com/problems/perfect-squares/) | [l279](l279/279.go) | 和为状态，从0出发每步加一个平方数，目标n | 一步等于使用一个数；也可用DP，BFS用于建模训练 |
 | [322. 零钱兑换](https://leetcode.com/problems/coin-change/) | [l322](l322/322.go) | 金额为状态，从0出发每步加一种硬币，目标amount | 硬币为正；amount=0返回0；这是DP题的BFS视角 |
@@ -481,9 +481,9 @@ func updateMatrix(mat [][]int) [][]int {
 
 ## 6. 其余 21 题的完整模板适配
 
-前文给出 1091、994、542；下面补齐其余题目。每个代码块与第 1 节的同一份 bfs 组合，不重复声明队列遍历。1311 还需要标准库 sort；组合独立文件时，把导入放在 package 之后、所有声明之前。实际各题主文件已经包含所需导入及完整本地模板。
+前文给出 [1091](https://leetcode.com/problems/shortest-path-in-binary-matrix/)、[994](https://leetcode.com/problems/rotting-oranges/)、[542](https://leetcode.com/problems/01-matrix/)；下面补齐其余题目。每个代码块与第 1 节的同一份 bfs 组合，不重复声明队列遍历。[1311](https://leetcode.com/problems/get-watched-videos-by-your-friends/) 还需要标准库 sort；组合独立文件时，把导入放在 package 之后、所有声明之前。实际各题主文件已经包含所需导入及完整本地模板。
 
-### 1020：[本地完整文件](l1020/1020.go)
+### [1020](https://leetcode.com/problems/number-of-enclaves/)：[本地完整文件](l1020/1020.go)
 
 ```go
 // https://leetcode.com/problems/number-of-enclaves/
@@ -517,7 +517,7 @@ func numEnclaves(grid [][]int) int {
 }
 ```
 
-### 1129：[本地完整文件](l1129/1129.go)
+### [1129](https://leetcode.com/problems/shortest-path-with-alternating-colors/)：[本地完整文件](l1129/1129.go)
 
 ```go
 // https://leetcode.com/problems/shortest-path-with-alternating-colors/
@@ -550,7 +550,7 @@ func shortestAlternatingPaths(n int, redEdges [][]int, blueEdges [][]int) []int 
 }
 ```
 
-### 1162：[本地完整文件](l1162/1162.go)
+### [1162](https://leetcode.com/problems/as-far-from-land-as-possible/)：[本地完整文件](l1162/1162.go)
 
 ```go
 // https://leetcode.com/problems/as-far-from-land-as-possible/
@@ -586,7 +586,7 @@ func maxDistance(grid [][]int) int {
 }
 ```
 
-### 127：[本地完整文件](l127/127.go)
+### [127](https://leetcode.com/problems/word-ladder/)：[本地完整文件](l127/127.go)
 
 ```go
 // https://leetcode.com/problems/word-ladder/
@@ -630,7 +630,7 @@ func ladderLength(beginWord string, endWord string, wordList []string) int {
 }
 ```
 
-### 1293：[本地完整文件](l1293/1293.go)
+### [1293](https://leetcode.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/)：[本地完整文件](l1293/1293.go)
 
 ```go
 // https://leetcode.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/
@@ -663,7 +663,7 @@ func shortestPath(grid [][]int, k int) int {
 }
 ```
 
-### 130：[本地完整文件](l130/130.go)
+### [130](https://leetcode.com/problems/surrounded-regions/)：[本地完整文件](l130/130.go)
 
 ```go
 // https://leetcode.com/problems/surrounded-regions/
@@ -701,7 +701,7 @@ func solve(board [][]byte) {
 }
 ```
 
-### 1311：[本地完整文件](l1311/1311.go)
+### [1311](https://leetcode.com/problems/get-watched-videos-by-your-friends/)：[本地完整文件](l1311/1311.go)
 
 ```go
 import "sort"
@@ -738,7 +738,7 @@ func watchedVideosByFriends(watchedVideos [][]string, friends [][]int, id int, l
 }
 ```
 
-### 1345：[本地完整文件](l1345/1345.go)
+### [1345](https://leetcode.com/problems/jump-game-iv/)：[本地完整文件](l1345/1345.go)
 
 ```go
 // https://leetcode.com/problems/jump-game-iv/
@@ -771,7 +771,7 @@ func minJumps(arr []int) int {
 }
 ```
 
-### 1654：[本地完整文件](l1654/1654.go)
+### [1654](https://leetcode.com/problems/minimum-jumps-to-reach-home/)：[本地完整文件](l1654/1654.go)
 
 ```go
 // https://leetcode.com/problems/minimum-jumps-to-reach-home/
@@ -815,7 +815,7 @@ func minimumJumps(forbidden []int, a int, b int, x int) int {
 }
 ```
 
-### 1926：[本地完整文件](l1926/1926.go)
+### [1926](https://leetcode.com/problems/nearest-exit-from-entrance-in-maze/)：[本地完整文件](l1926/1926.go)
 
 ```go
 // https://leetcode.com/problems/nearest-exit-from-entrance-in-maze/
@@ -844,7 +844,7 @@ func nearestExit(maze [][]byte, entrance []int) int {
 }
 ```
 
-### 279：[本地完整文件](l279/279.go)
+### [279](https://leetcode.com/problems/perfect-squares/)：[本地完整文件](l279/279.go)
 
 ```go
 // https://leetcode.com/problems/perfect-squares/
@@ -874,7 +874,7 @@ func numSquares(n int) int {
 }
 ```
 
-### 301：[本地完整文件](l301/301.go)
+### [301](https://leetcode.com/problems/remove-invalid-parentheses/)：[本地完整文件](l301/301.go)
 
 ```go
 // https://leetcode.com/problems/remove-invalid-parentheses/
@@ -924,7 +924,7 @@ func removeInvalidParentheses(s string) []string {
 }
 ```
 
-### 322：[本地完整文件](l322/322.go)
+### [322](https://leetcode.com/problems/coin-change/)：[本地完整文件](l322/322.go)
 
 ```go
 // https://leetcode.com/problems/coin-change/
@@ -949,7 +949,7 @@ func coinChange(coins []int, amount int) int {
 }
 ```
 
-### 433：[本地完整文件](l433/433.go)
+### [433](https://leetcode.com/problems/minimum-genetic-mutation/)：[本地完整文件](l433/433.go)
 
 ```go
 // https://leetcode.com/problems/minimum-genetic-mutation/
@@ -993,7 +993,7 @@ func minMutation(startGene string, endGene string, bank []string) int {
 }
 ```
 
-### 752：[本地完整文件](l752/752.go)
+### [752](https://leetcode.com/problems/open-the-lock/)：[本地完整文件](l752/752.go)
 
 ```go
 // https://leetcode.com/problems/open-the-lock/
@@ -1031,7 +1031,7 @@ func openLock(deadends []string, target string) int {
 }
 ```
 
-### 773：[本地完整文件](l773/773.go)
+### [773](https://leetcode.com/problems/sliding-puzzle/)：[本地完整文件](l773/773.go)
 
 ```go
 // https://leetcode.com/problems/sliding-puzzle/
@@ -1068,7 +1068,7 @@ func slidingPuzzle(board [][]int) int {
 }
 ```
 
-### 815：[本地完整文件](l815/815.go)
+### [815](https://leetcode.com/problems/bus-routes/)：[本地完整文件](l815/815.go)
 
 ```go
 // https://leetcode.com/problems/bus-routes/
@@ -1106,7 +1106,7 @@ func numBusesToDestination(routes [][]int, source int, target int) int {
 }
 ```
 
-### 847：[本地完整文件](l847/847.go)
+### [847](https://leetcode.com/problems/shortest-path-visiting-all-nodes/)：[本地完整文件](l847/847.go)
 
 ```go
 // https://leetcode.com/problems/shortest-path-visiting-all-nodes/
@@ -1135,7 +1135,7 @@ func shortestPathLength(graph [][]int) int {
 }
 ```
 
-### 864：[本地完整文件](l864/864.go)
+### [864](https://leetcode.com/problems/shortest-path-to-get-all-keys/)：[本地完整文件](l864/864.go)
 
 ```go
 // https://leetcode.com/problems/shortest-path-to-get-all-keys/
@@ -1182,7 +1182,7 @@ func shortestPathAllKeys(grid []string) int {
 }
 ```
 
-### 909：[本地完整文件](l909/909.go)
+### [909](https://leetcode.com/problems/snakes-and-ladders/)：[本地完整文件](l909/909.go)
 
 ```go
 // https://leetcode.com/problems/snakes-and-ladders/
@@ -1215,7 +1215,7 @@ func snakesAndLadders(board [][]int) int {
 }
 ```
 
-### 934：[本地完整文件](l934/934.go)
+### [934](https://leetcode.com/problems/shortest-bridge/)：[本地完整文件](l934/934.go)
 
 ```go
 // https://leetcode.com/problems/shortest-bridge/

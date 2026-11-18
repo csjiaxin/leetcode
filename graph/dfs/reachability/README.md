@@ -52,7 +52,7 @@ func reachable(graph [][]int, start int, blocked []bool) int {
 | [2316. 统计无向图中无法互相到达点对数](https://leetcode.com/problems/count-unreachable-pairs-of-nodes-in-an-undirected-graph/) | [笔记](l2316/2316) | 求每个分量大小 s，用 int64 累加 s × 之前分量总大小 |
 | [1298. 你能从盒子里获得的最大糖果数](https://leetcode.com/problems/maximum-candies-you-can-get-from-boxes/) | [本地模板实现](l1298/1298.go) | 可打开状态由“持有盒子＋持有钥匙”共同决定，不能只用一次 visited |
 
-1298 的实际代码也使用上面的本地 ReadyDFS。未就绪候选不能先标记 visited：只有同时持有盒子且可打开时才消费；拿到新钥匙或新盒子会再次触发候选。visit 先更新持有/可开事实，next 再返回受此次事件影响的候选。输入 status 不改写，已消费盒子不会重复计糖果。它没有新增专属测试，下面给出与实际代码一致的适配；可用性传播也可对照 [2115](../../topo_sort/readme.md)。
+[1298](https://leetcode.com/problems/maximum-candies-you-can-get-from-boxes/) 的实际代码也使用上面的本地 ReadyDFS。未就绪候选不能先标记 visited：只有同时持有盒子且可打开时才消费；拿到新钥匙或新盒子会再次触发候选。visit 先更新持有/可开事实，next 再返回受此次事件影响的候选。输入 status 不改写，已消费盒子不会重复计糖果。它没有新增专属测试，下面给出与实际代码一致的适配；可用性传播也可对照 [2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) · [本地](../../topo_sort/readme.md)。
 
 ```go
 // https://leetcode.com/problems/maximum-candies-you-can-get-from-boxes/

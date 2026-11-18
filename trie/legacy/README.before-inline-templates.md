@@ -91,7 +91,7 @@ Search("apple")   = true    路径存在，且结束标记为true
 本篇代码按字节遍历，约定输入字符符合各题的小写英文字母约束。中文不能直接用 `word[i]-'a'`；应改用 rune 遍历与 map 子节点。路径分隔符、数字和二进制位也需要对应的子节点结构。
 
 <a id="lc208"></a>
-## 3. 基础模板：208. 实现 Trie
+## 3. 基础模板：[208](https://leetcode.com/problems/implement-trie-prefix-tree/). 实现 Trie
 
 [LeetCode 208](https://leetcode.com/problems/implement-trie-prefix-tree/) · [练习](../l208/208.go)
 
@@ -142,10 +142,10 @@ func (t *Trie) StartsWith(prefix string) bool { return t.find(prefix) != nil }
 
 **复杂度**：插入/查询长度为 L 的字符串，时间 `O(L)`。累计插入字符总数为 S，固定26分支时节点空间 `O(S+1)`，但每个节点有26个指针，常数不小。
 
-按本模板构造后，空前缀始终存在；只有显式插入空串，根才标为结束。208原题操作参数为非空字符串。调用前使用 Constructor 初始化 root。
+按本模板构造后，空前缀始终存在；只有显式插入空串，根才标为结束。[208](https://leetcode.com/problems/implement-trie-prefix-tree/)原题操作参数为非空字符串。调用前使用 Constructor 初始化 root。
 
 <a id="lc648"></a>
-## 4. 最短词根：648. 单词替换
+## 4. 最短词根：[648](https://leetcode.com/problems/replace-words/). 单词替换
 
 [LeetCode 648](https://leetcode.com/problems/replace-words/) · [练习](../l648/648.go)
 
@@ -193,7 +193,7 @@ func replaceWords(dictionary []string, sentence string) string {
 **复杂度**：字典总字符数 S，句子长度 C，时间 `O(S+C)`，额外空间 `O(S+C)`（含拆分与结果）。题设词根非空，句子单词以单个空格分隔。
 
 <a id="lc211"></a>
-## 5. 通配符分支：211. 添加与搜索单词
+## 5. 通配符分支：[211](https://leetcode.com/problems/design-add-and-search-words-data-structure/). 添加与搜索单词
 
 [LeetCode 211](https://leetcode.com/problems/design-add-and-search-words-data-structure/) · [练习](../l211/211.go)
 
@@ -241,7 +241,7 @@ func (d *WordDictionary) Search(word string) bool {
 **复杂度**：插入 `O(L)`；含 d 个点号的长度 L 搜索，粗略上界 `O(L·26^d)`，实际只访问已有分支，不能声称仍为 `O(L)`。递归栈 `O(L)`。点号不是正则里的 `.*`，不能跳过字符或匹配任意长度。
 
 <a id="lc677"></a>
-## 6. 前缀聚合：677. 键值映射
+## 6. 前缀聚合：[677](https://leetcode.com/problems/map-sum-pairs/). 键值映射
 
 [LeetCode 677](https://leetcode.com/problems/map-sum-pairs/) · [练习](../l677/677.go)
 
@@ -298,7 +298,7 @@ func (m *MapSum) Sum(prefix string) int {
 **复杂度**：插入长度 L 的键为 `O(L)`，查询长度 P 的前缀为 `O(P)`；空间为Trie节点和旧值map，总计与所存不同键的字符量同阶。无需 `IsEnd`：此题不查询完整键存在性，旧值由map负责。
 
 <a id="lc1268"></a>
-## 7. 字典序候选：1268. 搜索推荐系统
+## 7. 字典序候选：[1268](https://leetcode.com/problems/search-suggestions-system/). 搜索推荐系统
 
 [LeetCode 1268](https://leetcode.com/problems/search-suggestions-system/) · [练习](../l1268/1268.go)
 
@@ -345,13 +345,13 @@ func suggestedProducts(products []string, searchWord string) [][]string {
 另一条路线是查到前缀节点后按 `a..z` 做DFS，收集到3个立即停止；注意 map 遍历无序，且达到3个后必须停止继续搜。这两点不能仅靠结束标记保证。静态数据也可采用排序＋二分，不一定非用Trie。
 
 <a id="lc212"></a>
-## 8. 网格与前缀剪枝：212. 单词搜索 II
+## 8. 网格与前缀剪枝：[212](https://leetcode.com/problems/word-search-ii/). 单词搜索 II
 
 [LeetCode 212](https://leetcode.com/problems/word-search-ii/) · [练习](../l212/212.go)
 
 **题意**：在字母网格中，通过上下左右相邻格拼出字典中的单词。同一路径不能重复使用格子，同一答案只返回一次。
 
-**核心来源**：若对每个单词分别做79的搜索，会重复探索相同前缀。把所有词放进Trie，一次网格回溯同时匹配整个字典；当Trie中不存在当前前缀，立即停止这条路径。
+**核心来源**：若对每个单词分别做[79](https://leetcode.com/problems/word-search/)的搜索，会重复探索相同前缀。把所有词放进Trie，一次网格回溯同时匹配整个字典；当Trie中不存在当前前缀，立即停止这条路径。
 
 **状态**：`(row,col,当前前缀节点)`，加上当前路径占用的格子。节点保存完整词 `word`，找到后清空以避免重复输出。
 
@@ -476,8 +476,8 @@ func findWords(board [][]byte, words []string) []string {
 2. 插入重复键时无条件叠加新值，忘记覆盖差值。
 3. 删除一个词就删除整条路径，破坏共享前缀；先检查通过计数和子树需求。
 4. 遍历map时误以为自然有字典序。
-5. 找到一个完整词就停止212的搜索，漏掉以它为前缀的长词。
-6. 212中使用全局永久visited，导致其他路径无法再次使用格子。
+5. 找到一个完整词就停止[212](https://leetcode.com/problems/word-search-ii/)的搜索，漏掉以它为前缀的长词。
+6. [212](https://leetcode.com/problems/word-search-ii/)中使用全局永久visited，导致其他路径无法再次使用格子。
 7. 将任意字符直接映射到26分支，造成越界。
 8. 把单路径查询O(L)推广到通配符、DFS或全部候选输出；这些操作需另算分支和输出规模。
 
@@ -497,6 +497,6 @@ func findWords(board [][]byte, words []string) []string {
 
 保留现有文件，不覆盖历史实现；新版练习统一放在l题号目录。
 
-- 对应练习：[14](../l14/14.go)、[1233](../l1233/1233.go)、[1268](../l1268/1268.go)、[820](../l820/820.go)。
+- 对应练习：[14](https://leetcode.com/problems/longest-common-prefix/) · [代码](../l14/14.go)、[1233](https://leetcode.com/problems/remove-sub-folders-from-the-filesystem/) · [代码](../l1233/1233.go)、[1268](https://leetcode.com/problems/search-suggestions-system/) · [代码](../l1268/1268.go)、[820](https://leetcode.com/problems/short-encoding-of-words/) · [代码](../l820/820.go)。
 - [208原题](https://leetcode.com/problems/implement-trie-prefix-tree/)。
 - [原有 Google OA 讨论资料](https://leetcode.com/discuss/interview-question/350363/Google-or-OA-2018-or-Max-Distance)。

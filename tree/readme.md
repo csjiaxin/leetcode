@@ -2,12 +2,12 @@
 
 | 子系列 | 状态流向 / 共同骨架 | 题目与实现 |
 | --- | --- | --- |
-| [后序返回与树形 DP](postorder/readme.md) | `left=solve(leftChild); right=solve(rightChild); return merge(node,left,right)` | 104、110、543、236、124、337、979、968 |
-| [祖先路径状态与回溯](dfs/readme.md) | `enter → 左右孩子 → undo`；退出恢复共享路径信息 | 112、113、129、1448、1026、1457、437 |
-| [动态区间聚合](segment/readme.md) | 修改叶子后向上合并，查询合并互不重叠的覆盖节点 | 307 |
+| [后序返回与树形 DP](postorder/readme.md) | `left=solve(leftChild); right=solve(rightChild); return merge(node,left,right)` | [104](https://leetcode.com/problems/maximum-depth-of-binary-tree/)、[110](https://leetcode.com/problems/balanced-binary-tree/)、[543](https://leetcode.com/problems/diameter-of-binary-tree/)、[236](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/)、[124](https://leetcode.com/problems/binary-tree-maximum-path-sum/)、[337](https://leetcode.com/problems/house-robber-iii/)、[979](https://leetcode.com/problems/distribute-coins-in-binary-tree/)、[968](https://leetcode.com/problems/binary-tree-cameras/) |
+| [祖先路径状态与回溯](dfs/readme.md) | `enter → 左右孩子 → undo`；退出恢复共享路径信息 | [112](https://leetcode.com/problems/path-sum/)、[113](https://leetcode.com/problems/path-sum-ii/)、[129](https://leetcode.com/problems/sum-root-to-leaf-numbers/)、[1448](https://leetcode.com/problems/count-good-nodes-in-binary-tree/)、[1026](https://leetcode.com/problems/maximum-difference-between-node-and-ancestor/)、[1457](https://leetcode.com/problems/pseudo-palindromic-paths-in-a-binary-tree/)、[437](https://leetcode.com/problems/path-sum-iii/) |
+| [动态区间聚合](segment/readme.md) | 修改叶子后向上合并，查询合并互不重叠的覆盖节点 | [307](https://leetcode.com/problems/range-sum-query-mutable/) |
 | 平衡搜索树 | 搜索路径、旋转与各自的平衡修复规则 | [AVL](avltree/tree.go)、[红黑树](redblacktree/tree.go) |
 
-`dp/house_robber/l337` 的树形状态已经合并到 [337 的独立 DP 变体](postorder/l337/variants/dp/337.go)。主实现和变体都保留自己的 TreeNode、状态结构和测试。
+`dp/house_robber/l337` 的树形状态已经合并到 [337 的独立 DP 变体](https://leetcode.com/problems/house-robber-iii/) · [代码](postorder/l337/variants/dp/337.go)。主实现和变体都保留自己的 TreeNode、状态结构和测试。
 
 ## 两种 DFS 模板如何衔接
 

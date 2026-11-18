@@ -6,16 +6,16 @@
 
 | 子模板 | 适用条件与不变量 | 题目 |
 | --- | --- | --- |
-| MonotoneGrid | 当前格只依赖已完成的上、左；边界是否合法由适配器判断 | 62、63、64；1594 的最大/最小乘积对 |
-| ReverseGrid | 从终点倒推，依赖下、右已完成状态 | 174 最低进入血量 |
-| SquareSides | side[r+1][c+1] 是当前右下角的全一正方形最大边长 | 221 取最大再平方；1277 累加边长 |
-| Layers | 新层只能读取旧层，返回独立数组，不能覆盖旧层 | 120、931、1289、1937；741、1463 的双人状态 |
-| MemoGrid | 状态依赖严格无环，缓存的是完整答案 | 329 严格递增、2684 列号增加，以及双人问题的递归变体 |
-| Filled | 为多位置状态建立独立行并填入正确不可达初值 | 741、1463 的分层适配器辅助函数 |
+| MonotoneGrid | 当前格只依赖已完成的上、左；边界是否合法由适配器判断 | [62](https://leetcode.com/problems/unique-paths/)、[63](https://leetcode.com/problems/unique-paths-ii/)、[64](https://leetcode.com/problems/minimum-path-sum/)；[1594](https://leetcode.com/problems/maximum-non-negative-product-in-a-matrix/) 的最大/最小乘积对 |
+| ReverseGrid | 从终点倒推，依赖下、右已完成状态 | [174](https://leetcode.com/problems/dungeon-game/) 最低进入血量 |
+| SquareSides | side[r+1][c+1] 是当前右下角的全一正方形最大边长 | [221](https://leetcode.com/problems/maximal-square/) 取最大再平方；[1277](https://leetcode.com/problems/count-square-submatrices-with-all-ones/) 累加边长 |
+| Layers | 新层只能读取旧层，返回独立数组，不能覆盖旧层 | [120](https://leetcode.com/problems/triangle/)、[931](https://leetcode.com/problems/minimum-falling-path-sum/)、[1289](https://leetcode.com/problems/minimum-falling-path-sum-ii/)、[1937](https://leetcode.com/problems/maximum-number-of-points-with-cost/)；[741](https://leetcode.com/problems/cherry-pickup/)、[1463](https://leetcode.com/problems/cherry-pickup-ii/) 的双人状态 |
+| MemoGrid | 状态依赖严格无环，缓存的是完整答案 | [329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) 严格递增、[2684](https://leetcode.com/problems/maximum-number-of-moves-in-a-grid/) 列号增加，以及双人问题的递归变体 |
+| Filled | 为多位置状态建立独立行并填入正确不可达初值 | [741](https://leetcode.com/problems/cherry-pickup/)、[1463](https://leetcode.com/problems/cherry-pickup-ii/) 的分层适配器辅助函数 |
 
-例如 1594 遇到负数时，原来最小的乘积可能变成最大的，因此每格必须保留一对极值，比较之前不能取模。741 把往返看作两人同步前进，同一步的列号由步数与行号推出；1463 则直接用行号和两列位置。这些状态不能合并成普通二维路径和。
+例如 [1594](https://leetcode.com/problems/maximum-non-negative-product-in-a-matrix/) 遇到负数时，原来最小的乘积可能变成最大的，因此每格必须保留一对极值，比较之前不能取模。[741](https://leetcode.com/problems/cherry-pickup/) 把往返看作两人同步前进，同一步的列号由步数与行号推出；[1463](https://leetcode.com/problems/cherry-pickup-ii/) 则直接用行号和两列位置。这些状态不能合并成普通二维路径和。
 
-1289 维护不同列的最小、次小值，1937 用左右扫描求 `max(previous[k]-abs(k-c))`，二者都在 Layers 内保留 O(mn) 优化。所有模板遵循题目矩形输入约束；递归内存最坏由状态数和递归深度决定。
+[1289](https://leetcode.com/problems/minimum-falling-path-sum-ii/) 维护不同列的最小、次小值，[1937](https://leetcode.com/problems/maximum-number-of-points-with-cost/) 用左右扫描求 `max(previous[k]-abs(k-c))`，二者都在 Layers 内保留 O(mn) 优化。所有模板遵循题目矩形输入约束；递归内存最坏由状态数和递归深度决定。
 
 ## 复制与运行约定
 
@@ -147,7 +147,7 @@ func MemoGrid[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
 
 ## 逐题适配器
 
-### 62
+### [62](https://leetcode.com/problems/unique-paths/)
 
 [代码](l62/62.go) · [测试](l62/62_test.go)
 
@@ -172,7 +172,7 @@ func uniquePaths(m int, n int) int {
 }
 ```
 
-### 63
+### [63](https://leetcode.com/problems/unique-paths-ii/)
 
 [代码](l63/63.go) · [测试](l63/63_test.go)
 
@@ -201,7 +201,7 @@ func uniquePathsWithObstacles(obstacleGrid [][]int) int {
 }
 ```
 
-### 64
+### [64](https://leetcode.com/problems/minimum-path-sum/)
 
 [代码](l64/64.go) · [测试](l64/64_test.go)
 
@@ -233,7 +233,7 @@ func minPathSum(grid [][]int) int {
 }
 ```
 
-### 174
+### [174](https://leetcode.com/problems/dungeon-game/)
 
 [代码](l174/174.go) · [测试](l174/174_test.go)
 
@@ -266,7 +266,7 @@ func calculateMinimumHP(dungeon [][]int) int {
 }
 ```
 
-### 120
+### [120](https://leetcode.com/problems/triangle/)
 
 [代码](l120/120.go) · [测试](l120/120_test.go)
 
@@ -307,7 +307,7 @@ func minimumTotal(triangle [][]int) int {
 }
 ```
 
-### 931
+### [931](https://leetcode.com/problems/minimum-falling-path-sum/)
 
 [代码](l931/931.go) · [测试](l931/931_test.go)
 
@@ -349,7 +349,7 @@ func minFallingPathSum(matrix [][]int) int {
 }
 ```
 
-### 1289
+### [1289](https://leetcode.com/problems/minimum-falling-path-sum-ii/)
 
 [代码](l1289/1289.go) · [测试](l1289/1289_test.go)
 
@@ -394,7 +394,7 @@ func minFallingPathSum(grid [][]int) int {
 }
 ```
 
-### 1937
+### [1937](https://leetcode.com/problems/maximum-number-of-points-with-cost/)
 
 [代码](l1937/1937.go) · [测试](l1937/1937_test.go)
 
@@ -439,7 +439,7 @@ func maxPoints(points [][]int) int64 {
 }
 ```
 
-### 221
+### [221](https://leetcode.com/problems/maximal-square/)
 
 [代码](l221/221.go) · [测试](l221/221_test.go)
 
@@ -465,7 +465,7 @@ func maximalSquare(matrix [][]byte) int {
 }
 ```
 
-### 1277
+### [1277](https://leetcode.com/problems/count-square-submatrices-with-all-ones/)
 
 [代码](l1277/1277.go) · [测试](l1277/1277_test.go)
 
@@ -491,7 +491,7 @@ func countSquares(matrix [][]int) int {
 }
 ```
 
-### 1594
+### [1594](https://leetcode.com/problems/maximum-non-negative-product-in-a-matrix/)
 
 [代码](l1594/1594.go) · [测试](l1594/1594_test.go)
 
@@ -539,7 +539,7 @@ func maxProductPath(grid [][]int) int {
 }
 ```
 
-### 1463
+### [1463](https://leetcode.com/problems/cherry-pickup-ii/)
 
 [代码](l1463/1463.go) · [测试](l1463/1463_test.go)
 
@@ -596,7 +596,7 @@ func cherryPickup(grid [][]int) int {
 }
 ```
 
-### 741
+### [741](https://leetcode.com/problems/cherry-pickup/)
 
 [代码](l741/741.go) · [测试](l741/741_test.go)
 
@@ -648,7 +648,7 @@ func cherryPickup(grid [][]int) int {
 }
 ```
 
-### 329
+### [329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/)
 
 [代码](l329/329.go) · [测试](l329/329_test.go)
 
@@ -685,7 +685,7 @@ func longestIncreasingPath(matrix [][]int) int {
 }
 ```
 
-### 2684
+### [2684](https://leetcode.com/problems/maximum-number-of-moves-in-a-grid/)
 
 [代码](l2684/2684.go) · [测试](l2684/2684_test.go)
 
@@ -719,7 +719,7 @@ func maxMoves(grid [][]int) int {
 }
 ```
 
-### 1463 · recursion 变体
+### [1463](https://leetcode.com/problems/cherry-pickup-ii/) · recursion 变体
 
 [代码](l1463/variants/recursion/1463.go) · [测试](l1463/variants/recursion/1463_test.go)
 
@@ -760,7 +760,7 @@ func cherryPickup(grid [][]int) int {
 }
 ```
 
-### 741 · recursion 变体
+### [741](https://leetcode.com/problems/cherry-pickup/) · recursion 变体
 
 [代码](l741/variants/recursion/741.go) · [测试](l741/variants/recursion/741_test.go)
 
@@ -808,7 +808,7 @@ func cherryPickup(grid [][]int) int {
 
 [改写前的完整分类笔记](legacy/README.before-template-rewrite.md)保存原说明、外部链接以及无扩展名片段的索引。上述适配器是当前实现；历史文字中的“尚未实现”等描述仅反映当时状态。原有测试保留，新增测试覆盖补全实现的关键边界。
 
-[391 几何材料](legacy_geometry/l391/391.go)单独保留，矩形覆盖的面积／角点奇偶性不属于网格 DP，不能套用本页模板。
+[391 几何材料](https://leetcode.com/problems/perfect-rectangle/) · [代码](legacy_geometry/l391/391.go)单独保留，矩形覆盖的面积／角点奇偶性不属于网格 DP，不能套用本页模板。
 
 ```sh
 go test ./dp/grid/...

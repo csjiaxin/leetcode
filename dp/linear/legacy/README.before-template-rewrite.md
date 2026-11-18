@@ -22,10 +22,10 @@ func BestIndependent(nums []int) int {
 
 | 题目/实现 | 状态变化 |
 | --- | --- |
-| [198](../l198/198.go) | 线性选择，两种末项状态 |
-| [213](../l213/213.go) | 环形约束；保留现有实现，推导时可拆为两个线性区间 |
-| [70](../l70/70.go) | 到达阶梯的方案数，使用 ways[i-1]+ways[i-2]，不是取收益最大值 |
-| [70 历史片段](../l70/legacy/70) | 保留原无扩展名实现 |
+| [198](https://leetcode.com/problems/house-robber/) · [代码](../l198/198.go) | 线性选择，两种末项状态 |
+| [213](https://leetcode.com/problems/house-robber-ii/) · [代码](../l213/213.go) | 环形约束；保留现有实现，推导时可拆为两个线性区间 |
+| [70](https://leetcode.com/problems/climbing-stairs/) · [代码](../l70/70.go) | 到达阶梯的方案数，使用 ways[i-1]+ways[i-2]，不是取收益最大值 |
+| [70 历史片段](https://leetcode.com/problems/climbing-stairs/) · [代码](../l70/legacy/70) | 保留原无扩展名实现 |
 
 ## 2. 以 i 结尾的最优序列
 
@@ -49,7 +49,7 @@ func LISLength(nums []int) int {
 不变量：计算 dp[i] 时，所有 j<i 的结尾状态已经完成。复杂度 O(n²)，空间 O(n)。O(n log n) 的 tails 方法重新设计了状态，不能只把上面的内循环替换为普通查找。
 
 - [300.go](../l300/300.go) 是原有未完成草稿；上面的模板不表示该文件已经补全。
-- [673](../l673/673) 同时维护长度和数量：更长时替换数量，等长时累加数量。片段保留原扩展名状态。
+- [673](https://leetcode.com/problems/number-of-longest-increasing-subsequence/) · [代码](../l673/673) 同时维护长度和数量：更长时替换数量，等长时累加数量。片段保留原扩展名状态。
 
 ## 3. 前驱信息可维护为前缀最优值
 
@@ -62,9 +62,9 @@ for 当前右端点 j:
     将 j 纳入历史前驱集合
 ~~~
 
-- [1014](../l1014/1014.go)：拆成 values[i]+i 与 values[j]-j，必须保证 i<j。现有代码还分配了 valPlusI 数组；算法可以进一步做到常数辅助空间，本轮未改写实现。
-- [1031](../l1031/1031.go)：维护左窗口的历史最大和，再与右窗口组合；两种窗口先后顺序都要计算。
-- [983](../l983/983)：原实现状态是出行下标与通行证到期日，求最小费用；不是相邻选择模板。
+- [1014](https://leetcode.com/problems/best-sightseeing-pair/) · [代码](../l1014/1014.go)：拆成 values[i]+i 与 values[j]-j，必须保证 i<j。现有代码还分配了 valPlusI 数组；算法可以进一步做到常数辅助空间，本轮未改写实现。
+- [1031](https://leetcode.com/problems/maximum-sum-of-two-non-overlapping-subarrays/) · [代码](../l1031/1031.go)：维护左窗口的历史最大和，再与右窗口组合；两种窗口先后顺序都要计算。
+- [983](https://leetcode.com/problems/minimum-cost-for-tickets/) · [代码](../l983/983)：原实现状态是出行下标与通行证到期日，求最小费用；不是相邻选择模板。
 
 ## 4. 带额外维度的有限状态
 
@@ -79,10 +79,10 @@ value(position, state):
 
 | 原始材料 | 代码实际状态 |
 | --- | --- |
-| [1220](../finite_state/vowels/1220) | 剩余长度、当前元音，沿合法字符转移计数 |
-| [1223](../finite_state/dice/1223) | 剩余长度、上次点数、连续次数 |
+| [1220](https://leetcode.com/problems/count-vowels-permutation/) · [代码](../finite_state/vowels/1220) | 剩余长度、当前元音，沿合法字符转移计数 |
+| [1223](https://leetcode.com/problems/dice-roll-simulation/) · [代码](../finite_state/dice/1223) | 剩余长度、上次点数、连续次数 |
 | [文件名 1226](../finite_state/position/1226) | numWays(steps, arrLen)，代码状态是剩余步数与位置；文件名与内容不一致，未据此编造题名 |
-| [650](../copy_paste/650)、[文件名 1240](../copy_paste/1240) | 两份相同的 minSteps(have, clipboard) 复制/粘贴状态搜索；1240 不作为该题号的解答 |
+| [650](https://leetcode.com/problems/2-keys-keyboard/) · [代码](../copy_paste/650)、[文件名 1240](../copy_paste/1240) | 两份相同的 minSteps(have, clipboard) 复制/粘贴状态搜索；1240 不作为该题号的解答 |
 
 记忆化只负责复用相同状态，合法转移仍需自己定义。仅当状态图无环、或递归有严格推进依据时，才能直接用“递归后缓存”的骨架；普通缓存不能自动处理循环依赖。
 

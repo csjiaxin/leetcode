@@ -220,17 +220,17 @@ func patternStackDigits(pattern string) string {
 
 | 题目与当前路径 | 帧保存的内容 | 结束/弹栈时做什么 |
 | --- | --- | --- |
-| [394 字符串解码](l394) | 外层字符串前缀、重复次数 | 内层字符串重复 k 次后拼回外层；连续数字属于一个 k |
-| [856 括号的分数](l856) | 当前层已经完成的兄弟表达式分数和 | 空内部为 1，非空为 `2*inner`，再加到父层 |
-| [224 基本计算器](l224) | 部分结果和符号 | 恢复外层运算上下文，注意一元负号 |
-| [1106 解析布尔表达式](l1106) | 布尔运算符、参数合并状态 | 对本层参数求 !、& 或 \| 后交给父层 |
-| [1190 反转括号内子串](l1190) | 预先匹配的括号端点、当前遍历方向 | 遇括号跳到配对端并反向，O(n) 输出，不反复复制内层 |
-| [636 函数独占时间](l636) | 尚未结束的函数调用 | 结合日志时间恢复父调用；end 时间戳包含该时刻 |
-| [2375 根据 DI 构造最小数字](l2375) | 等待输出的递增候选数字段 | I 或末尾统一弹出，反转一段连续 D 关系 |
+| [394 字符串解码](https://leetcode.com/problems/decode-string/) · [本地](l394) | 外层字符串前缀、重复次数 | 内层字符串重复 k 次后拼回外层；连续数字属于一个 k |
+| [856 括号的分数](https://leetcode.com/problems/score-of-parentheses/) · [本地](l856) | 当前层已经完成的兄弟表达式分数和 | 空内部为 1，非空为 `2*inner`，再加到父层 |
+| [224 基本计算器](https://leetcode.com/problems/basic-calculator/) · [本地](l224) | 部分结果和符号 | 恢复外层运算上下文，注意一元负号 |
+| [1106 解析布尔表达式](https://leetcode.com/problems/parsing-a-boolean-expression/) · [本地](l1106) | 布尔运算符、参数合并状态 | 对本层参数求 !、& 或 \| 后交给父层 |
+| [1190 反转括号内子串](https://leetcode.com/problems/reverse-substrings-between-each-pair-of-parentheses/) · [本地](l1190) | 预先匹配的括号端点、当前遍历方向 | 遇括号跳到配对端并反向，O(n) 输出，不反复复制内层 |
+| [636 函数独占时间](https://leetcode.com/problems/exclusive-time-of-functions/) · [本地](l636) | 尚未结束的函数调用 | 结合日志时间恢复父调用；end 时间戳包含该时刻 |
+| [2375 根据 DI 构造最小数字](https://leetcode.com/problems/construct-smallest-number-from-di-string/) · [本地](l2375) | 等待输出的递增候选数字段 | I 或末尾统一弹出，反转一段连续 D 关系 |
 
-856 的具体不变量：底部额外放一个 0 作为虚拟根层；每遇 `(` 压入 0；每遇 `)` 弹出 inner，并将 `max(1,2*inner)` 加入父层。合法非空内部的分数一定大于 0，因此 inner 为 0 可以识别 `()`。栈深为尚未匹配的左括号数加一。
+[856](https://leetcode.com/problems/score-of-parentheses/) 的具体不变量：底部额外放一个 0 作为虚拟根层；每遇 `(` 压入 0；每遇 `)` 弹出 inner，并将 `max(1,2*inner)` 加入父层。合法非空内部的分数一定大于 0，因此 inner 为 0 可以识别 `()`。栈深为尚未匹配的左括号数加一。
 
-2375 是贪心分段输出，不是嵌套语法解析；636 是调用栈恢复，不应机械套用括号评分的聚合操作。每题都先明确 token 边界和帧含义。
+[2375](https://leetcode.com/problems/construct-smallest-number-from-di-string/) 是贪心分段输出，不是嵌套语法解析；[636](https://leetcode.com/problems/exclusive-time-of-functions/) 是调用栈恢复，不应机械套用括号评分的聚合操作。每题都先明确 token 边界和帧含义。
 
 ## 归并与原练习保留
 
@@ -245,25 +245,25 @@ func patternStackDigits(pattern string) string {
 
 下列函数使用本页已声明的同名子模板；不是将不同不变量强行改为同一弹栈或移动条件。
 
-### 224
+### [224](https://leetcode.com/problems/basic-calculator/)
 
 ```go
 func calculate(s string) int { return evaluateSum(s) }
 ```
 
-### 394
+### [394](https://leetcode.com/problems/decode-string/)
 
 ```go
 func decodeString(s string) string { return decodeNested(s) }
 ```
 
-### 636
+### [636](https://leetcode.com/problems/exclusive-time-of-functions/)
 
 ```go
 func exclusiveTime(n int, logs []string) []int { return exclusiveCallTimes(n, logs) }
 ```
 
-### 856
+### [856](https://leetcode.com/problems/score-of-parentheses/)
 
 ```go
 func scoreOfParentheses(s string) int {
@@ -276,19 +276,19 @@ func scoreOfParentheses(s string) int {
 }
 ```
 
-### 1106
+### [1106](https://leetcode.com/problems/parsing-a-boolean-expression/)
 
 ```go
 func parseBoolExpr(expression string) bool { return evaluateBoolean(expression) }
 ```
 
-### 1190
+### [1190](https://leetcode.com/problems/reverse-substrings-between-each-pair-of-parentheses/)
 
 ```go
 func reverseParentheses(s string) string { return reverseNestedPairs(s) }
 ```
 
-### 2375
+### [2375](https://leetcode.com/problems/construct-smallest-number-from-di-string/)
 
 ```go
 func smallestNumber(pattern string) string { return patternStackDigits(pattern) }

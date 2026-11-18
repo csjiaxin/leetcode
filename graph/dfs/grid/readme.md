@@ -4,9 +4,9 @@
 
 八道题使用同一套递归四方向模板，各题主文件均内联完整的 FloodFill，没有仓库包导入或跨包薄封装。[flood_fill.go](flood_fill.go) 保留为参考实现；[参考模板测试](flood_fill_test.go)检查先标记后回调、重复起点、阻塞边界与对角不连通。原先放在 bfs/grid 的实现实际采用 DFS，因此归入本族。
 
-下文只声明一次模板，逐题代码块调用它；组合模板与任一题适配即可使用。实际单题文件已包含两者，可直接单文件提交，同一个包只保留一份模板声明。另保留 [200 的旧写法](l200/variants/legacy/200)，不会覆盖当前带测试的版本。
+下文只声明一次模板，逐题代码块调用它；组合模板与任一题适配即可使用。实际单题文件已包含两者，可直接单文件提交，同一个包只保留一份模板声明。另保留 [200 的旧写法](https://leetcode.com/problems/number-of-islands/) · [代码](l200/variants/legacy/200)，不会覆盖当前带测试的版本。
 
-130 保留本仓库原有的“返回新棋盘、输入只读”接口；原题要求原地修改时，可使用 [BFS 130 的原地版本](../../bfs/l130/130.go)。内联模板解决文件依赖，提交时仍需采用目标接口的修改语义。
+[130](https://leetcode.com/problems/surrounded-regions/) 保留本仓库原有的“返回新棋盘、输入只读”接口；原题要求原地修改时，可使用 [BFS 130 的原地版本](../../bfs/l130/130.go)。内联模板解决文件依赖，提交时仍需采用目标接口的修改语义。
 
 ## 目录
 
@@ -81,7 +81,7 @@ func FloodFill(
 
 职责分离：**原图描述问题，visited 描述访问历史，visit 回调负责累计答案或写入独立结果。** 回调不再承担访问标记，不需要 `undo`。没有额外处理时传入 `func(r, c int) {}`。
 
-例如 695 的完整调用方式（需与上面的模板放在同一包）：
+例如 [695](https://leetcode.com/problems/max-area-of-island/) 的完整调用方式（需与上面的模板放在同一包）：
 
 ```go
 func maxAreaOfIsland(grid [][]int) int {
@@ -113,7 +113,7 @@ func maxAreaOfIsland(grid [][]int) int {
 }
 ```
 
-八题都不修改输入。733 返回逐行深拷贝的新图像；130 也返回新棋盘，因此本仓库使用 **`solve(board [][]byte) [][]byte`**，不同于 LeetCode 原题的原地 `solve(board [][]byte)`。提交原题时需要适配其接口；这里优先保持非原地约定。827 的编号写入独立 `labels` 矩阵。
+八题都不修改输入。[733](https://leetcode.com/problems/flood-fill/) 返回逐行深拷贝的新图像；[130](https://leetcode.com/problems/surrounded-regions/) 也返回新棋盘，因此本仓库使用 **`solve(board [][]byte) [][]byte`**，不同于 LeetCode 原题的原地 `solve(board [][]byte)`。提交原题时需要适配其接口；这里优先保持非原地约定。[827](https://leetcode.com/problems/making-a-large-island/) 的编号写入独立 `labels` 矩阵。
 
 <a id="problems"></a>
 
@@ -123,34 +123,34 @@ func maxAreaOfIsland(grid [][]int) int {
 
 | 题目 | 起点选择 | canEnter | visit 与最终汇总 |
 | --- | --- | --- | --- |
-| 733 图像渲染 | 给定起点 | 原图颜色等于起点原色 | 在结果副本中写入新颜色 |
-| 200 岛屿数量 | 扫描全图 | 原图为字节 `'1'` | 回调为空；每启动一块，答案加一 |
-| 695 最大面积 | 扫描全图 | 原图为整数 `1` | 累计本块面积，更新最大值 |
-| 1020 飞地数量 | 所有边界 | 原图为 `1` | 回调为空；最后数未访问陆地格子 |
-| 1254 封闭岛屿 | 先边界、后全图 | 原图为 `0`，注意陆水反转 | 先标边界连通陆地，再数未访问连通块 |
-| 130 被围绕的区域 | 所有边界 | 原图为字节 `'O'` | visited 表示安全区域；在副本中翻转未访问的 `'O'` |
-| 1905 子岛屿 | 扫描 grid2 | grid2 为 `1` | 检查 grid1 对应格子，整块合法才加一 |
-| 827 最大人工岛 | 先陆地、后水格 | 第一阶段原图为 `1` | 写入 labels 并累计面积；第二阶段合并不同编号 |
+| [733](https://leetcode.com/problems/flood-fill/) 图像渲染 | 给定起点 | 原图颜色等于起点原色 | 在结果副本中写入新颜色 |
+| [200](https://leetcode.com/problems/number-of-islands/) 岛屿数量 | 扫描全图 | 原图为字节 `'1'` | 回调为空；每启动一块，答案加一 |
+| [695](https://leetcode.com/problems/max-area-of-island/) 最大面积 | 扫描全图 | 原图为整数 `1` | 累计本块面积，更新最大值 |
+| [1020](https://leetcode.com/problems/number-of-enclaves/) 飞地数量 | 所有边界 | 原图为 `1` | 回调为空；最后数未访问陆地格子 |
+| [1254](https://leetcode.com/problems/number-of-closed-islands/) 封闭岛屿 | 先边界、后全图 | 原图为 `0`，注意陆水反转 | 先标边界连通陆地，再数未访问连通块 |
+| [130](https://leetcode.com/problems/surrounded-regions/) 被围绕的区域 | 所有边界 | 原图为字节 `'O'` | visited 表示安全区域；在副本中翻转未访问的 `'O'` |
+| [1905](https://leetcode.com/problems/count-sub-islands/) 子岛屿 | 扫描 grid2 | grid2 为 `1` | 检查 grid1 对应格子，整块合法才加一 |
+| [827](https://leetcode.com/problems/making-a-large-island/) 最大人工岛 | 先陆地、后水格 | 第一阶段原图为 `1` | 写入 labels 并累计面积；第二阶段合并不同编号 |
 
-733 即使新旧颜色相同，也不会循环：visited 独立于颜色。当前实现仍返回独立副本，修改返回值不会影响输入。
+[733](https://leetcode.com/problems/flood-fill/) 即使新旧颜色相同，也不会循环：visited 独立于颜色。当前实现仍返回独立副本，修改返回值不会影响输入。
 
 <a id="boundary"></a>
 
 ## 4. 边界泛洪
 
-1020、1254、130 都反向考虑：**从边界可达的目标区域，不是封闭的内部区域。**
+[1020](https://leetcode.com/problems/number-of-enclaves/)、[1254](https://leetcode.com/problems/number-of-closed-islands/)、[130](https://leetcode.com/problems/surrounded-regions/) 都反向考虑：**从边界可达的目标区域，不是封闭的内部区域。**
 
 1. 从首末行、首末列启动泛洪，使用同一份 visited。
 2. 保留这些访问标记，不改写原图。
 3. 扫描全图处理剩余目标格子。
 
-四个角或单行、单列的重复起点会被 visited 自动过滤。注意汇总单位：1020 数**格子**，1254 数**连通块**，130 在**结果副本**中翻转。1254 第二轮继续使用同一访问表，防止一块被重复计数。
+四个角或单行、单列的重复起点会被 visited 自动过滤。注意汇总单位：[1020](https://leetcode.com/problems/number-of-enclaves/) 数**格子**，[1254](https://leetcode.com/problems/number-of-closed-islands/) 数**连通块**，[130](https://leetcode.com/problems/surrounded-regions/) 在**结果副本**中翻转。[1254](https://leetcode.com/problems/number-of-closed-islands/) 第二轮继续使用同一访问表，防止一块被重复计数。
 
 <a id="validation"></a>
 
 ## 5. 整块判定：不能短路遍历
 
-1905 中，即使发现不合法格子，仍需访问 grid2 的整个连通块。以下片段用于外层扫描发现新岛屿之后；visited 在扫描前统一分配：
+[1905](https://leetcode.com/problems/count-sub-islands/) 中，即使发现不合法格子，仍需访问 grid2 的整个连通块。以下片段用于外层扫描发现新岛屿之后；visited 在扫描前统一分配：
 
 ```go
 valid := true
@@ -173,7 +173,7 @@ if valid {
 
 ## 6. 编号合并
 
-827 第一阶段仍使用模板：每发现一块陆地，分配正整数编号，把编号写入独立的 `labels[r][c]` 并累计 `areas[id]`。`labels == 0` 表示没有陆地编号，不需要保留原图中的 1，因此编号可从 1 开始。
+[827](https://leetcode.com/problems/making-a-large-island/) 第一阶段仍使用模板：每发现一块陆地，分配正整数编号，把编号写入独立的 `labels[r][c]` 并累计 `areas[id]`。`labels == 0` 表示没有陆地编号，不需要保留原图中的 1，因此编号可从 1 开始。
 
 第二阶段逐个检查原图中的水格，读取四邻居的 labels，候选面积为 **1＋相邻不同编号的面积之和**。每个水格使用自己的小集合去重：
 
@@ -189,11 +189,11 @@ if valid {
 - 四连通不是八连通，对角接触不相连。
 - 先检查边界，再读 visited 或原图；先标记，再扩展。
 - visited 在所有起点之间共享，递归返回不清除；不同函数调用重新分配。
-- 200、130 使用字节 `'1'`、`'O'`，整数网格使用 `1`、`0`；1254 的 0 是陆地。
-- 不改变输入也不等于输出独立：733、130 必须逐行复制，不能只复制二维切片的外层。
-- 接口按题目约束使用矩形网格；1905 两个网格同形。空网格、零列均有保护。
+- [200](https://leetcode.com/problems/number-of-islands/)、[130](https://leetcode.com/problems/surrounded-regions/) 使用字节 `'1'`、`'O'`，整数网格使用 `1`、`0`；[1254](https://leetcode.com/problems/number-of-closed-islands/) 的 0 是陆地。
+- 不改变输入也不等于输出独立：[733](https://leetcode.com/problems/flood-fill/)、[130](https://leetcode.com/problems/surrounded-regions/) 必须逐行复制，不能只复制二维切片的外层。
+- 接口按题目约束使用矩形网格；[1905](https://leetcode.com/problems/count-sub-islands/) 两个网格同形。空网格、零列均有保护。
 
-时间均为 **O(mn)**，因为每个格子最多处理一次、每次只检查四邻居。827 每个水格的编号集合最多四项，仍为 O(mn)。visited 为 **O(mn)**；递归栈最坏 O(mn)，不是 O(m+n)。733、130 的结果副本以及 827 的 labels、面积表也至多 O(mn)。
+时间均为 **O(mn)**，因为每个格子最多处理一次、每次只检查四邻居。[827](https://leetcode.com/problems/making-a-large-island/) 每个水格的编号集合最多四项，仍为 O(mn)。visited 为 **O(mn)**；递归栈最坏 O(mn)，不是 O(m+n)。[733](https://leetcode.com/problems/flood-fill/)、[130](https://leetcode.com/problems/surrounded-regions/) 的结果副本以及 [827](https://leetcode.com/problems/making-a-large-island/) 的 labels、面积表也至多 O(mn)。
 
 大而深的连通块可改为显式栈 DFS 或队列 BFS，并在入栈/入队时标记。本族位于 `graph/dfs/grid`，主题是 DFS；两者都能完成相同的连通块填充，只是遍历顺序不同。
 
@@ -214,21 +214,21 @@ if valid {
 | 7 | [1905. 统计子岛屿](https://leetcode.com/problems/count-sub-islands/) | [l1905/1905.go](l1905/1905.go) | 整块判定，不短路 |
 | 8 | [827. 最大人工岛](https://leetcode.com/problems/making-a-large-island/) | [l827/827.go](l827/827.go) | 额外编号矩阵，按编号合并 |
 
-建议主线：**200 → 695 → 130 → 1905 → 827**，即数连通块 → 统计面积 → 边界泛洪 → 整块判定 → 编号合并。
+建议主线：**[200](https://leetcode.com/problems/number-of-islands/) → [695](https://leetcode.com/problems/max-area-of-island/) → [130](https://leetcode.com/problems/surrounded-regions/) → [1905](https://leetcode.com/problems/count-sub-islands/) → [827](https://leetcode.com/problems/making-a-large-island/)**，即数连通块 → 统计面积 → 边界泛洪 → 整块判定 → 编号合并。
 
 ```sh
 go test -count=1 -cover ./graph/dfs/grid/...
 ```
 
-测试覆盖空网格、单格、单行/单列、对角不连通、全水全陆、边界通道、同色填充、无效子岛屿与邻岛去重；695 直接验证模板先标记、每格一次、重复起点无效。827 对所有行列数均为 1～3 的二值网格做独立暴力 BFS 对照。
+测试覆盖空网格、单格、单行/单列、对角不连通、全水全陆、边界通道、同色填充、无效子岛屿与邻岛去重；[695](https://leetcode.com/problems/max-area-of-island/) 直接验证模板先标记、每格一次、重复起点无效。[827](https://leetcode.com/problems/making-a-large-island/) 对所有行列数均为 1～3 的二值网格做独立暴力 BFS 对照。
 
 **一句话：原图只读，visited 永久记录访问历史；一次 Flood Fill 消化一个连通块，回调只负责汇总题目信息。**
 
 ## 9. 其余七题的完整模板适配
 
-695 的完整示例见第 2 节；下列函数继续只填写 canEnter、visit 和答案汇总，统一调用前面已声明的 FloodFill。文档组合模板与任一适配即可使用，实际单题主文件已经同时包含两者。
+[695](https://leetcode.com/problems/max-area-of-island/) 的完整示例见第 2 节；下列函数继续只填写 canEnter、visit 和答案汇总，统一调用前面已声明的 FloodFill。文档组合模板与任一适配即可使用，实际单题主文件已经同时包含两者。
 
-### 733：[本地完整文件](l733/733.go)
+### [733](https://leetcode.com/problems/flood-fill/)：[本地完整文件](l733/733.go)
 
 ```go
 // https://leetcode.com/problems/flood-fill/
@@ -263,7 +263,7 @@ func floodFill(image [][]int, sr, sc, color int) [][]int {
 }
 ```
 
-### 200：[本地完整文件](l200/200.go)
+### [200](https://leetcode.com/problems/number-of-islands/)：[本地完整文件](l200/200.go)
 
 ```go
 // https://leetcode.com/problems/number-of-islands/
@@ -293,7 +293,7 @@ func numIslands(grid [][]byte) int {
 }
 ```
 
-### 1020：[本地完整文件](l1020/1020.go)
+### [1020](https://leetcode.com/problems/number-of-enclaves/)：[本地完整文件](l1020/1020.go)
 
 ```go
 // https://leetcode.com/problems/number-of-enclaves/
@@ -333,7 +333,7 @@ func numEnclaves(grid [][]int) int {
 }
 ```
 
-### 1254：[本地完整文件](l1254/1254.go)
+### [1254](https://leetcode.com/problems/number-of-closed-islands/)：[本地完整文件](l1254/1254.go)
 
 ```go
 // https://leetcode.com/problems/number-of-closed-islands/
@@ -374,7 +374,7 @@ func closedIsland(grid [][]int) int {
 }
 ```
 
-### 130：[本地完整文件](l130/130.go)
+### [130](https://leetcode.com/problems/surrounded-regions/)：[本地完整文件](l130/130.go)
 
 ```go
 // https://leetcode.com/problems/surrounded-regions/
@@ -422,7 +422,7 @@ func solve(board [][]byte) [][]byte {
 }
 ```
 
-### 1905：[本地完整文件](l1905/1905.go)
+### [1905](https://leetcode.com/problems/count-sub-islands/)：[本地完整文件](l1905/1905.go)
 
 ```go
 // https://leetcode.com/problems/count-sub-islands/
@@ -461,7 +461,7 @@ func countSubIslands(grid1, grid2 [][]int) int {
 }
 ```
 
-### 827：[本地完整文件](l827/827.go)
+### [827](https://leetcode.com/problems/making-a-large-island/)：[本地完整文件](l827/827.go)
 
 ```go
 // https://leetcode.com/problems/making-a-large-island/

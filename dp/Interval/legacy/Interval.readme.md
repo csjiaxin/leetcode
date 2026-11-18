@@ -4,24 +4,24 @@
 
 | 题目 | 难度 | 核心决策 | 时间 | 空间 |
 | --- | --- | --- | --- | --- |
-| [1690. 石子游戏 VII](#lc1690) | 中等 | 两端博弈 + 前缀和，得分是移除后剩余区间和 | O(n²) | O(n²) |
-| [375. 猜数字大小 II](#lc375) | 中等 | 枚举猜测，对左右取最坏，再选最低预算 | O(n³) | O(n²) |
-| [1547. 切棍子的最小成本](#lc1547) | 困难 | 枚举当前区间第一刀，之后两段独立 | O(m³) | O(m²) |
-| [312. 戳气球](#lc312) | 困难 | 枚举最后戳破的气球，保留左右边界 | O(n³) | O(n²) |
-| [664. 奇怪的打印机](#lc664) | 困难 | 相同字符共享打印操作，允许覆盖 | O(n³) | O(n²) |
-| [1000. 合并石头的最低成本](#lc1000) | 困难 | 模约束决定剩余堆数，限制分割点步长 | O(n³) 最坏 | O(n²) |
+| [1690. 石子游戏 VII](https://leetcode.com/problems/stone-game-vii/) · [本节](#lc1690) | 中等 | 两端博弈 + 前缀和，得分是移除后剩余区间和 | O(n²) | O(n²) |
+| [375. 猜数字大小 II](https://leetcode.com/problems/guess-number-higher-or-lower-ii/) · [本节](#lc375) | 中等 | 枚举猜测，对左右取最坏，再选最低预算 | O(n³) | O(n²) |
+| [1547. 切棍子的最小成本](https://leetcode.com/problems/minimum-cost-to-cut-a-stick/) · [本节](#lc1547) | 困难 | 枚举当前区间第一刀，之后两段独立 | O(m³) | O(m²) |
+| [312. 戳气球](https://leetcode.com/problems/burst-balloons/) · [本节](#lc312) | 困难 | 枚举最后戳破的气球，保留左右边界 | O(n³) | O(n²) |
+| [664. 奇怪的打印机](https://leetcode.com/problems/strange-printer/) · [本节](#lc664) | 困难 | 相同字符共享打印操作，允许覆盖 | O(n³) | O(n²) |
+| [1000. 合并石头的最低成本](https://leetcode.com/problems/minimum-cost-to-merge-stones/) · [本节](#lc1000) | 困难 | 模约束决定剩余堆数，限制分割点步长 | O(n³) 最坏 | O(n²) |
 
-1547 的 m 是切点数加两个端点；其他题目的 n 是原始输入规模。1000 更精确的时间界见题目说明。
+[1547](https://leetcode.com/problems/minimum-cost-to-cut-a-stick/) 的 m 是切点数加两个端点；其他题目的 n 是原始输入规模。[1000](https://leetcode.com/problems/minimum-cost-to-merge-stones/) 更精确的时间界见题目说明。
 
 ## 如何识别转移
 
-- 两端行动：从 `[i+1,j]`、`[i,j-1]` 转移，例如 1690。
-- 第一刀：固定第一次决策后两边独立，例如 1547、375。
-- 最后一步：倒过来枚举，保持邻居不变，例如 312。
-- 合并操作：相同字符共享一次打印，例如 664。
-- 额外约束：堆数可作为第三维，或利用模关系压缩，例如 1000。
+- 两端行动：从 `[i+1,j]`、`[i,j-1]` 转移，例如 [1690](https://leetcode.com/problems/stone-game-vii/)。
+- 第一刀：固定第一次决策后两边独立，例如 [1547](https://leetcode.com/problems/minimum-cost-to-cut-a-stick/)、[375](https://leetcode.com/problems/guess-number-higher-or-lower-ii/)。
+- 最后一步：倒过来枚举，保持邻居不变，例如 [312](https://leetcode.com/problems/burst-balloons/)。
+- 合并操作：相同字符共享一次打印，例如 [664](https://leetcode.com/problems/strange-printer/)。
+- 额外约束：堆数可作为第三维，或利用模关系压缩，例如 [1000](https://leetcode.com/problems/minimum-cost-to-merge-stones/)。
 
-注意闭区间与开区间的区别：312、1547 的边界不参与当前子问题；1690、664、1000 的两端属于当前区间。
+注意闭区间与开区间的区别：[312](https://leetcode.com/problems/burst-balloons/)、[1547](https://leetcode.com/problems/minimum-cost-to-cut-a-stick/) 的边界不参与当前子问题；[1690](https://leetcode.com/problems/stone-game-vii/)、[664](https://leetcode.com/problems/strange-printer/)、[1000](https://leetcode.com/problems/minimum-cost-to-merge-stones/) 的两端属于当前区间。
 
 从仓库根目录运行全部测试：
 
@@ -32,7 +32,7 @@ go test ./dp/interval/... -count=1 -cover
 测试失败信息包含 `t.Name()`，便于定位具体用例。原有 `dp/stone`、`dp/merge_interval` 等目录未移动或修改。
 
 <a id="lc1690"></a>
-## 1690. 石子游戏 VII
+## [1690](https://leetcode.com/problems/stone-game-vii/). 石子游戏 VII
 
 [题目](https://leetcode.com/problems/stone-game-vii/) · 中等 · [Go 解法](../../game/l1690/variants/interval/1690.go)
 
@@ -71,7 +71,7 @@ go test ./dp/interval/l1690 -v
 ```
 
 <a id="lc375"></a>
-## 375. 猜数字大小 II
+## [375](https://leetcode.com/problems/guess-number-higher-or-lower-ii/). 猜数字大小 II
 
 [题目](https://leetcode.com/problems/guess-number-higher-or-lower-ii/) · 中等 · [Go 解法](../l375/375.go)
 
@@ -111,7 +111,7 @@ go test ./dp/interval/l375 -v
 ```
 
 <a id="lc1547"></a>
-## 1547. 切棍子的最小成本
+## [1547](https://leetcode.com/problems/minimum-cost-to-cut-a-stick/). 切棍子的最小成本
 
 [题目](https://leetcode.com/problems/minimum-cost-to-cut-a-stick/) · 困难 · [Go 解法](../l1547/1547.go)
 
@@ -149,7 +149,7 @@ go test ./dp/interval/l1547 -v
 ```
 
 <a id="lc312"></a>
-## 312. 戳气球
+## [312](https://leetcode.com/problems/burst-balloons/). 戳气球
 
 [题目](https://leetcode.com/problems/burst-balloons/) · 困难 · [Go 解法](../l312/312.go)
 
@@ -196,7 +196,7 @@ go test ./dp/interval/l312 -v
 ```
 
 <a id="lc664"></a>
-## 664. 奇怪的打印机
+## [664](https://leetcode.com/problems/strange-printer/). 奇怪的打印机
 
 [题目](https://leetcode.com/problems/strange-printer/) · 困难 · [Go 解法](../l664/664.go)
 
@@ -241,7 +241,7 @@ go test ./dp/interval/l664 -v
 ```
 
 <a id="lc1000"></a>
-## 1000. 合并石头的最低成本
+## [1000](https://leetcode.com/problems/minimum-cost-to-merge-stones/). 合并石头的最低成本
 
 [题目](https://leetcode.com/problems/minimum-cost-to-merge-stones/) · 困难 · [Go 解法](../l1000/1000.go)
 

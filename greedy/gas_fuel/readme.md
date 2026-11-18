@@ -84,15 +84,15 @@ func GreedyRefuel(target, startFuel int, stations [][]int) int {
 
 | 题目 | 采用的局部模板 | 实际实现 |
 | --- | --- | --- |
-| 134 | `CircuitStart` | [实际 Go 文件](l134/134.go) |
-| 871：按加油次数 DP | `RefuelByCount` | [实际 Go 文件](l871/871.go) |
-| 871：最大堆贪心 | `FuelHeap + GreedyRefuel` | [实际 Go 文件](l871/variants/practice/871.go) |
+| [134](https://leetcode.com/problems/gas-station/) | `CircuitStart` | [实际 Go 文件](l134/134.go) |
+| [871](https://leetcode.com/problems/minimum-number-of-refueling-stops/)：按加油次数 DP | `RefuelByCount` | [实际 Go 文件](l871/871.go) |
+| [871](https://leetcode.com/problems/minimum-number-of-refueling-stops/)：最大堆贪心 | `FuelHeap + GreedyRefuel` | [实际 Go 文件](l871/variants/practice/871.go) |
 
 为使整页 Go 示例可合并编译，重名适配器在文档中加题号/DP/Greedy 后缀；实际 Go 文件仍保留官方函数签名。链表节点等支撑类型仅在 helper 区声明一次。
 
 原 `greedy/l134`、`greedy/l871` 合并到本目录同题的 `variants/practice`，保留独立来源及原测试；实际 Go 文件现已按本页命名模板实现。
 
-## 134：失败区间整体排除
+## [134](https://leetcode.com/problems/gas-station/)：失败区间整体排除
 
 ```text
 start, balance, total := 0, 0, 0
@@ -110,7 +110,7 @@ for i := range gas {
 
 不变量：在当前 start 到当前位置之间尚未遇到负余额；首次负余额证明这整个候选起点区间均不可行。余额等于 0 时不用排除。
 
-## 871：区分两个合法的状态模型
+## [871](https://leetcode.com/problems/minimum-number-of-refueling-stops/)：区分两个合法的状态模型
 
 | 方法 | 状态与转移 | 实现 |
 | --- | --- | --- |
@@ -136,13 +136,13 @@ while reach < target:
 
 以下代码调用本页已经声明的 helper；复制到对应题解时使用实际 Go 文件中的官方函数名。
 
-### 134
+### [134](https://leetcode.com/problems/gas-station/)
 
 ```go
 func canCompleteCircuit(gas []int, cost []int) int { return CircuitStart(gas, cost) }
 ```
 
-### 871：按加油次数 DP
+### [871](https://leetcode.com/problems/minimum-number-of-refueling-stops/)：按加油次数 DP
 
 ```go
 func minRefuelStopsDP(target int, startFuel int, stations [][]int) int {
@@ -155,7 +155,7 @@ func minRefuelStopsDP(target int, startFuel int, stations [][]int) int {
 }
 ```
 
-### 871：最大堆贪心
+### [871](https://leetcode.com/problems/minimum-number-of-refueling-stops/)：最大堆贪心
 
 ```go
 func minRefuelStopsGreedy(target int, startFuel int, stations [][]int) int {

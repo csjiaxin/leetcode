@@ -4,8 +4,8 @@
 
 | 子系列 | 适用条件 | 固定不变量 | 模板与题目 |
 | --- | --- | --- | --- |
-| [前缀状态＋哈希](state_hash/readme.md) | 区间条件可以写成两个前缀状态的关系 | 查询时 map 只包含当前位置以前的前缀 | [Count / Longest](state_hash/template.go)，560、974、525、1371、1248 |
-| [差分与扫描](difference/README.md) | 多次可叠加的区间加法，最后统一恢复 | 左端加入贡献，右端之后取消贡献 | `diff[l]+=x; diff[r]-=x`，1094、1109、1854 |
+| [前缀状态＋哈希](state_hash/readme.md) | 区间条件可以写成两个前缀状态的关系 | 查询时 map 只包含当前位置以前的前缀 | [Count / Longest](state_hash/template.go)，[560](https://leetcode.com/problems/subarray-sum-equals-k/)、[974](https://leetcode.com/problems/subarray-sums-divisible-by-k/)、[525](https://leetcode.com/problems/contiguous-array/)、[1371](https://leetcode.com/problems/find-the-longest-substring-containing-vowels-in-even-counts/)、[1248](https://leetcode.com/problems/count-number-of-nice-subarrays/) |
+| [差分与扫描](difference/README.md) | 多次可叠加的区间加法，最后统一恢复 | 左端加入贡献，右端之后取消贡献 | `diff[l]+=x; diff[r]-=x`，[1094](https://leetcode.com/problems/car-pooling/)、[1109](https://leetcode.com/problems/corporate-flight-bookings/)、[1854](https://leetcode.com/problems/maximum-population-year/) |
 
 ## 计数与最长长度分别复用什么
 

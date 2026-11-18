@@ -6,11 +6,11 @@
 
 | 模板族 | 状态含义与返回行为 | 题目地图 |
 | --- | --- | --- |
-| [图可达性](reachability/README.md) | 已经处理过的节点；返回后保留 visited | 1971、2368、2316、1298 |
-| [网格连通块](grid/readme.md) | 同一合法连通块每格一次；跨起点共享 visited | 733、200、695、1020、1254、130、1905、827 |
-| [树上后序汇总](tree/README.md) | 子节点返回统计量，父节点合并；无向树跳过父节点 | 1443、1519、1466、2477；98、101、114 旧笔记 |
-| [路径回溯与递归构造](backtracking/README.md) | 当前路径上的选择；兄弟分支前恢复共享状态 | 79、131；95 返回左右子树的所有组合 |
-| [记忆化 DFS](memoized/README.md) | 缓存某状态的完整答案；相同状态无需重算 | 329、851 |
+| [图可达性](reachability/README.md) | 已经处理过的节点；返回后保留 visited | [1971](https://leetcode.com/problems/find-if-path-exists-in-graph/)、[2368](https://leetcode.com/problems/reachable-nodes-with-restrictions/)、[2316](https://leetcode.com/problems/count-unreachable-pairs-of-nodes-in-an-undirected-graph/)、[1298](https://leetcode.com/problems/maximum-candies-you-can-get-from-boxes/) |
+| [网格连通块](grid/readme.md) | 同一合法连通块每格一次；跨起点共享 visited | [733](https://leetcode.com/problems/flood-fill/)、[200](https://leetcode.com/problems/number-of-islands/)、[695](https://leetcode.com/problems/max-area-of-island/)、[1020](https://leetcode.com/problems/number-of-enclaves/)、[1254](https://leetcode.com/problems/number-of-closed-islands/)、[130](https://leetcode.com/problems/surrounded-regions/)、[1905](https://leetcode.com/problems/count-sub-islands/)、[827](https://leetcode.com/problems/making-a-large-island/) |
+| [树上后序汇总](tree/README.md) | 子节点返回统计量，父节点合并；无向树跳过父节点 | [1443](https://leetcode.com/problems/minimum-time-to-collect-all-apples-in-a-tree/)、[1519](https://leetcode.com/problems/number-of-nodes-in-the-sub-tree-with-the-same-label/)、[1466](https://leetcode.com/problems/reorder-routes-to-make-all-paths-lead-to-the-city-zero/)、[2477](https://leetcode.com/problems/minimum-fuel-cost-to-report-to-the-capital/)；[98](https://leetcode.com/problems/validate-binary-search-tree/)、[101](https://leetcode.com/problems/symmetric-tree/)、[114](https://leetcode.com/problems/flatten-binary-tree-to-linked-list/) 旧笔记 |
+| [路径回溯与递归构造](backtracking/README.md) | 当前路径上的选择；兄弟分支前恢复共享状态 | [79](https://leetcode.com/problems/word-search/)、[131](https://leetcode.com/problems/palindrome-partitioning/)；[95](https://leetcode.com/problems/unique-binary-search-trees-ii/) 返回左右子树的所有组合 |
+| [记忆化 DFS](memoized/README.md) | 缓存某状态的完整答案；相同状态无需重算 | [329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/)、[851](https://leetcode.com/problems/loud-and-rich/) |
 
 ## 一个共同外形，三种不同不变量
 

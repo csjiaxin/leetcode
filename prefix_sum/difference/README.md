@@ -424,11 +424,11 @@ func maximumPopulation(logs [][]int) int {
 
 | 题目 | 取消点 | 扫描时做什么 |
 | --- | --- | --- |
-| 1094 | to | 判断容量 |
-| 1109 | 0-based的right+1，即原last | 保存全部航班总量 |
-| 1854 | death | 更新最大人口最早年份 |
+| [1094](https://leetcode.com/problems/car-pooling/) | to | 判断容量 |
+| [1109](https://leetcode.com/problems/corporate-flight-bookings/) | 0-based的right+1，即原last | 保存全部航班总量 |
+| [1854](https://leetcode.com/problems/maximum-population-year/) | death | 更新最大人口最早年份 |
 
-- 固定年份数组只用于1854题设，不是任意日期的通用上限。
+- 固定年份数组只用于[1854](https://leetcode.com/problems/maximum-population-year/)题设，不是任意日期的通用上限。
 - 稀疏巨大坐标不要分配U数组：用map聚合同坐标变化，排序扫描，时间O(m log(m+1))、空间O(m)。
 - 坐标压缩保留顺序；算覆盖长度还需乘原坐标间距，不能直接用压缩下标差。
 - 实数闭区间不能机械r+1，必须明确同坐标事件顺序。

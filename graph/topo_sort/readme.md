@@ -2,18 +2,18 @@
 
 ## 本地模板与参考实现
 
-207 与六题主线的每个主文件均内联完整的 Kahn／ZeroIndegree，没有仓库包导入或跨包薄封装。[template/kahn.go](template/kahn.go) 保留为参考实现；[参考测试](template/kahn_test.go)验证全部前置到齐才出队、重边计数、入参切片所有权、环阻塞与显式种子。
+[207](https://leetcode.com/problems/course-schedule/) 与六题主线的每个主文件均内联完整的 Kahn／ZeroIndegree，没有仓库包导入或跨包薄封装。[template/kahn.go](template/kahn.go) 保留为参考实现；[参考测试](template/kahn_test.go)验证全部前置到齐才出队、重边计数、入参切片所有权、环阻塞与显式种子。
 
 | 代码 | 使用方式 |
 | --- | --- |
 | [普通 Kahn](indegree_kahn.go) / [三色 DFS](dfs.go) | 直接返回完整拓扑序；DFS 结果需要反转后序 |
 | [Kahn 参考模板](template/kahn.go) | 固定调度，按题目设置 next、onPop、relax 与 DP 初值；各题内有完整副本 |
-| 210、329、1462、1857、2050、2115 | 题目实现和原测试完整保留 |
-| [207](l207/207.go) | 本地 Kahn 适配，只检查处理数量 |
-| [2192](l2192/2192) | 祖先集合传播的原始无扩展名笔记 |
-| [1203](l1203/1203) | 分组拓扑的原始无扩展名笔记 |
+| [210](https://leetcode.com/problems/course-schedule-ii/)、[329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/)、[1462](https://leetcode.com/problems/course-schedule-iv/)、[1857](https://leetcode.com/problems/largest-color-value-in-a-directed-graph/)、[2050](https://leetcode.com/problems/parallel-courses-iii/)、[2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) | 题目实现和原测试完整保留 |
+| [207](https://leetcode.com/problems/course-schedule/) · [代码](l207/207.go) | 本地 Kahn 适配，只检查处理数量 |
+| [2192](https://leetcode.com/problems/all-ancestors-of-a-node-in-a-directed-acyclic-graph/) · [代码](l2192/2192) | 祖先集合传播的原始无扩展名笔记 |
+| [1203](https://leetcode.com/problems/sort-items-by-groups-respecting-dependencies/) · [代码](l1203/1203) | 分组拓扑的原始无扩展名笔记 |
 
-207、210、2050 的原始片段移到各题 variants/legacy；[2115 旧 DFS 实现](l2115/variants/legacy/2115.go)独立成包，避免与通用模板的全局名字相撞。普通零入度队列表示所有依赖都已满足；2115 的外部原料没有供应时，即使入度为零也不能加入 seeds。
+[207](https://leetcode.com/problems/course-schedule/)、[210](https://leetcode.com/problems/course-schedule-ii/)、[2050](https://leetcode.com/problems/parallel-courses-iii/) 的原始片段移到各题 variants/legacy；[2115 旧 DFS 实现](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) · [代码](l2115/variants/legacy/2115.go)独立成包，避免与通用模板的全局名字相撞。普通零入度队列表示所有依赖都已满足；[2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) 的外部原料没有供应时，即使入度为零也不能加入 seeds。
 
 本轮主线：[210](https://leetcode.com/problems/course-schedule-ii/) → [2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) → [1462](https://leetcode.com/problems/course-schedule-iv/) → [2050](https://leetcode.com/problems/parallel-courses-iii/) → [1857](https://leetcode.com/problems/largest-color-value-in-a-directed-graph/) → [329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/)。
 
@@ -87,7 +87,7 @@ func canFinish(numCourses int, prerequisites [][]int) bool {
 
 **题意**：返回任意合法课程顺序，有环时返回空数组。
 
-**变化点**：与207相同建图，通过模板的 `onPop` 收集出队顺序，即拓扑序。
+**变化点**：与[207](https://leetcode.com/problems/course-schedule/)相同建图，通过模板的 `onPop` 收集出队顺序，即拓扑序。
 
 完整的统一模板版本见[第 6.2 节的 210 示例](#dag-adapters)：`onPop` 收集顺序，`relax` 传 nil，不再单独维护队列。
 
@@ -105,7 +105,7 @@ func canFinish(numCourses int, prerequisites [][]int) bool {
 
 **状态**：finish[v]表示最早完成时间，初始time[v]。每条边u→v更新finish[v]=max(finish[v],finish[u]+time[v])，入度归零后v才入队。
 
-完整的统一模板版本见第 6.2 节的 2050 示例：`relax` 更新最早完成时间，`onPop` 更新全局答案，模板统一管理入度和队列。
+完整的统一模板版本见第 6.2 节的 [2050](https://leetcode.com/problems/parallel-courses-iii/) 示例：`relax` 更新最早完成时间，`onPop` 更新全局答案，模板统一管理入度和队列。
 
 **例子**：1和2都先于3，时长[3,2,5]，两前置可并行，结果max(3,2)+5=8，不是10。
 
@@ -117,9 +117,9 @@ func canFinish(numCourses int, prerequisites [][]int) bool {
 
 | 题目 | 边方向 | 汇总 |
 | --- | --- | --- |
-| 207 | prerequisites[1]→[0] | 处理数是否等于n |
-| 210 | prerequisites[1]→[0] | 拓扑序 |
-| 2050 | relations[0]-1→[1]-1 | 最早完成时间最大值 |
+| [207](https://leetcode.com/problems/course-schedule/) | prerequisites[1]→[0] | 处理数是否等于n |
+| [210](https://leetcode.com/problems/course-schedule-ii/) | prerequisites[1]→[0] | 拓扑序 |
+| [2050](https://leetcode.com/problems/parallel-courses-iii/) | relations[0]-1→[1]-1 | 最早完成时间最大值 |
 
 - 所有零入度节点一起初始化，不能遗漏孤立点。
 - 有环时可能先处理无环部分，因此必须最后判数量。
@@ -203,14 +203,14 @@ func ZeroIndegree(indegree []int) []int {
 | 参数 | 职责 | 六题中的变化 |
 | --- | --- | --- |
 | `indegree` | 每个节点尚需满足的前置依赖数 | 显式边计数，或统计更小的相邻格子 |
-| `seeds` | 最初就可用的节点 | 普通题为全部零入度节点；2115 仅为 supplies |
-| `next` | 同步枚举 u 的所有后继 | 邻接表，或 329 的隐式四邻居 |
+| `seeds` | 最初就可用的节点 | 普通题为全部零入度节点；[2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) 仅为 supplies |
+| `next` | 同步枚举 u 的所有后继 | 邻接表，或 [329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) 的隐式四邻居 |
 | `onPop` | 读取已确定的状态、收集答案 | 收集拓扑序／配方，或更新全局最优值；可为 nil |
 | `relax` | 把 u 的最终状态传播给 v | 最大值、集合并、26 维逐项最大值；可为 nil |
 
-为什么不强制写成 `Kahn[S]`？六题状态形状不同，且 210、2115 根本不需要额外 DP。将状态存放在闭包中，模板只负责依赖调度，能避免为统一而增加无用状态。`onPop` 不应破坏即将向后继传播的最终状态。
+为什么不强制写成 `Kahn[S]`？六题状态形状不同，且 [210](https://leetcode.com/problems/course-schedule-ii/)、[2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) 根本不需要额外 DP。将状态存放在闭包中，模板只负责依赖调度，能避免为统一而增加无用状态。`onPop` 不应破坏即将向后继传播的最终状态。
 
-普通邻接表可适配成下面的 `next`；329 则改成枚举四邻居：
+普通邻接表可适配成下面的 `next`；[329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) 则改成枚举四邻居：
 
 ```go
 next := func(u int, yield func(int)) {
@@ -222,7 +222,7 @@ next := func(u int, yield func(int)) {
 
 **模板的前提**：入度是尚未满足的依赖数；传播操作在全部前驱到齐后能得到最终状态。重复边若保留，入度与 next 都必须计入；若去重，则两边一起去重。seeds 不能重复，尤其不能让同一 supply 被消费两次。模板不检查非法编号或不一致的图，建图方负责这些约束。
 
-**判环的适用范围**：当 seeds 是全图所有零入度节点时，`processed < 节点数` 才等价于图中有环。2115 只用 supplies 作为 seeds，未处理节点也可能仅仅缺少原料，不能据此断言有环。
+**判环的适用范围**：当 seeds 是全图所有零入度节点时，`processed < 节点数` 才等价于图中有环。[2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) 只用 supplies 作为 seeds，未处理节点也可能仅仅缺少原料，不能据此断言有环。
 
 <a id="dag-adapters"></a>
 
@@ -232,12 +232,12 @@ next := func(u int, yield func(int)) {
 
 | 题目 | 题解 | 测试 |
 | --- | --- | --- |
-| 210 | [210.go](l210/210.go) | [210_test.go](l210/210_test.go) · [模板与边界](l210/template_test.go) |
-| 2115 | [2115.go](l2115/2115.go) | [2115_test.go](l2115/2115_test.go) |
-| 1462 | [1462.go](l1462/1462.go) | [1462_test.go](l1462/1462_test.go) |
-| 2050 | [2050.go](l2050/2050.go) | [2050_test.go](l2050/2050_test.go) · [边界](l2050/boundary_test.go) |
-| 1857 | [1857.go](l1857/1857.go) | [1857_test.go](l1857/1857_test.go) |
-| 329 | [329.go](l329/329.go) | [329_test.go](l329/329_test.go) |
+| [210](https://leetcode.com/problems/course-schedule-ii/) | [210.go](l210/210.go) | [210_test.go](l210/210_test.go) · [模板与边界](l210/template_test.go) |
+| [2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) | [2115.go](l2115/2115.go) | [2115_test.go](l2115/2115_test.go) |
+| [1462](https://leetcode.com/problems/course-schedule-iv/) | [1462.go](l1462/1462.go) | [1462_test.go](l1462/1462_test.go) |
+| [2050](https://leetcode.com/problems/parallel-courses-iii/) | [2050.go](l2050/2050.go) | [2050_test.go](l2050/2050_test.go) · [边界](l2050/boundary_test.go) |
+| [1857](https://leetcode.com/problems/largest-color-value-in-a-directed-graph/) | [1857.go](l1857/1857.go) | [1857_test.go](l1857/1857_test.go) |
+| [329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) | [329.go](l329/329.go) | [329_test.go](l329/329_test.go) |
 
 定向测试（只运行这六题，不依赖父目录的其他练习）：
 
@@ -245,7 +245,7 @@ next := func(u int, yield func(int)) {
 go test -count=1 -cover ./graph/topo_sort/l210 ./graph/topo_sort/l2115 ./graph/topo_sort/l1462 ./graph/topo_sort/l2050 ./graph/topo_sort/l1857 ./graph/topo_sort/l329
 ```
 
-测试包括示例、判环、重复边、输入不变及重复调用；1462 用 200 个随机 DAG 对照 Floyd 可达性，329 用 300 个随机矩阵对照记忆化 DFS。
+测试包括示例、判环、重复边、输入不变及重复调用；[1462](https://leetcode.com/problems/course-schedule-iv/) 用 200 个随机 DAG 对照 Floyd 可达性，[329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) 用 300 个随机矩阵对照记忆化 DFS。
 
 #### ① [210. 课程表 II](https://leetcode.com/problems/course-schedule-ii/)：收集出队顺序
 
@@ -329,7 +329,7 @@ func findAllRecipes(recipes []string, ingredients [][]string, supplies []string)
 
 #### ③ [1462. 课程表 IV](https://leetcode.com/problems/course-schedule-iv/)：传播祖先集合
 
-本题输入 `[a,b]` 表示 **a → b**，与 210 的输入解释不同。定义 `before[v][x]` 表示 x 是 v 的直接或间接前置课程，初始化全 false。
+本题输入 `[a,b]` 表示 **a → b**，与 [210](https://leetcode.com/problems/course-schedule-ii/) 的输入解释不同。定义 `before[v][x]` 表示 x 是 v 的直接或间接前置课程，初始化全 false。
 
 ```go
 func checkIfPrerequisite(numCourses int, prerequisites [][]int, queries [][]int) []bool {
@@ -494,21 +494,21 @@ func longestIncreasingPath(matrix [][]int) int {
 
 | 顺序 | 题目 | 初始队列 | 状态／汇总 | 时间复杂度 |
 | --- | --- | --- | --- | --- |
-| 1 | 210 课程表 II | 所有零入度课程 | 出队顺序，处理数判环 | O(V+E) |
-| 2 | 2115 配方解锁 | 仅给定 supplies | 剩余依赖计数 | O(V+E)，按已映射名字计 |
-| 3 | 1462 课程表 IV | 所有零入度课程 | 祖先布尔集合 | O(V²+VE+Q) |
-| 4 | 2050 并行课程 III | 所有零入度课程 | 最早完成时间 | O(V+E) |
-| 5 | 1857 最大颜色值 | 所有零入度节点 | 26 维路径最大次数 | O(26(V+E)) |
-| 6 | 329 最长递增路径 | 没有更小邻居的格子 | 最长路径格子数 | O(mn) |
+| 1 | [210](https://leetcode.com/problems/course-schedule-ii/) 课程表 II | 所有零入度课程 | 出队顺序，处理数判环 | O(V+E) |
+| 2 | [2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) 配方解锁 | 仅给定 supplies | 剩余依赖计数 | O(V+E)，按已映射名字计 |
+| 3 | [1462](https://leetcode.com/problems/course-schedule-iv/) 课程表 IV | 所有零入度课程 | 祖先布尔集合 | O(V²+VE+Q) |
+| 4 | [2050](https://leetcode.com/problems/parallel-courses-iii/) 并行课程 III | 所有零入度课程 | 最早完成时间 | O(V+E) |
+| 5 | [1857](https://leetcode.com/problems/largest-color-value-in-a-directed-graph/) 最大颜色值 | 所有零入度节点 | 26 维路径最大次数 | O(26(V+E)) |
+| 6 | [329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) 最长递增路径 | 没有更小邻居的格子 | 最长路径格子数 | O(mn) |
 
-空间：一般为 O(V+E)；1462 另有 O(V²) 的集合表，1857 另有 O(26V) 状态；329 不存显式边，只需 O(mn)。2115 的字符串映射按通常哈希操作计，若计入字符串读取/哈希，还需考虑总字符量。
+空间：一般为 O(V+E)；[1462](https://leetcode.com/problems/course-schedule-iv/) 另有 O(V²) 的集合表，[1857](https://leetcode.com/problems/largest-color-value-in-a-directed-graph/) 另有 O(26V) 状态；[329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) 不存显式边，只需 O(mn)。[2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) 的字符串映射按通常哈希操作计，若计入字符串读取/哈希，还需考虑总字符量。
 
-重点主线：**210 → 2050 → 1857 → 329**，从“求处理顺序”到“沿顺序计算标量、向量与隐式图状态”。2115 强化初始可用性的语义，1462 强化集合传播。
+重点主线：**[210](https://leetcode.com/problems/course-schedule-ii/) → [2050](https://leetcode.com/problems/parallel-courses-iii/) → [1857](https://leetcode.com/problems/largest-color-value-in-a-directed-graph/) → [329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/)**，从“求处理顺序”到“沿顺序计算标量、向量与隐式图状态”。[2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) 强化初始可用性的语义，[1462](https://leetcode.com/problems/course-schedule-iv/) 强化集合传播。
 
 检查清单：
 
 - 明确每道题输入的边方向，不照搬上一题的数组下标。
-- 初始化所有合法起点与状态，包括孤立点；2115 不能无条件加入所有零入度名字。
+- 初始化所有合法起点与状态，包括孤立点；[2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) 不能无条件加入所有零入度名字。
 - 每条边都先更新状态，再减少入度；只在入度恰好归零时入队。
 - 全部零入度起点的模式下，最后用处理数判环；存在环时不能返回部分 DP 结果。
 - 只有依赖已经无环、前驱状态最终确定，才能直接做这种 DAG DP；不能用它代替一般图最短路或一般可达性算法。
@@ -528,7 +528,7 @@ https://leetcode.com/discuss/general-discussion/1078072/introduction-to-topologi
 拓扑排序针对有向图，且只有**有向无环图（DAG）**才存在合法的拓扑序。
 
 TODO
-2115. Find All Possible Recipes from Given Supplies
+[2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/). Find All Possible Recipes from Given Supplies
 
 Topo sort:
 1 DFS

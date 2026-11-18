@@ -4,15 +4,15 @@
 
 | 条件／目标 | 模板 | 本仓库代码与题目 |
 | --- | --- | --- |
-| 非负加法最短路 | 最小堆，候选为 d+w，弹出过期项就跳过 | [通用 Dijkstra](dijkstra/dijkstra.go)；[743 练习](l743/743.go)与下文参考解答 |
-| 最小化路径最大边 | 最小堆，候选为 max(d,w) | [1631 练习](l1631/1631.go)；[旧实现](l1631/variants/legacy/1631.go) |
-| 最大路径概率 | 最大堆，候选为 p×概率，边概率在 [0,1] | [1514 练习](l1514/1514.go)；[原始片段](l1514/variants/legacy/1514) |
+| 非负加法最短路 | 最小堆，候选为 d+w，弹出过期项就跳过 | [通用 Dijkstra](dijkstra/dijkstra.go)；[743 练习](https://leetcode.com/problems/network-delay-time/) · [代码](l743/743.go)与下文参考解答 |
+| 最小化路径最大边 | 最小堆，候选为 max(d,w) | [1631 练习](https://leetcode.com/problems/path-with-minimum-effort/) · [代码](l1631/1631.go)；[旧实现](l1631/variants/legacy/1631.go) |
+| 最大路径概率 | 最大堆，候选为 p×概率，边概率在 [0,1] | [1514 练习](https://leetcode.com/problems/path-with-maximum-probability/) · [代码](l1514/1514.go)；[原始片段](l1514/variants/legacy/1514) |
 | 含负权边、检测源可达负环 | Bellman-Ford，最多 n-1 轮松弛后检查 | [独立通用示例](bellman_ford/bellman_ford.go) |
-| 限制最多走多少条边 | 每轮读取上一轮快照，不能串用本轮新值 | [787 实现](l787/787.go) |
-| 权重只有 0/1 | 0-1 BFS；本库旧版本用免费边闭包＋分层 | [1368 原始片段](l1368/1368) |
+| 限制最多走多少条边 | 每轮读取上一轮快照，不能串用本轮新值 | [787 实现](https://leetcode.com/problems/cheapest-flights-within-k-stops/) · [代码](l787/787.go) |
+| 权重只有 0/1 | 0-1 BFS；本库旧版本用免费边闭包＋分层 | [1368 原始片段](https://leetcode.com/problems/minimum-cost-to-make-at-least-one-valid-path-in-a-grid/) · [代码](l1368/1368) |
 | 等权最少步数 | FIFO BFS | [BFS 模板族](../bfs/README.md) |
 
-743、1514、1631 的 `.go` 主解均已使用下方 `BestLabels` 实现，每个文件包含完整的本地 helper、标签类型和堆，不依赖仓库内部包；现有测试原样保留。下文只声明一次公共 helper，再展示各题适配函数；旧变体继续保留供比较。通用 Dijkstra 和 Bellman-Ford 的 Edge 类型、演示 main 仍位于独立目录，各自编译，不强行混合。
+[743](https://leetcode.com/problems/network-delay-time/)、[1514](https://leetcode.com/problems/path-with-maximum-probability/)、[1631](https://leetcode.com/problems/path-with-minimum-effort/) 的 `.go` 主解均已使用下方 `BestLabels` 实现，每个文件包含完整的本地 helper、标签类型和堆，不依赖仓库内部包；现有测试原样保留。下文只声明一次公共 helper，再展示各题适配函数；旧变体继续保留供比较。通用 Dijkstra 和 Bellman-Ford 的 Edge 类型、演示 main 仍位于独立目录，各自编译，不强行混合。
 
 ### 边数限制为什么需要上一轮快照
 
@@ -28,9 +28,9 @@ for step := 0; step < maxEdges; step++ {
 }
 ```
 
-这里是转移骨架，`reachable` 与不可达表示由调用方定义。第 step 轮只读取上一轮，才能保证新增一条边；原地读取更新值可能在一轮中穿过整条链。787 的 k 次中转最多允许 k+1 条边。
+这里是转移骨架，`reachable` 与不可达表示由调用方定义。第 step 轮只读取上一轮，才能保证新增一条边；原地读取更新值可能在一轮中穿过整条链。[787](https://leetcode.com/problems/cheapest-flights-within-k-stops/) 的 k 次中转最多允许 k+1 条边。
 
-其他保留片段：[743 旧版本](l743/variants/legacy/743)、[1976 最短路径计数](l1976/1976_undirect)、[2039 网络空闲](l2039/2039_undirect)、[2359 功能图可达距离](l2359/2359_directed)。它们按问题归档，不表示都采用 Dijkstra。
+其他保留片段：[743 旧版本](https://leetcode.com/problems/network-delay-time/) · [代码](l743/variants/legacy/743)、[1976 最短路径计数](https://leetcode.com/problems/number-of-ways-to-arrive-at-destination/) · [本地](l1976/1976_undirect)、[2039 网络空闲](https://leetcode.com/problems/the-time-when-the-network-becomes-idle/) · [本地](l2039/2039_undirect)、[2359 功能图可达距离](https://leetcode.com/problems/find-closest-node-to-given-two-nodes/) · [本地](l2359/2359_directed)。它们按问题归档，不表示都采用 Dijkstra。
 
 [返回总目录](../../algorithm_templates/README.md)
 
@@ -235,13 +235,13 @@ func maxProbability(n int, edges [][]int, succProb []float64, startNode int, end
 
 | 题目 | 初值 | 松弛 | 堆 |
 | --- | --- | --- | --- |
-| 743 | 源0，其余未发现（数组版为INF） | d+w | 最小 |
-| 1631 | 源0，其余未发现（数组版为INF） | max(d,高度差) | 最小 |
-| 1514 | 源1；未发现节点查询结果为0 | p×边概率 | 最大 |
+| [743](https://leetcode.com/problems/network-delay-time/) | 源0，其余未发现（数组版为INF） | d+w | 最小 |
+| [1631](https://leetcode.com/problems/path-with-minimum-effort/) | 源0，其余未发现（数组版为INF） | max(d,高度差) | 最小 |
+| [1514](https://leetcode.com/problems/path-with-maximum-probability/) | 源1；未发现节点查询结果为0 | p×边概率 | 最大 |
 
 - 首次入堆不代表确定，出堆先跳过过期标签，再考虑提前返回。
 - 只在严格改善时入堆，避免等值环重复扩展。
-- 743有向，1514无向，建图不能混用。
+- [743](https://leetcode.com/problems/network-delay-time/)有向，[1514](https://leetcode.com/problems/path-with-maximum-probability/)无向，建图不能混用。
 - 普通加法版本不能处理负边；INF也不应与合法有限值混淆。
 - 公共helper中的 `better` 同时控制严格松弛和堆方向；各题主解都复制完整堆实现，独立提交时不依赖其他文件。
 

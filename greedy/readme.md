@@ -145,15 +145,15 @@ func GreedyRefuel(target, startFuel int, stations [][]int) int {
 
 | 题目 | 采用的局部模板 | 实际实现 |
 | --- | --- | --- |
-| 55 | `RangeJumps` | [实际 Go 文件](l55/55.go) |
-| 45 | `RangeJumps` | [实际 Go 文件](l45/45.go) |
-| 455 | `MatchSorted` | [实际 Go 文件](l455/455.go) |
-| 1710 | `TakeByValue` | [实际 Go 文件](l1710/1710.go) |
-| 435 | `SelectByEnd` | [实际 Go 文件](interval_greedy/l435/435.go) |
-| 452 | `SelectByEnd` | [实际 Go 文件](interval_greedy/l452/452.go) |
-| 134 | `CircuitStart` | [实际 Go 文件](gas_fuel/l134/134.go) |
-| 871：按加油次数 DP | `RefuelByCount` | [实际 Go 文件](gas_fuel/l871/871.go) |
-| 871：最大堆贪心 | `FuelHeap + GreedyRefuel` | [实际 Go 文件](gas_fuel/l871/variants/practice/871.go) |
+| [55](https://leetcode.com/problems/jump-game/) | `RangeJumps` | [实际 Go 文件](l55/55.go) |
+| [45](https://leetcode.com/problems/jump-game-ii/) | `RangeJumps` | [实际 Go 文件](l45/45.go) |
+| [455](https://leetcode.com/problems/assign-cookies/) | `MatchSorted` | [实际 Go 文件](l455/455.go) |
+| [1710](https://leetcode.com/problems/maximum-units-on-a-truck/) | `TakeByValue` | [实际 Go 文件](l1710/1710.go) |
+| [435](https://leetcode.com/problems/non-overlapping-intervals/) | `SelectByEnd` | [实际 Go 文件](interval_greedy/l435/435.go) |
+| [452](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/) | `SelectByEnd` | [实际 Go 文件](interval_greedy/l452/452.go) |
+| [134](https://leetcode.com/problems/gas-station/) | `CircuitStart` | [实际 Go 文件](gas_fuel/l134/134.go) |
+| [871](https://leetcode.com/problems/minimum-number-of-refueling-stops/)：按加油次数 DP | `RefuelByCount` | [实际 Go 文件](gas_fuel/l871/871.go) |
+| [871](https://leetcode.com/problems/minimum-number-of-refueling-stops/)：最大堆贪心 | `FuelHeap + GreedyRefuel` | [实际 Go 文件](gas_fuel/l871/variants/practice/871.go) |
 
 为使整页 Go 示例可合并编译，重名适配器在文档中加题号/DP/Greedy 后缀；实际 Go 文件仍保留官方函数签名。链表节点等支撑类型仅在 helper 区声明一次。
 
@@ -165,14 +165,14 @@ func GreedyRefuel(target, startFuel int, stations [][]int) int {
 - [4. 与动态规划、答案二分的关系](#connections)
 - [5. 常见错误](#pitfalls)
 - [6. 逐题说明与解释](#problems)
-  - [455. 分发饼干](#lc455)
-  - [1710. 卡车上的最大单元数](#lc1710)
-  - [55. 跳跃游戏](#lc55)
-  - [45. 跳跃游戏 II](#lc45)
-  - [435. 无重叠区间](#lc435)
-  - [452. 用最少数量的箭引爆气球](#lc452)
-  - [134. 加油站](#lc134)
-  - [871. 最低加油次数](#lc871)
+  - [455. 分发饼干](https://leetcode.com/problems/assign-cookies/) · [本节](#lc455)
+  - [1710. 卡车上的最大单元数](https://leetcode.com/problems/maximum-units-on-a-truck/) · [本节](#lc1710)
+  - [55. 跳跃游戏](https://leetcode.com/problems/jump-game/) · [本节](#lc55)
+  - [45. 跳跃游戏 II](https://leetcode.com/problems/jump-game-ii/) · [本节](#lc45)
+  - [435. 无重叠区间](https://leetcode.com/problems/non-overlapping-intervals/) · [本节](#lc435)
+  - [452. 用最少数量的箭引爆气球](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/) · [本节](#lc452)
+  - [134. 加油站](https://leetcode.com/problems/gas-station/) · [本节](#lc134)
+  - [871. 最低加油次数](https://leetcode.com/problems/minimum-number-of-refueling-stops/) · [本节](#lc871)
 - [7. 练习与测试](#tests)
 
 <a id="core"></a>
@@ -222,14 +222,14 @@ func GreedyRefuel(target, startFuel int, stations [][]int) int {
 
 | 模式 | 题目 / 原题链接 | 决策或排序规则 | 维护状态 | 关键边界 |
 | --- | --- | --- | --- | --- |
-| 排序匹配 | [455](#lc455)（[LeetCode](https://leetcode.com/problems/assign-cookies/)） | 两边升序，最小够用资源匹配最小需求 | 孩子、饼干双指针 | 饼干大小等于胃口也能满足 |
-| 单位收益 | [1710](#lc1710)（[LeetCode](https://leetcode.com/problems/maximum-units-on-a-truck/)） | 单箱单元数降序 | 剩余车位、总单元数 | 可只取某类型的一部分箱子 |
-| 可达范围 | [55](#lc55)（[LeetCode](https://leetcode.com/problems/jump-game/)） | 只从可达位置扩展 | farthest | i>farthest 时失败 |
-| 分层扩展 | [45](#lc45)（[LeetCode](https://leetcode.com/problems/jump-game-ii/)） | 扫完整层后增加一步 | end、farthest、steps | 不在终点再增加跳跃次数 |
-| 区间选择 | [435](#lc435)（[LeetCode](https://leetcode.com/problems/non-overlapping-intervals/)） | 结束时间升序 | 已保留区间的末尾 | start>=end 可保留 |
-| 区间覆盖 | [452](#lc452)（[LeetCode](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/)） | 结束位置升序，箭放在右端点 | 当前箭位置、箭数 | start>arrow 才需要新箭 |
-| 环形余额 | [134](#lc134)（[LeetCode](https://leetcode.com/problems/gas-station/)） | 局部余额为负则重置起点 | start、tank、total | tank=0 不应重置 |
-| 最大堆选优 | [871](#lc871)（[LeetCode](https://leetcode.com/problems/minimum-number-of-refueling-stops/)） | 已可达站中选油量最大者 | reach、站点指针、最大堆 | 站点位置<=reach 即可达 |
+| 排序匹配 | [455](https://leetcode.com/problems/assign-cookies/) · [本节](#lc455)（[LeetCode](https://leetcode.com/problems/assign-cookies/)） | 两边升序，最小够用资源匹配最小需求 | 孩子、饼干双指针 | 饼干大小等于胃口也能满足 |
+| 单位收益 | [1710](https://leetcode.com/problems/maximum-units-on-a-truck/) · [本节](#lc1710)（[LeetCode](https://leetcode.com/problems/maximum-units-on-a-truck/)） | 单箱单元数降序 | 剩余车位、总单元数 | 可只取某类型的一部分箱子 |
+| 可达范围 | [55](https://leetcode.com/problems/jump-game/) · [本节](#lc55)（[LeetCode](https://leetcode.com/problems/jump-game/)） | 只从可达位置扩展 | farthest | i>farthest 时失败 |
+| 分层扩展 | [45](https://leetcode.com/problems/jump-game-ii/) · [本节](#lc45)（[LeetCode](https://leetcode.com/problems/jump-game-ii/)） | 扫完整层后增加一步 | end、farthest、steps | 不在终点再增加跳跃次数 |
+| 区间选择 | [435](https://leetcode.com/problems/non-overlapping-intervals/) · [本节](#lc435)（[LeetCode](https://leetcode.com/problems/non-overlapping-intervals/)） | 结束时间升序 | 已保留区间的末尾 | start>=end 可保留 |
+| 区间覆盖 | [452](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/) · [本节](#lc452)（[LeetCode](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/)） | 结束位置升序，箭放在右端点 | 当前箭位置、箭数 | start>arrow 才需要新箭 |
+| 环形余额 | [134](https://leetcode.com/problems/gas-station/) · [本节](#lc134)（[LeetCode](https://leetcode.com/problems/gas-station/)） | 局部余额为负则重置起点 | start、tank、total | tank=0 不应重置 |
+| 最大堆选优 | [871](https://leetcode.com/problems/minimum-number-of-refueling-stops/) · [本节](#lc871)（[LeetCode](https://leetcode.com/problems/minimum-number-of-refueling-stops/)） | 已可达站中选油量最大者 | reach、站点指针、最大堆 | 站点位置<=reach 即可达 |
 
 <a id="connections"></a>
 
@@ -237,7 +237,7 @@ func GreedyRefuel(target, startFuel int, stations [][]int) int {
 
 - **动态规划**：保留多个可能的状态，再比较最优结果。贪心需要证明其他候选可以安全舍弃。例如 [55](https://leetcode.com/problems/jump-game/) 可从可达 DP 简化为一个最远边界；[871](https://leetcode.com/problems/minimum-number-of-refueling-stops/) 可从按加油次数的 DP 改为最大堆贪心。
 - **答案二分**：外层找答案，内层 check 可能使用贪心。[1011](https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/) 按原顺序每天尽量装满；[410](https://leetcode.com/problems/split-array-largest-sum/) 对非负数组尽量延长每组。这些贪心用于计算固定上限下的最少天数 / 组数。
-- **限制改变，证明可能失效**：1011 若允许任意重排且物品不可拆分，就变成装箱可行性，不能用顺序贪心保证正确；1710 每箱占用相同车位才能按单箱收益排序，不能直接推广到一般 0/1 背包。
+- **限制改变，证明可能失效**：[1011](https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/) 若允许任意重排且物品不可拆分，就变成装箱可行性，不能用顺序贪心保证正确；[1710](https://leetcode.com/problems/maximum-units-on-a-truck/) 每箱占用相同车位才能按单箱收益排序，不能直接推广到一般 0/1 背包。
 
 <a id="pitfalls"></a>
 
@@ -293,7 +293,7 @@ func GreedyRefuel(target, startFuel int, stations [][]int) int {
 ### [45. 跳跃游戏 II](https://leetcode.com/problems/jump-game-ii/)
 
 - **练习**：[45.go](l45/45.go) · [测试](l45/45_test.go)
-- **题意**：与 55 相同，但题设保证终点可达，要求最少跳跃次数。[2,3,1,1,4] 的答案为 2。
+- **题意**：与 [55](https://leetcode.com/problems/jump-game/) 相同，但题设保证终点可达，要求最少跳跃次数。[2,3,1,1,4] 的答案为 2。
 - **决策与状态**：维护 steps、当前层右边界 end、下一层最远边界 farthest。遍历到 n-2，每个位置先更新 farthest；当 i=end 时说明当前层扫描结束，steps 加一，end 更新为 farthest。
 - **为什么正确**：当前层覆盖在已有跳数内能到达的位置。扫描完整层才得到下一跳能够覆盖的最远位置，首次覆盖终点的层数就是最少跳数，等价于 BFS。
 - **复杂度与边界**：时间 `O(n)`，额外空间 `O(1)`。不要在最后一个位置再加一步，单元素答案为 0；不能简单每次跳到当前最远位置，[2,3,1,1,4] 应先跳到下标 1 而非 2。
@@ -365,19 +365,19 @@ go test ./greedy/l455 ./greedy/l1710 ./greedy/l55 ./greedy/l45 ./greedy/l435 ./g
 
 以下代码调用本页已经声明的 helper；复制到对应题解时使用实际 Go 文件中的官方函数名。
 
-### 55
+### [55](https://leetcode.com/problems/jump-game/)
 
 ```go
 func canJump(nums []int) bool { return RangeJumps(nums) >= 0 }
 ```
 
-### 45
+### [45](https://leetcode.com/problems/jump-game-ii/)
 
 ```go
 func jump(nums []int) int { return RangeJumps(nums) }
 ```
 
-### 455
+### [455](https://leetcode.com/problems/assign-cookies/)
 
 ```go
 func findContentChildren(g []int, s []int) int {
@@ -387,13 +387,13 @@ func findContentChildren(g []int, s []int) int {
 }
 ```
 
-### 1710
+### [1710](https://leetcode.com/problems/maximum-units-on-a-truck/)
 
 ```go
 func maximumUnits(boxTypes [][]int, truckSize int) int { return TakeByValue(boxTypes, truckSize) }
 ```
 
-### 435
+### [435](https://leetcode.com/problems/non-overlapping-intervals/)
 
 ```go
 func eraseOverlapIntervals(intervals [][]int) int {
@@ -402,7 +402,7 @@ func eraseOverlapIntervals(intervals [][]int) int {
 }
 ```
 
-### 452
+### [452](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/)
 
 ```go
 func findMinArrowShots(points [][]int) int {
@@ -410,13 +410,13 @@ func findMinArrowShots(points [][]int) int {
 }
 ```
 
-### 134
+### [134](https://leetcode.com/problems/gas-station/)
 
 ```go
 func canCompleteCircuit(gas []int, cost []int) int { return CircuitStart(gas, cost) }
 ```
 
-### 871：按加油次数 DP
+### [871](https://leetcode.com/problems/minimum-number-of-refueling-stops/)：按加油次数 DP
 
 ```go
 func minRefuelStopsDP(target int, startFuel int, stations [][]int) int {
@@ -429,7 +429,7 @@ func minRefuelStopsDP(target int, startFuel int, stations [][]int) int {
 }
 ```
 
-### 871：最大堆贪心
+### [871](https://leetcode.com/problems/minimum-number-of-refueling-stops/)：最大堆贪心
 
 ```go
 func minRefuelStopsGreedy(target int, startFuel int, stations [][]int) int {

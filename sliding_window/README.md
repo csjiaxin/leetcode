@@ -280,10 +280,10 @@ func minWindow(s string, t string) string {
 
 | 题目 | 窗口状态 | while条件 | 更新答案 |
 | --- | --- | --- | --- |
-| 3 | 字符频次 | 新字符重复 | 修复后求最长 |
-| 1004 | zeros | zeros>k | 修复后求最长 |
-| 209 | sum | sum>=target | 移除前求最短 |
-| 76 | formed、required | formed==required | 移除前求最短 |
+| [3](https://leetcode.com/problems/longest-substring-without-repeating-characters/) | 字符频次 | 新字符重复 | 修复后求最长 |
+| [1004](https://leetcode.com/problems/max-consecutive-ones-iii/) | zeros | zeros>k | 修复后求最长 |
+| [209](https://leetcode.com/problems/minimum-size-subarray-sum/) | sum | sum>=target | 移除前求最短 |
+| [76](https://leetcode.com/problems/minimum-window-substring/) | formed、required | formed==required | 移除前求最短 |
 
 - 不要只用一次if收缩；一次移除未必够。
 - 最长合法与最短满足不是同一个while条件，更新时机也不同。
@@ -306,7 +306,7 @@ func minWindow(s string, t string) string {
 
 常见题目特征：连续子数组或子串、固定长度、最多 k 次操作、最短覆盖、满足条件的区间数量。
 
-使用前要判断：移动边界后，条件是否具有足够的单调性？例如正数数组中扩展窗口使和不减，收缩使和不增；包含负数时，209 的普通窗口逻辑不再适用。
+使用前要判断：移动边界后，条件是否具有足够的单调性？例如正数数组中扩展窗口使和不减，收缩使和不增；包含负数时，[209](https://leetcode.com/problems/minimum-size-subarray-sum/) 的普通窗口逻辑不再适用。
 
 本文统一使用闭区间 `[left, right]`，窗口长度是 `right-left+1`。每个元素最多进入、离开一次；若状态更新和检查都是 O(1)，总时间为 O(n)。
 
@@ -332,9 +332,9 @@ for right := 0; right < len(nums); right++ {
 | --- | --- |
 | [643. Maximum Average Subarray I](https://leetcode.com/problems/maximum-average-subarray-i/) | 维护长度 k 的窗口和，取最大值后除以 k；最大和不能初始化为 0，因为可能全为负数 |
 | [567. Permutation in String](https://leetcode.com/problems/permutation-in-string/) | 窗口长度为 len(s1)，比较 26 个小写字母的频次；只需判断是否存在 |
-| [438. Find All Anagrams in a String](https://leetcode.com/problems/find-all-anagrams-in-a-string/) | 与 567 相同，但记录所有起点；重叠窗口也要保留 |
+| [438. Find All Anagrams in a String](https://leetcode.com/problems/find-all-anagrams-in-a-string/) | 与 [567](https://leetcode.com/problems/permutation-in-string/) 相同，但记录所有起点；重叠窗口也要保留 |
 
-对于 567、438，比较 26 项频次是 O(26n)，在固定字母表下为 O(n)，辅助空间 O(26)。不需要生成字符串的全部排列。
+对于 [567](https://leetcode.com/problems/permutation-in-string/)、[438](https://leetcode.com/problems/find-all-anagrams-in-a-string/)，比较 26 项频次是 O(26n)，在固定字母表下为 O(n)，辅助空间 O(26)。不需要生成字符串的全部排列。
 
 ## 3. 不定长窗口：最长合法区间
 
@@ -357,7 +357,7 @@ for right := 0; right < len(nums); right++ {
 | [3. Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters/) | 没有重复字符 | 字符频次或最后出现位置 |
 | [1004. Max Consecutive Ones III](https://leetcode.com/problems/max-consecutive-ones-iii/) | 窗口中的 0 不超过 k 个 | 零的数量 |
 
-相关进阶：[904. Fruit Into Baskets](https://leetcode.com/problems/fruit-into-baskets/) 维护最多两种元素；[424. Longest Repeating Character Replacement](https://leetcode.com/problems/longest-repeating-character-replacement/) 使用“窗口长度减去最高字符频次不超过 k”的条件。424 中使用历史最大频次的优化需要单独理解其不变量。
+相关进阶：[904. Fruit Into Baskets](https://leetcode.com/problems/fruit-into-baskets/) 维护最多两种元素；[424. Longest Repeating Character Replacement](https://leetcode.com/problems/longest-repeating-character-replacement/) 使用“窗口长度减去最高字符频次不超过 k”的条件。[424](https://leetcode.com/problems/longest-repeating-character-replacement/) 中使用历史最大频次的优化需要单独理解其不变量。
 
 ## 4. 不定长窗口：最短满足区间
 
@@ -380,7 +380,7 @@ for right := 0; right < len(nums); right++ {
 | [209. Minimum Size Subarray Sum](https://leetcode.com/problems/minimum-size-subarray-sum/) | 正数窗口和 >= target | 无解返回 0；依赖所有元素为正 |
 | [76. Minimum Window Substring](https://leetcode.com/problems/minimum-window-substring/) | 覆盖 t 的全部字符及其出现次数 | 重复字符不能只按种类判断；区分大小写；无解返回空字符串 |
 
-76 可以维护每种字符的需求和窗口计数，再维护已匹配的字符数量或已达标的种类数，避免每次重新扫描全部需求。
+[76](https://leetcode.com/problems/minimum-window-substring/) 可以维护每种字符的需求和窗口计数，再维护已匹配的字符数量或已达标的种类数，避免每次重新扫描全部需求。
 
 ## 5. 统计满足条件的子数组数量
 
@@ -433,7 +433,7 @@ answer += len(s) - right
 - 混淆“满足时收缩”和“不合法时收缩”：最短覆盖通常是前者，最长合法窗口通常是后者。
 - 需要持续修复窗口时误用 if 而非 for；某些单步收缩优化有额外不变量，不要直接混用。
 - 移除字符时忘记减少计数，或频次降为 0 时忘记减少不同字符数。
-- 76 只检查字符种类，忽略重复需求；567、438 忘记固定窗口长度。
+- [76](https://leetcode.com/problems/minimum-window-substring/) 只检查字符种类，忽略重复需求；[567](https://leetcode.com/problems/permutation-in-string/)、[438](https://leetcode.com/problems/find-all-anagrams-in-a-string/) 忘记固定窗口长度。
 - 数组全负时把最大窗口和初始化成 0。
 - 把正数窗口和的算法直接用于含负数的输入。
 - Go 的字符串下标是字节；这些字符串题的题目字符集允许按字节处理，泛化到 Unicode 时需先明确 rune 与返回下标的语义。
@@ -450,7 +450,7 @@ l209 → l76                    最短满足窗口
 l713 → l1358 → l992            子数组计数
 ```
 
-原演示与练习现按题号归并，各来源保留独立包；567、438 的 permutation 来源在各题 variants/from_permutation 中，实际实现也使用同一 windowFixed 模板。
+原演示与练习现按题号归并，各来源保留独立包；[567](https://leetcode.com/problems/permutation-in-string/)、[438](https://leetcode.com/problems/find-all-anagrams-in-a-string/) 的 permutation 来源在各题 variants/from_permutation 中，实际实现也使用同一 windowFixed 模板。
 
 无根目录 go.mod 时，可从仓库根目录按文件运行，例如：
 
@@ -488,15 +488,15 @@ go test -run '^$' sliding_window/l643/*.go
 
 | 模板 | 必须维持的不变量与答案时机 | 题目入口 |
 | --- | --- | --- |
-| 最长合法窗口 | 加右端；`while invalid` 移左端；修复后更新最长 | [3](l3)、[1004](l1004)、[424](l424)、[904](l904) |
-| 最短覆盖窗口 | 加右端；`while valid` 先记录答案再移左端 | [209](l209)、[76](l76) |
-| 定长窗口 | 加右端；超过指定长度才移左端；长度恰好时统计 | [438](l438)、[567](l567)、[643](l643) |
-| 向内收缩保持合法的区间计数 | 收缩到最小合法 left 后，固定 right 有 `right-left+1` 个合法起点 | [713](l713) |
-| 满足覆盖的区间计数 | 满足时固定 left，并将当前及以后所有 right 计入，再继续移左端 | [1358](l1358) |
-| 至多转恰好 | `exactly(k)=atMost(k)-atMost(k-1)`；atMost 的所有更短后缀也合法 | [992](l992)、[930](l930)、[1248](l1248) |
-| 单调队列 | 队首是有效窗口内最大值；队首过期、队尾淘汰劣值是两种操作 | [239](l239) |
+| 最长合法窗口 | 加右端；`while invalid` 移左端；修复后更新最长 | [3](https://leetcode.com/problems/longest-substring-without-repeating-characters/) · [本地](l3)、[1004](https://leetcode.com/problems/max-consecutive-ones-iii/) · [本地](l1004)、[424](https://leetcode.com/problems/longest-repeating-character-replacement/) · [本地](l424)、[904](https://leetcode.com/problems/fruit-into-baskets/) · [本地](l904) |
+| 最短覆盖窗口 | 加右端；`while valid` 先记录答案再移左端 | [209](https://leetcode.com/problems/minimum-size-subarray-sum/) · [本地](l209)、[76](https://leetcode.com/problems/minimum-window-substring/) · [本地](l76) |
+| 定长窗口 | 加右端；超过指定长度才移左端；长度恰好时统计 | [438](https://leetcode.com/problems/find-all-anagrams-in-a-string/) · [本地](l438)、[567](https://leetcode.com/problems/permutation-in-string/) · [本地](l567)、[643](https://leetcode.com/problems/maximum-average-subarray-i/) · [本地](l643) |
+| 向内收缩保持合法的区间计数 | 收缩到最小合法 left 后，固定 right 有 `right-left+1` 个合法起点 | [713](https://leetcode.com/problems/subarray-product-less-than-k/) · [本地](l713) |
+| 满足覆盖的区间计数 | 满足时固定 left，并将当前及以后所有 right 计入，再继续移左端 | [1358](https://leetcode.com/problems/number-of-substrings-containing-all-three-characters/) · [本地](l1358) |
+| 至多转恰好 | `exactly(k)=atMost(k)-atMost(k-1)`；atMost 的所有更短后缀也合法 | [992](https://leetcode.com/problems/subarrays-with-k-different-integers/) · [本地](l992)、[930](https://leetcode.com/problems/binary-subarrays-with-sum/) · [本地](l930)、[1248](https://leetcode.com/problems/count-number-of-nice-subarrays/) · [本地](l1248) |
+| 单调队列 | 队首是有效窗口内最大值；队首过期、队尾淘汰劣值是两种操作 | [239](https://leetcode.com/problems/sliding-window-maximum/) · [本地](l239) |
 
-其中 1358 的常见实现也可在满足条件时累计后续右端点数量；不能不检查原实现的计数方向就改成统一回调。930 使用非负二进制和，1248 使用奇数数量，992 使用不同元素数量；它们共享 atMost 代数关系，但维护的状态不同。`atMost(k<0)` 应为 0。
+其中 [1358](https://leetcode.com/problems/number-of-substrings-containing-all-three-characters/) 的常见实现也可在满足条件时累计后续右端点数量；不能不检查原实现的计数方向就改成统一回调。[930](https://leetcode.com/problems/binary-subarrays-with-sum/) 使用非负二进制和，[1248](https://leetcode.com/problems/count-number-of-nice-subarrays/) 使用奇数数量，[992](https://leetcode.com/problems/subarrays-with-k-different-integers/) 使用不同元素数量；它们共享 atMost 代数关系，但维护的状态不同。`atMost(k<0)` 应为 0。
 
 ```text
 最长：add(right) → while 不合法：remove(left++) → 记录长度
@@ -505,18 +505,18 @@ go test -run '^$' sliding_window/l643/*.go
 计数：恢复合法 → answer += right-left+1
 ```
 
-这些循环分别成立的前提不同，不用一个含糊的 `valid` 回调同时驱动。209 依赖正数，713 依赖正整数并需考虑 k<=1；含负数的普通区间和不能直接套用。
+这些循环分别成立的前提不同，不用一个含糊的 `valid` 回调同时驱动。[209](https://leetcode.com/problems/minimum-size-subarray-sum/) 依赖正数，[713](https://leetcode.com/problems/subarray-product-less-than-k/) 依赖正整数并需考虑 k<=1；含负数的普通区间和不能直接套用。
 
 当前变体入口：
 
 | 题号 | 保留的独立来源 |
 | --- | --- |
-| 3、76、209、1004 | 各题的 `variants/template` 和 `variants/from_two_pointers` |
-| 424、713 | 各题的 `variants/from_two_pointers` |
-| 438、567 | 各题的 `variants/from_two_pointers`、`variants/from_permutation` |
-| 992 | `variants/from_two_pointers`、`variants/from_at_most` |
+| [3](https://leetcode.com/problems/longest-substring-without-repeating-characters/)、[76](https://leetcode.com/problems/minimum-window-substring/)、[209](https://leetcode.com/problems/minimum-size-subarray-sum/)、[1004](https://leetcode.com/problems/max-consecutive-ones-iii/) | 各题的 `variants/template` 和 `variants/from_two_pointers` |
+| [424](https://leetcode.com/problems/longest-repeating-character-replacement/)、[713](https://leetcode.com/problems/subarray-product-less-than-k/) | 各题的 `variants/from_two_pointers` |
+| [438](https://leetcode.com/problems/find-all-anagrams-in-a-string/)、[567](https://leetcode.com/problems/permutation-in-string/) | 各题的 `variants/from_two_pointers`、`variants/from_permutation` |
+| [992](https://leetcode.com/problems/subarrays-with-k-different-integers/) | `variants/from_two_pointers`、`variants/from_at_most` |
 
-[567/variants/from_permutation](l567/variants/from_permutation) 保留了一份已实现的定长频次窗口；[567 主练习](l567) 现同样使用 windowFixed；各变体与原测试保持独立。所有 `variants` 现按相同子模板独立实现，并保留各自原测试。[at_most/README.md](at_most/README.md) 继续作为公式专题笔记，但题目代码已归入统一题号目录。
+[567/variants/from_permutation](l567/variants/from_permutation) 保留了一份已实现的定长频次窗口；[567 主练习](https://leetcode.com/problems/permutation-in-string/) · [本地](l567) 现同样使用 windowFixed；各变体与原测试保持独立。所有 `variants` 现按相同子模板独立实现，并保留各自原测试。[at_most/README.md](at_most/README.md) 继续作为公式专题笔记，但题目代码已归入统一题号目录。
 
 单测按当前包或整个专题运行：`go test ./sliding_window/...`。目录归并与算法实现验证是两个独立步骤。迁移清单见 [reorganization.json](../two_pointers/reorganization.json)。
 
@@ -525,13 +525,13 @@ go test -run '^$' sliding_window/l643/*.go
 
 以下适配器使用上方已经声明的同名模板；分别复制到对应题的同一文件即可。
 
-### 239：maxSlidingWindow
+### [239](https://leetcode.com/problems/sliding-window-maximum/)：maxSlidingWindow
 
 ```go
 func maxSlidingWindow(nums []int, k int) []int { return windowMaximum(nums, k) }
 ```
 
-### 424：characterReplacement
+### [424](https://leetcode.com/problems/longest-repeating-character-replacement/)：characterReplacement
 
 ```go
 func characterReplacement(s string, k int) int {
@@ -552,7 +552,7 @@ func characterReplacement(s string, k int) int {
 }
 ```
 
-### 438：findAnagrams
+### [438](https://leetcode.com/problems/find-all-anagrams-in-a-string/)：findAnagrams
 
 ```go
 func findAnagrams(s string, p string) []int {
@@ -576,7 +576,7 @@ func findAnagrams(s string, p string) []int {
 }
 ```
 
-### 567：checkInclusion
+### [567](https://leetcode.com/problems/permutation-in-string/)：checkInclusion
 
 ```go
 func checkInclusion(s1 string, s2 string) bool {
@@ -600,7 +600,7 @@ func checkInclusion(s1 string, s2 string) bool {
 }
 ```
 
-### 643：findMaxAverage
+### [643](https://leetcode.com/problems/maximum-average-subarray-i/)：findMaxAverage
 
 ```go
 func findMaxAverage(nums []int, k int) float64 {
@@ -622,7 +622,7 @@ func findMaxAverage(nums []int, k int) float64 {
 }
 ```
 
-### 713：numSubarrayProductLessThanK
+### [713](https://leetcode.com/problems/subarray-product-less-than-k/)：numSubarrayProductLessThanK
 
 ```go
 func numSubarrayProductLessThanK(nums []int, k int) int {
@@ -637,7 +637,7 @@ func numSubarrayProductLessThanK(nums []int, k int) int {
 }
 ```
 
-### 904：totalFruit
+### [904](https://leetcode.com/problems/fruit-into-baskets/)：totalFruit
 
 ```go
 func totalFruit(nums []int) int {
@@ -654,7 +654,7 @@ func totalFruit(nums []int) int {
 }
 ```
 
-### 930：numSubarraysWithSum
+### [930](https://leetcode.com/problems/binary-subarrays-with-sum/)：numSubarraysWithSum
 
 ```go
 func numSubarraysWithSum(nums []int, goal int) int {
@@ -672,7 +672,7 @@ func numSubarraysWithSum(nums []int, goal int) int {
 }
 ```
 
-### 992：subarraysWithKDistinct
+### [992](https://leetcode.com/problems/subarrays-with-k-different-integers/)：subarraysWithKDistinct
 
 ```go
 func subarraysWithKDistinct(nums []int, k int) int {
@@ -695,7 +695,7 @@ func subarraysWithKDistinct(nums []int, k int) int {
 }
 ```
 
-### 1248：numberOfSubarrays
+### [1248](https://leetcode.com/problems/count-number-of-nice-subarrays/)：numberOfSubarrays
 
 ```go
 func numberOfSubarrays(nums []int, k int) int {
@@ -713,7 +713,7 @@ func numberOfSubarrays(nums []int, k int) int {
 }
 ```
 
-### 1358：numberOfSubstrings
+### [1358](https://leetcode.com/problems/number-of-substrings-containing-all-three-characters/)：numberOfSubstrings
 
 ```go
 func numberOfSubstrings(s string) int {

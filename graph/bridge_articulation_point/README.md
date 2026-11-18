@@ -37,4 +37,4 @@ func dfs(u, parentEdge int) {
 https://leetcode.com/list/9bm5lhts/
 
 Bridge
-1192. Critical Connections in a Network
+[1192](https://leetcode.com/problems/critical-connections-in-a-network/). Critical Connections in a Network

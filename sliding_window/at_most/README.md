@@ -148,9 +148,9 @@ func numSubarraysWithSum(nums []int, goal int) int {
 
 | 题目 | 窗口状态 | 违规条件 | 每轮贡献 |
 | --- | --- | --- | --- |
-| 992 | freq、distinct | distinct>limit | right-left+1 |
-| 1248 | odd | odd>limit | right-left+1 |
-| 930 | sum | sum>limit | right-left+1 |
+| [992](https://leetcode.com/problems/subarrays-with-k-different-integers/) | freq、distinct | distinct>limit | right-left+1 |
+| [1248](https://leetcode.com/problems/count-number-of-nice-subarrays/) | odd | odd>limit | right-left+1 |
+| [930](https://leetcode.com/problems/binary-subarrays-with-sum/) | sum | sum>limit | right-left+1 |
 
 - 求的是数量，累加所有合法后缀，不是维护最长长度。
 - 每次 atMost 都重置 left 和状态，不能沿用第一次的状态。

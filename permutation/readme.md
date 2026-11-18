@@ -73,8 +73,8 @@ func factorialSelection(n, k int) string {
 
 逐个位置选择尚未使用的元素，递归完成排列，再撤销选择。
 
-- [46. Permutations](https://leetcode.com/problems/permutations/)：无重复元素的全排列，使用 `used[]` 记录已选元素，是 47 的基础版。
-- [52. N-Queens II](https://leetcode.com/problems/n-queens-ii/)：51 的计数版，不需要构造棋盘。
+- [46. Permutations](https://leetcode.com/problems/permutations/)：无重复元素的全排列，使用 `used[]` 记录已选元素，是 [47](https://leetcode.com/problems/permutations-ii/) 的基础版。
+- [52. N-Queens II](https://leetcode.com/problems/n-queens-ii/)：[51](https://leetcode.com/problems/n-queens/) 的计数版，不需要构造棋盘。
 - [526. Beautiful Arrangement](https://leetcode.com/problems/beautiful-arrangement/)：在位置 `pos` 放置未使用的 `v`，要求 `v % pos == 0` 或 `pos % v == 0`；可以回溯剪枝，也可以使用状态压缩 DP。
 - [784. Letter Case Permutation](https://leetcode.com/problems/letter-case-permutation/)：逐位置枚举字母的大小写，数字直接保留；本质是分支选择，而非交换元素位置。
 
@@ -107,7 +107,7 @@ func factorialSelection(n, k int) string {
 
 - [503. Next Greater Element II](https://leetcode.com/problems/next-greater-element-ii/)：在循环数组中，为每个元素寻找右侧第一个严格更大的元素。
 
-注意：503 不改变数组的排列，与 31、556 的“下一个排列”不是同一类问题。它通常使用单调栈，并通过遍历两遍数组处理循环关系，时间复杂度为 O(n)，额外空间复杂度为 O(n)。
+注意：[503](https://leetcode.com/problems/next-greater-element-ii/) 不改变数组的排列，与 [31](https://leetcode.com/problems/next-permutation/)、[556](https://leetcode.com/problems/next-greater-element-iii/) 的“下一个排列”不是同一类问题。它通常使用单调栈，并通过遍历两遍数组处理循环关系，时间复杂度为 O(n)，额外空间复杂度为 O(n)。
 
 ## 4. 字符串中的排列：滑动窗口
 
@@ -115,13 +115,13 @@ func factorialSelection(n, k int) string {
 
 不需要枚举 `s1` 的全部排列。维护长度为 `len(s1)` 的滑动窗口，比较字符频次即可。对于题目限定的小写英文字母，时间复杂度为 O(len(s1) + len(s2))，辅助空间为 O(26)。
 
-- [438. Find All Anagrams in a String](https://leetcode.com/problems/find-all-anagrams-in-a-string/)：与 567 使用相同的定长窗口，但返回全部匹配起点；匹配窗口可以重叠。
+- [438. Find All Anagrams in a String](https://leetcode.com/problems/find-all-anagrams-in-a-string/)：与 [567](https://leetcode.com/problems/permutation-in-string/) 使用相同的定长窗口，但返回全部匹配起点；匹配窗口可以重叠。
 - [242. Valid Anagram](https://leetcode.com/problems/valid-anagram/)：只比较两个完整字符串的字符频次。
 - [767. Reorganize String](https://leetcode.com/problems/reorganize-string/)：重排后相邻字符不能相同，使用最大堆或按位置贪心填充；不需要枚举全部排列。
 
 ## 5. 字典序进阶：上一个排列、排名与第 k 个排列
 
-### 1053. 上一个排列：仅允许一次交换
+### [1053](https://leetcode.com/problems/previous-permutation-with-one-swap/). 上一个排列：仅允许一次交换
 
 [Previous Permutation With One Swap](https://leetcode.com/problems/previous-permutation-with-one-swap/)
 
@@ -129,9 +129,9 @@ func factorialSelection(n, k int) string {
 2. 在右侧找到严格小于 `arr[i]` 的最大值。
 3. 若该值重复，选择其中最靠左的位置交换，例如 `[3,1,1,3] → [1,3,1,3]`。
 
-只能交换一次，因此不能像 31 一样反转后缀。不存在更小排列时返回原排列。
+只能交换一次，因此不能像 [31](https://leetcode.com/problems/next-permutation/) 一样反转后缀。不存在更小排列时返回原排列。
 
-### 60. 第 k 个排列：阶乘分组
+### [60](https://leetcode.com/problems/permutation-sequence/). 第 k 个排列：阶乘分组
 
 [Permutation Sequence](https://leetcode.com/problems/permutation-sequence/)
 
@@ -144,7 +144,7 @@ k     = k % (remaining-1)!
 
 取剩余有序数字中的第 `index` 个并移除。不必执行 `k-1` 次下一个排列；使用切片删除时，总时间 O(n²)，辅助空间 O(n)。
 
-### 1830. 排列排名：重复字符的组合计数
+### [1830](https://leetcode.com/problems/minimum-number-of-operations-to-make-string-sorted/). 排列排名：重复字符的组合计数
 
 [Minimum Number of Operations to Make String Sorted](https://leetcode.com/problems/minimum-number-of-operations-to-make-string-sorted/)
 
@@ -158,13 +158,13 @@ k     = k % (remaining-1)!
 
 ## 7. 排列计数：动态规划
 
-### 903. Valid Permutations for DI Sequence
+### [903](https://leetcode.com/problems/valid-permutations-for-di-sequence/). Valid Permutations for DI Sequence
 
 [题目链接](https://leetcode.com/problems/valid-permutations-for-di-sequence/)
 
-与 942 类似，但要求统计所有方案。令 `dp[i][j]` 表示使用 `i+1` 个数，末尾数字在这些数中的排名为 `j`，满足前 `i` 个关系的方案数。遇到 `I` 累加前一层排名小于 `j` 的状态，遇到 `D` 累加排名大于等于 `j` 的状态；通过前缀和、后缀和将总时间优化到 O(n²)。
+与 [942](https://leetcode.com/problems/di-string-match/) 类似，但要求统计所有方案。令 `dp[i][j]` 表示使用 `i+1` 个数，末尾数字在这些数中的排名为 `j`，满足前 `i` 个关系的方案数。遇到 `I` 累加前一层排名小于 `j` 的状态，遇到 `D` 累加排名大于等于 `j` 的状态；通过前缀和、后缀和将总时间优化到 O(n²)。
 
-### 629. K Inverse Pairs Array
+### [629](https://leetcode.com/problems/k-inverse-pairs-array/). K Inverse Pairs Array
 
 [题目链接](https://leetcode.com/problems/k-inverse-pairs-array/)
 
@@ -182,7 +182,7 @@ dp[n][k] = sum(dp[n-1][k-x]), 0 <= x <= min(k,n-1)
 - [854. K-Similar Strings](https://leetcode.com/problems/k-similar-strings/)：BFS 求两个字母异位词之间的最少任意位置交换；优先修复第一个不匹配位置来剪枝。
 - [775. Global and Local Inversions](https://leetcode.com/problems/global-and-local-inversions/)：判断是否存在非相邻逆序对。对 `0..n-1` 的排列，所有位置都满足 `abs(nums[i]-i) <= 1` 当且仅当全局逆序对数等于局部逆序对数。
 
-注意区分交换规则：1850 只允许相邻交换，854 允许任意位置交换，765 的目标是伴侣相邻而非固定排列。
+注意区分交换规则：[1850](https://leetcode.com/problems/minimum-adjacent-swaps-to-reach-the-kth-smallest-number/) 只允许相邻交换，[854](https://leetcode.com/problems/k-similar-strings/) 允许任意位置交换，[765](https://leetcode.com/problems/couples-holding-hands/) 的目标是伴侣相邻而非固定排列。
 
 ## 9. 推荐练习路线
 
@@ -194,7 +194,7 @@ dp[n][k] = sum(dp[n-1][k-x]), 0 <= x <= min(k,n-1)
 1850 → 854                    不同交换规则
 ```
 
-优先补充的七道题：46、60、1053、526、942、2375、438。对应目录采用 `l题号/题号.go` 和 `l题号/题号_test.go`，函数模板留待实现。
+优先补充的七道题：[46](https://leetcode.com/problems/permutations/)、[60](https://leetcode.com/problems/permutation-sequence/)、[1053](https://leetcode.com/problems/previous-permutation-with-one-swap/)、[526](https://leetcode.com/problems/beautiful-arrangement/)、[942](https://leetcode.com/problems/di-string-match/)、[2375](https://leetcode.com/problems/construct-smallest-number-from-di-string/)、[438](https://leetcode.com/problems/find-all-anagrams-in-a-string/)。对应目录采用 `l题号/题号.go` 和 `l题号/题号_test.go`，函数模板留待实现。
 
 ## 目录归并：排列是对象，算法决定存放位置
 
@@ -202,16 +202,16 @@ dp[n][k] = sum(dp[n-1][k-x]), 0 <= x <= min(k,n-1)
 
 | 算法族 | 当前路径 | 保留的状态或不变量 |
 | --- | --- | --- |
-| 字典序下一排列 | [31](l31)、[556](l556)、[1850](l1850) | 枢轴右侧原本单调不增；提升最右可提升位置后取最小后缀 |
-| 字典序上一步，限定一次交换 | [1053](l1053) | 只能交换一次，不能照搬反转后缀 |
-| 阶乘分组找第 k 个 | [60](l60) | k 在当前未使用数字对应的阶乘块中定位 |
-| 枚举选择并撤销 | [46](../back_tracking/l46)、[47](../back_tracking/l47)、[51](../back_tracking/l51)、[526](../back_tracking/l526) | 路径和访问状态随递归恢复；46 原排列练习在 `variants/from_permutation` |
-| 字符频次定长窗口 | [438](../sliding_window/l438)、[567](../sliding_window/l567) | 找连续子串，不枚举全部排列；原源码在各题 `variants/from_permutation` |
-| 循环数组严格更大 | [503](../monotonic_stack/l503) | 原练习在 `variants/from_permutation`，不改变排列 |
-| 低高端点贪心构造 | [942](../two_pointers/l942) | 剩余可用值区间 `[low,high]` |
-| 递增入栈，反转连续 D 段 | [2375](../stack/l2375) | I 或末尾统一弹出，生成最小可用数字序列 |
+| 字典序下一排列 | [31](https://leetcode.com/problems/next-permutation/) · [本地](l31)、[556](https://leetcode.com/problems/next-greater-element-iii/) · [本地](l556)、[1850](https://leetcode.com/problems/minimum-adjacent-swaps-to-reach-the-kth-smallest-number/) · [本地](l1850) | 枢轴右侧原本单调不增；提升最右可提升位置后取最小后缀 |
+| 字典序上一步，限定一次交换 | [1053](https://leetcode.com/problems/previous-permutation-with-one-swap/) · [本地](l1053) | 只能交换一次，不能照搬反转后缀 |
+| 阶乘分组找第 k 个 | [60](https://leetcode.com/problems/permutation-sequence/) · [本地](l60) | k 在当前未使用数字对应的阶乘块中定位 |
+| 枚举选择并撤销 | [46](https://leetcode.com/problems/permutations/) · [代码](../back_tracking/l46)、[47](https://leetcode.com/problems/permutations-ii/) · [代码](../back_tracking/l47)、[51](https://leetcode.com/problems/n-queens/) · [代码](../back_tracking/l51)、[526](https://leetcode.com/problems/beautiful-arrangement/) · [代码](../back_tracking/l526) | 路径和访问状态随递归恢复；[46](https://leetcode.com/problems/permutations/) 原排列练习在 `variants/from_permutation` |
+| 字符频次定长窗口 | [438](https://leetcode.com/problems/find-all-anagrams-in-a-string/) · [代码](../sliding_window/l438)、[567](https://leetcode.com/problems/permutation-in-string/) · [代码](../sliding_window/l567) | 找连续子串，不枚举全部排列；原源码在各题 `variants/from_permutation` |
+| 循环数组严格更大 | [503](https://leetcode.com/problems/next-greater-element-ii/) · [代码](../monotonic_stack/l503) | 原练习在 `variants/from_permutation`，不改变排列 |
+| 低高端点贪心构造 | [942](https://leetcode.com/problems/di-string-match/) · [代码](../two_pointers/l942) | 剩余可用值区间 `[low,high]` |
+| 递增入栈，反转连续 D 段 | [2375](https://leetcode.com/problems/construct-smallest-number-from-di-string/) · [代码](../stack/l2375) | I 或末尾统一弹出，生成最小可用数字序列 |
 
-31 的核心模板可直接应用于 556 的数字数组；1850 还需额外处理相邻交换，不能只调用下一排列就完成题目：
+[31](https://leetcode.com/problems/next-permutation/) 的核心模板可直接应用于 [556](https://leetcode.com/problems/next-greater-element-iii/) 的数字数组；[1850](https://leetcode.com/problems/minimum-adjacent-swaps-to-reach-the-kth-smallest-number/) 还需额外处理相邻交换，不能只调用下一排列就完成题目：
 
 ```text
 从右找最后一个 nums[i] < nums[i+1] 的枢轴 i
@@ -223,26 +223,26 @@ dp[n][k] = sum(dp[n-1][k-x]), 0 <= x <= min(k,n-1)
 
 “找更大的排列”和“找右侧更大元素”仅名称相近。前者允许改变整体排列，后者保持输入关系并寻找边界；所以本次实际移动了代码目录，而不是重复维护一份相同题目。
 
-所有迁移来源与原测试保留在独立目录；实际 Go 实现现已按命名模板补齐 60、1053、1850 等题，51 的历史语法错误在 back_tracking 的统一实现中修复。完整映射见 [reorganization.json](../two_pointers/reorganization.json)。
+所有迁移来源与原测试保留在独立目录；实际 Go 实现现已按命名模板补齐 [60](https://leetcode.com/problems/permutation-sequence/)、[1053](https://leetcode.com/problems/previous-permutation-with-one-swap/)、[1850](https://leetcode.com/problems/minimum-adjacent-swaps-to-reach-the-kth-smallest-number/) 等题，[51](https://leetcode.com/problems/n-queens/) 的历史语法错误在 back_tracking 的统一实现中修复。完整映射见 [reorganization.json](../two_pointers/reorganization.json)。
 
 
 ## 逐题模板适配器补全
 
 下列函数使用本页已声明的同名子模板；不是将不同不变量强行改为同一弹栈或移动条件。
 
-### 31
+### [31](https://leetcode.com/problems/next-permutation/)
 
 ```go
 func nextPermutation(nums []int) { nextLexicographic(nums) }
 ```
 
-### 60
+### [60](https://leetcode.com/problems/permutation-sequence/)
 
 ```go
 func getPermutation(n int, k int) string { return factorialSelection(n, k) }
 ```
 
-### 556
+### [556](https://leetcode.com/problems/next-greater-element-iii/)
 
 ```go
 func nextGreaterElement(n int) int {
@@ -261,13 +261,13 @@ func nextGreaterElement(n int) int {
 }
 ```
 
-### 1053
+### [1053](https://leetcode.com/problems/previous-permutation-with-one-swap/)
 
 ```go
 func prevPermOpt1(arr []int) []int { return previousSingleSwap(arr) }
 ```
 
-### 1850
+### [1850](https://leetcode.com/problems/minimum-adjacent-swaps-to-reach-the-kth-smallest-number/)
 
 ```go
 func getMinSwaps(num string, k int) int {

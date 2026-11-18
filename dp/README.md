@@ -34,18 +34,18 @@
 - 原 coin 的零钱题进入 knapsack；原 house_robber 的线性两题进入 linear。
 - 树形打家劫舍的独立 DP 版本位于 [tree/postorder/l337/variants/dp](../tree/postorder/l337/variants/dp/337.go)，保留原测试。
 - 原 knapsack/871 实际是大顶堆贪心，保存在 [heap_priority_queue/l871/legacy/from_knapsack/871](../heap_priority_queue/l871/legacy/from_knapsack/871)。
-- grid 中的 391 是历史几何草稿，单独标记为 [legacy_geometry](grid/legacy_geometry/l391/391.go)，不属于网格 DP 模板。
+- grid 中的 [391](https://leetcode.com/problems/perfect-rectangle/) 是历史几何草稿，单独标记为 [legacy_geometry](grid/legacy_geometry/l391/391.go)，不属于网格 DP 模板。
 - 字符串回文区间题保留原实现位置，由 interval 交叉引用。双序列题目也在各题文件内嵌所需模板，公共 template.go 保留用于单独学习与验证。
 
 逐文件迁移记录见 [MIGRATION.json](MIGRATION.json)。[原 DP 总笔记](legacy/README.original.md)及各家族 legacy 中的原笔记继续保留。
 
 ## 当前实现与历史材料
 
-本轮除整理说明外，也把题目源文件改写为对应子模板的适配器，补全了 300、343、1463、1340 和原 stone 的 1690 练习，修正了 714 的手续费状态转移。原有测试保留，新增边界测试覆盖原先没有测试的已补全实现。
+本轮除整理说明外，也把题目源文件改写为对应子模板的适配器，补全了 [300](https://leetcode.com/problems/longest-increasing-subsequence/)、[343](https://leetcode.com/problems/integer-break/)、[1463](https://leetcode.com/problems/cherry-pickup-ii/)、[1340](https://leetcode.com/problems/jump-game-v/) 和原 stone 的 [1690](https://leetcode.com/problems/stone-game-vii/) 练习，修正了 [714](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/) 的手续费状态转移。原有测试保留，新增边界测试覆盖原先没有测试的已补全实现。
 
-variants 继续保留不同方法，例如 741／1463 的分层与递归、486 的分差与双方收益、1690 的递归与区间迭代。legacy 中的历史解释和无扩展名片段仍可查阅；各家族改写前的完整 README 保存在 `legacy/README.before-template-rewrite.md`，其中旧的实现状态描述不代表当前源文件。
+variants 继续保留不同方法，例如 [741](https://leetcode.com/problems/cherry-pickup/)／[1463](https://leetcode.com/problems/cherry-pickup-ii/) 的分层与递归、[486](https://leetcode.com/problems/predict-the-winner/) 的分差与双方收益、[1690](https://leetcode.com/problems/stone-game-vii/) 的递归与区间迭代。legacy 中的历史解释和无扩展名片段仍可查阅；各家族改写前的完整 README 保存在 `legacy/README.before-template-rewrite.md`，其中旧的实现状态描述不代表当前源文件。
 
-几何题 391 独立保留在 legacy_geometry；它的面积与角点奇偶性不属于网格 DP，不会套用本系列递推。
+几何题 [391](https://leetcode.com/problems/perfect-rectangle/) 独立保留在 legacy_geometry；它的面积与角点奇偶性不属于网格 DP，不会套用本系列递推。
 
 ```sh
 go test ./dp/...

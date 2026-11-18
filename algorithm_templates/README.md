@@ -57,7 +57,7 @@
 | Trie | 当前词典前缀节点；按查询规则选择分支与聚合字段 | [trie](../trie/readme.md) |
 | 动态区间聚合 | 单位元、结合运算、叶子更新与覆盖区间合并 | [segment tree](../tree/segment/readme.md) |
 
-相似题可以交叉索引。例如 1248 可以用前缀计数或 atMost，871 可以用按次数 DP 或最大堆，329 可以用记忆化 DFS 或拓扑 DP。算法不变量不同的版本保留为独立解法，不互相替换测试。
+相似题可以交叉索引。例如 [1248](https://leetcode.com/problems/count-number-of-nice-subarrays/) 可以用前缀计数或 atMost，[871](https://leetcode.com/problems/minimum-number-of-refueling-stops/) 可以用按次数 DP 或最大堆，[329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) 可以用记忆化 DFS 或拓扑 DP。算法不变量不同的版本保留为独立解法，不互相替换测试。
 
 ## 如何复习一个系列
 

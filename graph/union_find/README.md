@@ -6,7 +6,7 @@
 
 各题直接调用本文件中的 `NewUnionFind`，公共 helper 见下方核心思路；单题主解无需导入仓库内部包。
 
-547、684、1319、721 的题目文件均已按下方模板实现，每个主解包含完整本地 helper，已有测试保持原样；下文展示同一 helper 与各题的适配函数。不要把它用于一般有向可达或在线删边；需要路径长度时使用 BFS／最短路族。
+[547](https://leetcode.com/problems/number-of-provinces/)、[684](https://leetcode.com/problems/redundant-connection/)、[1319](https://leetcode.com/problems/number-of-operations-to-make-network-connected/)、[721](https://leetcode.com/problems/accounts-merge/) 的题目文件均已按下方模板实现，每个主解包含完整本地 helper，已有测试保持原样；下文展示同一 helper 与各题的适配函数。不要把它用于一般有向可达或在线删边；需要路径长度时使用 BFS／最短路族。
 
 [返回总目录](../../algorithm_templates/README.md)
 
@@ -34,7 +34,7 @@ Find得到集合代表，Union合并不同代表。parent[root]=root；size仅�
 
 先声明一次固定的集合操作，下面每题只写适配函数。它们是必要的集合操作，不再包装题目无关回调。只解决无向连通或等价关系，不支持一般有向可达、在线删边和最短路。
 
-复制时，将这个公共代码块与选定题目的适配函数放在同一个 Go 文件中，只保留一次 `package` 和一套 `UnionFind` 声明；721 还需在 `package` 后、任何类型或函数声明前加入 `import "sort"`。其他三题无需导入包。仓库中的每个题目主文件已经包含完整副本，可直接独立提交。
+复制时，将这个公共代码块与选定题目的适配函数放在同一个 Go 文件中，只保留一次 `package` 和一套 `UnionFind` 声明；[721](https://leetcode.com/problems/accounts-merge/) 还需在 `package` 后、任何类型或函数声明前加入 `import "sort"`。其他三题无需导入包。仓库中的每个题目主文件已经包含完整副本，可直接独立提交。
 
 ```go
 package template
@@ -228,10 +228,10 @@ func accountsMerge(accounts [][]string) [][]string {
 
 | 题目 | 节点 | 合并失败意味着什么 | 答案 |
 | --- | --- | --- | --- |
-| 547 | 城市 | 已连通 | 分量数 |
-| 684 | 无向图节点 | 新边闭合环 | 该边 |
-| 1319 | 计算机 | 存在冗余网线 | 线足够时分量数-1 |
-| 721 | 账户 | 本来同一人 | 按根归并邮箱 |
+| [547](https://leetcode.com/problems/number-of-provinces/) | 城市 | 已连通 | 分量数 |
+| [684](https://leetcode.com/problems/redundant-connection/) | 无向图节点 | 新边闭合环 | 该边 |
+| [1319](https://leetcode.com/problems/number-of-operations-to-make-network-connected/) | 计算机 | 存在冗余网线 | 线足够时分量数-1 |
+| [721](https://leetcode.com/problems/accounts-merge/) | 账户 | 本来同一人 | 按根归并邮箱 |
 
 - 必须合并根，不是把任意parent[a]指向b。
 - 只有根不同时才减分量数，重复边不能重复减。
@@ -249,7 +249,7 @@ https://leetcode.com/discuss/general-discussion/1072418/Disjoint-Set-Union-(DSU)
 https://leetcode.com/list/5lhmb4mj/
 
 
-924. Minimize Malware Spread
+[924](https://leetcode.com/problems/minimize-malware-spread/). Minimize Malware Spread
 https://leetcode.com/problems/minimize-malware-spread/discuss/181129/C%2B%2BPython-Union-Found
 
 <a id="extended-practice"></a>

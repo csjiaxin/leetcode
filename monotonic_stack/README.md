@@ -398,14 +398,14 @@ func sumSubarrayMins(arr []int) int {
 
 | 题目 | 结算内容 | 相等值处理 |
 | --- | --- | --- |
-| 739 | 等待天数i-j | 相等不弹 |
-| 496 | 下一个更大值 | 题目值唯一 |
-| 84 | 高×宽 | 本实现相等保留，由早柱覆盖完整范围 |
-| 907 | 最小值×左右选择数 | 左严格、右非严格，统一归属 |
+| [739](https://leetcode.com/problems/daily-temperatures/) | 等待天数i-j | 相等不弹 |
+| [496](https://leetcode.com/problems/next-greater-element-i/) | 下一个更大值 | 题目值唯一 |
+| [84](https://leetcode.com/problems/largest-rectangle-in-histogram/) | 高×宽 | 本实现相等保留，由早柱覆盖完整范围 |
+| [907](https://leetcode.com/problems/sum-of-subarray-minimums/) | 最小值×左右选择数 | 左严格、右非严格，统一归属 |
 
 - 栈存下标才能算距离、宽度；不要混淆当前i和被弹出的j。
 - 左不存在用-1，右不存在用n，但宽度公式与贡献公式不同。
-- 907两侧都严格会重复计数，两侧都非严格会遗漏。
+- [907](https://leetcode.com/problems/sum-of-subarray-minimums/)两侧都严格会重复计数，两侧都非严格会遗漏。
 - 遍历方向和弹栈含义改变时，比较符号也要重新推导。
 - 窗口最大值的过期处理需要单调队列，不是这个栈骨架。
 
@@ -446,14 +446,14 @@ func sumSubarrayMins(arr []int) int {
 
 | 类型（本页章节） | 题目（本页讲解 / LeetCode） | 主要训练目标 |
 | --- | --- | --- |
-| [A. 最近更大元素与跨度](#a-最近更大元素与跨度入门) | [496](#496-下一个更大元素-i--next-greater-element-i--简单) [leetcode](https://leetcode.com/problems/next-greater-element-i/)、[503](#503-下一个更大元素-ii--next-greater-element-ii--中等) [leetcode](https://leetcode.com/problems/next-greater-element-ii/)、[901](#901-股票价格跨度--online-stock-span--中等) [leetcode](https://leetcode.com/problems/online-stock-span/) | 理解一个元素何时完成任务、何时能被永久淘汰 |
-| [B. 区间边界与贡献计数](#b-区间边界与贡献核心进阶) | [84](#84-柱状图中最大的矩形--largest-rectangle-in-histogram--困难) [leetcode](https://leetcode.com/problems/largest-rectangle-in-histogram/)、[85](#85-最大矩形--maximal-rectangle--困难) [leetcode](https://leetcode.com/problems/maximal-rectangle/)、[907](#907-子数组的最小值之和--sum-of-subarray-minimums--中等) [leetcode](https://leetcode.com/problems/sum-of-subarray-minimums/)、[2104](#2104-子数组范围和--sum-of-subarray-ranges--中等) [leetcode](https://leetcode.com/problems/sum-of-subarray-ranges/) | 弹栈时确定左右边界，处理相等元素 |
-| [C. 凹槽与按层计算](#c-凹槽与按层计算) | [42](#42-接雨水--trapping-rain-water--困难) [leetcode](https://leetcode.com/problems/trapping-rain-water/) | 区分凹槽底、左右墙和实际高度 |
-| [D. 贪心删选与字典序](#d-贪心删选构造最优子序列) | [402](#402-移掉-k-位数字--remove-k-digits--中等) [leetcode](https://leetcode.com/problems/remove-k-digits/)、[316](#316-去除重复字母--remove-duplicate-letters--中等) [leetcode](https://leetcode.com/problems/remove-duplicate-letters/)、[321](#321-拼接最大数--create-maximum-number--困难) [leetcode](https://leetcode.com/problems/create-maximum-number/) | 在剩余预算/可行性约束下弹栈，构造最优子序列 |
-| [E. 特殊不变量与局部合并](#e-特殊不变量局部淘汰合并与模式识别) | [456](#456-132-模式--132-pattern--中等) [leetcode](https://leetcode.com/problems/132-pattern/)、[768](#768-最多能完成排序的块-ii--max-chunks-to-make-sorted-ii--困难) [leetcode](https://leetcode.com/problems/max-chunks-to-make-sorted-ii/)、[1130](#1130-叶值的最小代价生成树--minimum-cost-tree-from-leaf-values--中等) [leetcode](https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/) | 不只盯栈顶；理解弹出值、分块最大值或局部成本 |
-| [F. 最远合法配对](#f-最远合法配对先筛左端点) | [962](#962-最大宽度坡--maximum-width-ramp--中等) [leetcode](https://leetcode.com/problems/maximum-width-ramp/) | 维护可能成为最优左端点的候选 |
-| [G. 单调队列](#g-单调队列额外处理过期) | [239](#239-滑动窗口最大值--sliding-window-maximum--困难) [leetcode](https://leetcode.com/problems/sliding-window-maximum/) | 同时处理优劣淘汰和窗口过期 |
-| [H. 普通栈与排序扫描对照](#h-普通栈与排序扫描不要强行套模板) | [856](#856-括号的分数--score-of-parentheses--中等) [leetcode](https://leetcode.com/problems/score-of-parentheses/)、[853](#853-车队--car-fleet--中等) [leetcode](https://leetcode.com/problems/car-fleet/) | 分清嵌套结构、车队合并与单调栈的差异 |
+| [A. 最近更大元素与跨度](#a-最近更大元素与跨度入门) | [496](https://leetcode.com/problems/next-greater-element-i/) · [本节](#496-下一个更大元素-i--next-greater-element-i--简单) [leetcode](https://leetcode.com/problems/next-greater-element-i/)、[503](https://leetcode.com/problems/next-greater-element-ii/) · [本节](#503-下一个更大元素-ii--next-greater-element-ii--中等) [leetcode](https://leetcode.com/problems/next-greater-element-ii/)、[901](https://leetcode.com/problems/online-stock-span/) · [本节](#901-股票价格跨度--online-stock-span--中等) [leetcode](https://leetcode.com/problems/online-stock-span/) | 理解一个元素何时完成任务、何时能被永久淘汰 |
+| [B. 区间边界与贡献计数](#b-区间边界与贡献核心进阶) | [84](https://leetcode.com/problems/largest-rectangle-in-histogram/) · [本节](#84-柱状图中最大的矩形--largest-rectangle-in-histogram--困难) [leetcode](https://leetcode.com/problems/largest-rectangle-in-histogram/)、[85](https://leetcode.com/problems/maximal-rectangle/) · [本节](#85-最大矩形--maximal-rectangle--困难) [leetcode](https://leetcode.com/problems/maximal-rectangle/)、[907](https://leetcode.com/problems/sum-of-subarray-minimums/) · [本节](#907-子数组的最小值之和--sum-of-subarray-minimums--中等) [leetcode](https://leetcode.com/problems/sum-of-subarray-minimums/)、[2104](https://leetcode.com/problems/sum-of-subarray-ranges/) · [本节](#2104-子数组范围和--sum-of-subarray-ranges--中等) [leetcode](https://leetcode.com/problems/sum-of-subarray-ranges/) | 弹栈时确定左右边界，处理相等元素 |
+| [C. 凹槽与按层计算](#c-凹槽与按层计算) | [42](https://leetcode.com/problems/trapping-rain-water/) · [本节](#42-接雨水--trapping-rain-water--困难) [leetcode](https://leetcode.com/problems/trapping-rain-water/) | 区分凹槽底、左右墙和实际高度 |
+| [D. 贪心删选与字典序](#d-贪心删选构造最优子序列) | [402](https://leetcode.com/problems/remove-k-digits/) · [本节](#402-移掉-k-位数字--remove-k-digits--中等) [leetcode](https://leetcode.com/problems/remove-k-digits/)、[316](https://leetcode.com/problems/remove-duplicate-letters/) · [本节](#316-去除重复字母--remove-duplicate-letters--中等) [leetcode](https://leetcode.com/problems/remove-duplicate-letters/)、[321](https://leetcode.com/problems/create-maximum-number/) · [本节](#321-拼接最大数--create-maximum-number--困难) [leetcode](https://leetcode.com/problems/create-maximum-number/) | 在剩余预算/可行性约束下弹栈，构造最优子序列 |
+| [E. 特殊不变量与局部合并](#e-特殊不变量局部淘汰合并与模式识别) | [456](https://leetcode.com/problems/132-pattern/) · [本节](#456-132-模式--132-pattern--中等) [leetcode](https://leetcode.com/problems/132-pattern/)、[768](https://leetcode.com/problems/max-chunks-to-make-sorted-ii/) · [本节](#768-最多能完成排序的块-ii--max-chunks-to-make-sorted-ii--困难) [leetcode](https://leetcode.com/problems/max-chunks-to-make-sorted-ii/)、[1130](https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/) · [本节](#1130-叶值的最小代价生成树--minimum-cost-tree-from-leaf-values--中等) [leetcode](https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/) | 不只盯栈顶；理解弹出值、分块最大值或局部成本 |
+| [F. 最远合法配对](#f-最远合法配对先筛左端点) | [962](https://leetcode.com/problems/maximum-width-ramp/) · [本节](#962-最大宽度坡--maximum-width-ramp--中等) [leetcode](https://leetcode.com/problems/maximum-width-ramp/) | 维护可能成为最优左端点的候选 |
+| [G. 单调队列](#g-单调队列额外处理过期) | [239](https://leetcode.com/problems/sliding-window-maximum/) · [本节](#239-滑动窗口最大值--sliding-window-maximum--困难) [leetcode](https://leetcode.com/problems/sliding-window-maximum/) | 同时处理优劣淘汰和窗口过期 |
+| [H. 普通栈与排序扫描对照](#h-普通栈与排序扫描不要强行套模板) | [856](https://leetcode.com/problems/score-of-parentheses/) · [本节](#856-括号的分数--score-of-parentheses--中等) [leetcode](https://leetcode.com/problems/score-of-parentheses/)、[853](https://leetcode.com/problems/car-fleet/) · [本节](#853-车队--car-fleet--中等) [leetcode](https://leetcode.com/problems/car-fleet/) | 分清嵌套结构、车队合并与单调栈的差异 |
 
 ## A. 最近更大元素与跨度：入门
 
@@ -466,10 +466,10 @@ func sumSubarrayMins(arr []int) int {
 
 ### [503. 下一个更大元素 II / Next Greater Element II](https://leetcode.com/problems/next-greater-element-ii/) · 中等
 
-- **任务**：496 的循环数组版本，允许从末尾绕回开头。
+- **任务**：[496](https://leetcode.com/problems/next-greater-element-i/) 的循环数组版本，允许从末尾绕回开头。
 - **状态与操作**：扫描 `2*n` 个位置，通过 `i%n` 读取值；栈存原数组下标，仅第一轮入栈，第二轮只帮助剩余元素找到答案。找不到的初始化为 -1。
 - **关键区别**：需要严格更大，相等值不能作为答案；不要无条件重复入栈，让同一任务出现多份。
-- **复杂度**：O(n) 时间、O(n) 空间。先做 496，再做本题。
+- **复杂度**：O(n) 时间、O(n) 空间。先做 [496](https://leetcode.com/problems/next-greater-element-i/)，再做本题。
 
 ### [901. 股票价格跨度 / Online Stock Span](https://leetcode.com/problems/online-stock-span/) · 中等
 
@@ -491,9 +491,9 @@ func sumSubarrayMins(arr []int) int {
 ### [85. 最大矩形 / Maximal Rectangle](https://leetcode.com/problems/maximal-rectangle/) · 困难
 
 - **任务**：在二进制矩阵中找全为 1 的最大矩形。
-- **转化**：逐行维护直方图高度：当前位置为 1 则高度加一，为 0 则清零。每行调用 84 的直方图算法，表示以本行为底的矩形。
+- **转化**：逐行维护直方图高度：当前位置为 1 则高度加一，为 0 则清零。每行调用 [84](https://leetcode.com/problems/largest-rectangle-in-histogram/) 的直方图算法，表示以本行为底的矩形。
 - **关键点**：矩形可以跨多行，但不能跨越同一列上的零；零会重置连续高度。
-- **复杂度**：r 行 c 列，O(rc) 时间、O(c) 额外空间。建议做完 84 后立即做本题。
+- **复杂度**：r 行 c 列，O(rc) 时间、O(c) 额外空间。建议做完 [84](https://leetcode.com/problems/largest-rectangle-in-histogram/) 后立即做本题。
 
 ### [907. 子数组的最小值之和 / Sum of Subarray Minimums](https://leetcode.com/problems/sum-of-subarray-minimums/) · 中等
 
@@ -506,9 +506,9 @@ func sumSubarrayMins(arr []int) int {
 ### [2104. 子数组范围和 / Sum of Subarray Ranges](https://leetcode.com/problems/sum-of-subarray-ranges/) · 中等
 
 - **转化**：每个子数组的范围是 `max-min`，答案等于“所有子数组最大值之和”减去“所有子数组最小值之和”。
-- **状态与操作**：最小值贡献使用 907 的递增栈，最大值贡献使用对称的递减栈。两种贡献都要独立处理相等值归属。
+- **状态与操作**：最小值贡献使用 [907](https://leetcode.com/problems/sum-of-subarray-minimums/) 的递增栈，最大值贡献使用对称的递减栈。两种贡献都要独立处理相等值归属。
 - **边界示例**：最小值可用左 `<`、右 `<=`；最大值可用左 `>`、右 `>=`。
-- **复杂度**：O(n) 时间、O(n) 空间。返回 `int64`，本题不取模；不要沿用 907 的模运算。
+- **复杂度**：O(n) 时间、O(n) 空间。返回 `int64`，本题不取模；不要沿用 [907](https://leetcode.com/problems/sum-of-subarray-minimums/) 的模运算。
 
 ## C. 凹槽与按层计算
 
@@ -517,7 +517,7 @@ func sumSubarrayMins(arr []int) int {
 - **任务**：计算柱状图可以接住的雨水总量。
 - **状态与操作**：维护非递增高度的下标栈。当当前柱高于栈顶，弹出的柱子是凹槽底 bottom；新栈顶是左墙 L，当前 i 是右墙。若弹出后栈空，没有左墙，不能结算。
 - **计算**：本层水量为 `(min(height[L],height[i])-height[bottom]) * (i-L-1)`。循环弹栈可逐层填平凹槽。
-- **与 84 区别**：84 的弹出柱决定矩形高度；本题的弹出柱是槽底，要用两侧墙的较低高度减去槽底，而不是直接乘槽底高度。
+- **与 [84](https://leetcode.com/problems/largest-rectangle-in-histogram/) 区别**：[84](https://leetcode.com/problems/largest-rectangle-in-histogram/) 的弹出柱决定矩形高度；本题的弹出柱是槽底，要用两侧墙的较低高度减去槽底，而不是直接乘槽底高度。
 - **复杂度**：O(n) 时间、O(n) 栈空间。双指针还有 O(n) 时间、O(1) 空间解法，适合学完栈后对比。
 
 ## D. 贪心删选：构造最优子序列
@@ -539,7 +539,7 @@ func sumSubarrayMins(arr []int) int {
 ### [321. 拼接最大数 / Create Maximum Number](https://leetcode.com/problems/create-maximum-number/) · 困难
 
 - **任务**：从两个数组分别取子序列，保持各自相对顺序，合并得到长度 k 的最大数字序列。
-- **三步**：枚举从第一个数组取 x 个；用 402 的反向贪心选取各数组指定长度的最大子序列；再按字典序合并，更新最佳答案。
+- **三步**：枚举从第一个数组取 x 个；用 [402](https://leetcode.com/problems/remove-k-digits/) 的反向贪心选取各数组指定长度的最大子序列；再按字典序合并，更新最佳答案。
 - **关键点**：合并时不能只比较当前数字。若相同，要比较两个**剩余后缀**，从字典序较大的后缀取下一位，例如 `[6,7]` 与 `[6,0,4]`。
 - **复杂度**：设长度为 m、n，可行拆分数为 S（S<=k+1）。朴素后缀比较实现为 O(S*(m+n+k²)) 时间、O(m+n+k) 工作空间；不能把后缀比较当成 O(1)。
 
@@ -559,7 +559,7 @@ func sumSubarrayMins(arr []int) int {
 - **状态与操作**：栈存各块最大值，非递减。若当前 x >= 栈顶，可以新建块；否则 x 与之前块发生顺序冲突，必须合并。
 - **合并方式**：先保存最右块的最大值，再弹出所有最大值大于 x 的块，最后将保存的最大值作为合并块的最大值放回。合并后不能把块最大值错误改成 x。
 - **关键点**：相等值允许分块，因此比较是 `>` 而非 `>=`。答案为最终块数。
-- **复杂度**：O(n) 时间、O(n) 空间。不要与 [769. 最多能完成排序的块](https://leetcode.com/problems/max-chunks-to-make-sorted/) 混淆：769 限定输入是 0 到 n-1 的排列。
+- **复杂度**：O(n) 时间、O(n) 空间。不要与 [769. 最多能完成排序的块](https://leetcode.com/problems/max-chunks-to-make-sorted/) 混淆：[769](https://leetcode.com/problems/max-chunks-to-make-sorted/) 限定输入是 0 到 n-1 的排列。
 
 ### [1130. 叶值的最小代价生成树 / Minimum Cost Tree From Leaf Values](https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/) · 中等
 
@@ -607,12 +607,12 @@ func sumSubarrayMins(arr []int) int {
 
 ## 三、建议学习顺序
 
-1. **最近更大与跨度**：496 → 503 → 901。
-2. **边界与重复值**：84 → 85 → 907 → 2104，重点手算 `[2,2]` 的边界归属。
-3. **几何与构造**：42 → 402 → 316。
-4. **特殊不变量**：962 → 768 → 456 → 1130。
-5. **扩展与综合**：239 → 321。
-6. **对照学习**：856（普通栈）、853（排序扫描），辨别何时不需要单调栈。
+1. **最近更大与跨度**：[496](https://leetcode.com/problems/next-greater-element-i/) → [503](https://leetcode.com/problems/next-greater-element-ii/) → [901](https://leetcode.com/problems/online-stock-span/)。
+2. **边界与重复值**：[84](https://leetcode.com/problems/largest-rectangle-in-histogram/) → [85](https://leetcode.com/problems/maximal-rectangle/) → [907](https://leetcode.com/problems/sum-of-subarray-minimums/) → [2104](https://leetcode.com/problems/sum-of-subarray-ranges/)，重点手算 `[2,2]` 的边界归属。
+3. **几何与构造**：[42](https://leetcode.com/problems/trapping-rain-water/) → [402](https://leetcode.com/problems/remove-k-digits/) → [316](https://leetcode.com/problems/remove-duplicate-letters/)。
+4. **特殊不变量**：[962](https://leetcode.com/problems/maximum-width-ramp/) → [768](https://leetcode.com/problems/max-chunks-to-make-sorted-ii/) → [456](https://leetcode.com/problems/132-pattern/) → [1130](https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/)。
+5. **扩展与综合**：[239](https://leetcode.com/problems/sliding-window-maximum/) → [321](https://leetcode.com/problems/create-maximum-number/)。
+6. **对照学习**：[856](https://leetcode.com/problems/score-of-parentheses/)（普通栈）、[853](https://leetcode.com/problems/car-fleet/)（排序扫描），辨别何时不需要单调栈。
 
 ## 四、做题时的检查清单
 
@@ -632,7 +632,7 @@ func sumSubarrayMins(arr []int) int {
 - [42：O(n) 时间、O(1) 空间双指针解释](https://leetcode.com/problems/trapping-rain-water/discuss/153992/Java-O(n)-time-and-O(1)-space-(with-explanations).)
 - [456：从右向左扫描及弹出值的意义](https://leetcode.com/problems/132-pattern/discuss/94071/Single-pass-C%2B%2B-O(n)-space-and-time-solution-(8-lines)-with-detailed-explanation.)
 
-原清单中的 901、2104 已归入对应学习分类；本文是学习索引，不代表相关 Go 实现已完成。
+原清单中的 [901](https://leetcode.com/problems/online-stock-span/)、[2104](https://leetcode.com/problems/sum-of-subarray-ranges/) 已归入对应学习分类；本文是学习索引，不代表相关 Go 实现已完成。
 
 <a id="extended-practice"></a>
 
@@ -643,7 +643,7 @@ func sumSubarrayMins(arr []int) int {
 | 题目（原题） | 如何迁移当前模板 | 必须确认的条件 / 边界 |
 | --- | --- | --- |
 | [503. 下一个更大元素II](https://leetcode.com/problems/next-greater-element-ii/) | 循环数组逻辑遍历两遍，取模访问，只为必要下标入栈 | 严格更大，相等不能作为答案 |
-| [901. 股票价格跨度](https://leetcode.com/problems/online-stock-span/) | 流式栈存(price,span)，弹出不大于当前价格者并合并跨度 | 本题相等需要计入跨度，区别于739 |
+| [901. 股票价格跨度](https://leetcode.com/problems/online-stock-span/) | 流式栈存(price,span)，弹出不大于当前价格者并合并跨度 | 本题相等需要计入跨度，区别于[739](https://leetcode.com/problems/daily-temperatures/) |
 | [2104. 子数组范围和](https://leetcode.com/problems/sum-of-subarray-ranges/) | 分别计算最大值贡献与最小值贡献再相减 | 两组边界都要统一重复值归属；结果int64 |
 | [1856. 子数组最小乘积的最大值](https://leetcode.com/problems/maximum-subarray-min-product/) | 单调栈找最小值作用范围，前缀和算范围总和 | 正数保证扩展到边界最优；先比较真实乘积再取模 |
 | [402. 移掉K位数字](https://leetcode.com/problems/remove-k-digits/) | 当前数字更小时弹掉更大前位，维护最小字典序子序列 | 仍有删除预算则删尾部，去前导0，空结果返回0 |
@@ -653,16 +653,16 @@ func sumSubarrayMins(arr []int) int {
 
 ## 目录归并：单调性、结算方向与重复值归属
 
-重复的 496、84、907 模板练习已分别并入 [l496/variants/template](l496/variants/template)、[l84/variants/template](l84/variants/template)、[l907/variants/template](l907/variants/template)，原测试和目录来源保留，实际源码现按本页局部模板实现。503 的排列分类练习保存在 [l503/variants/from_permutation](l503/variants/from_permutation)。不同包保留各自函数名与测试，各变体现使用同名模板独立实现，保留各自原测试。
+重复的 [496](https://leetcode.com/problems/next-greater-element-i/)、[84](https://leetcode.com/problems/largest-rectangle-in-histogram/)、[907](https://leetcode.com/problems/sum-of-subarray-minimums/) 模板练习已分别并入 [l496/variants/template](l496/variants/template)、[l84/variants/template](l84/variants/template)、[l907/variants/template](l907/variants/template)，原测试和目录来源保留，实际源码现按本页局部模板实现。[503](https://leetcode.com/problems/next-greater-element-ii/) 的排列分类练习保存在 [l503/variants/from_permutation](l503/variants/from_permutation)。不同包保留各自函数名与测试，各变体现使用同名模板独立实现，保留各自原测试。
 
 | 子模型 | 栈保存什么 / 什么时候可结算 | 题目入口 |
 | --- | --- | --- |
-| 下一个严格更大 | 尚未找到答案的下标；当前值严格大于栈顶时弹出 | [496](l496)、[503](l503)、[739](l739) |
-| 矩形边界 | 候选高度；遇更低高度时结算 `height*(right-left-1)` | [84](l84)、[85](l85) |
-| 最值贡献 | 用一严格一非严格边界给相等值唯一归属 | [907](l907)、[2104](l2104) |
-| 凹槽水层 | 当前更高柱子确定右边界；弹底后还须有左边界 | [42](l42) |
-| 带预算的贪心栈 | 较优新字符可以淘汰较差前缀，但必须仍能完成答案 | [402](l402)、[316](l316)、[321](l321) |
-| 非最近边界的候选淘汰 | 候选左端点、分块最大值、跨度等专有状态 | [962](l962)、[768](l768)、[901](l901)、[456](l456)、[1130](l1130)、[853](l853) |
+| 下一个严格更大 | 尚未找到答案的下标；当前值严格大于栈顶时弹出 | [496](https://leetcode.com/problems/next-greater-element-i/) · [本地](l496)、[503](https://leetcode.com/problems/next-greater-element-ii/) · [本地](l503)、[739](https://leetcode.com/problems/daily-temperatures/) · [本地](l739) |
+| 矩形边界 | 候选高度；遇更低高度时结算 `height*(right-left-1)` | [84](https://leetcode.com/problems/largest-rectangle-in-histogram/) · [本地](l84)、[85](https://leetcode.com/problems/maximal-rectangle/) · [本地](l85) |
+| 最值贡献 | 用一严格一非严格边界给相等值唯一归属 | [907](https://leetcode.com/problems/sum-of-subarray-minimums/) · [本地](l907)、[2104](https://leetcode.com/problems/sum-of-subarray-ranges/) · [本地](l2104) |
+| 凹槽水层 | 当前更高柱子确定右边界；弹底后还须有左边界 | [42](https://leetcode.com/problems/trapping-rain-water/) · [本地](l42) |
+| 带预算的贪心栈 | 较优新字符可以淘汰较差前缀，但必须仍能完成答案 | [402](https://leetcode.com/problems/remove-k-digits/) · [本地](l402)、[316](https://leetcode.com/problems/remove-duplicate-letters/) · [本地](l316)、[321](https://leetcode.com/problems/create-maximum-number/) · [本地](l321) |
+| 非最近边界的候选淘汰 | 候选左端点、分块最大值、跨度等专有状态 | [962](https://leetcode.com/problems/maximum-width-ramp/) · [本地](l962)、[768](https://leetcode.com/problems/max-chunks-to-make-sorted-ii/) · [本地](l768)、[901](https://leetcode.com/problems/online-stock-span/) · [本地](l901)、[456](https://leetcode.com/problems/132-pattern/) · [本地](l456)、[1130](https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/) · [本地](l1130)、[853](https://leetcode.com/problems/car-fleet/) · [本地](l853) |
 
 最近严格更大位置的可复用骨架如下；它不负责矩形清栈或贡献归属：
 
@@ -670,12 +670,12 @@ func sumSubarrayMins(arr []int) int {
 func nextGreaterIndices(nums []int) []int { return nextGreaterPositions(nums, false) }
 ```
 
-496 把位置结果转换为对应值；739 转换为等待距离；503 为循环数组处理第二遍，但不能把自己或相等值当作严格更大值。84/907 即使使用相似出栈循环，结算内容与相等值策略也不同。
+[496](https://leetcode.com/problems/next-greater-element-i/) 把位置结果转换为对应值；[739](https://leetcode.com/problems/daily-temperatures/) 转换为等待距离；[503](https://leetcode.com/problems/next-greater-element-ii/) 为循环数组处理第二遍，但不能把自己或相等值当作严格更大值。[84](https://leetcode.com/problems/largest-rectangle-in-histogram/)/[907](https://leetcode.com/problems/sum-of-subarray-minimums/) 即使使用相似出栈循环，结算内容与相等值策略也不同。
 
 两处重新分类：
 
-- 原 856 已归入 [stack/l856](../stack/l856)，原练习在其 `variants/from_monotonic_stack`。嵌套层的分数累加没有单调值不变量。
-- 原 239 已归入 [sliding_window/l239](../sliding_window/l239)。它需要淘汰过期队首，是单调队列，不能只用栈顶操作表达窗口失效。
+- 原 [856](https://leetcode.com/problems/score-of-parentheses/) 已归入 [stack/l856](../stack/l856)，原练习在其 `variants/from_monotonic_stack`。嵌套层的分数累加没有单调值不变量。
+- 原 [239](https://leetcode.com/problems/sliding-window-maximum/) 已归入 [sliding_window/l239](../sliding_window/l239)。它需要淘汰过期队首，是单调队列，不能只用栈顶操作表达窗口失效。
 
 当前实际 Go 文件已按本页局部模板实现，独立变体仍运行各自原测试；不以排除练习文件制造通过。迁移清单见 [reorganization.json](../two_pointers/reorganization.json)。
 
@@ -684,13 +684,13 @@ func nextGreaterIndices(nums []int) []int { return nextGreaterPositions(nums, fa
 
 下列函数使用本页已声明的同名子模板；不是将不同不变量强行改为同一弹栈或移动条件。
 
-### 42
+### [42](https://leetcode.com/problems/trapping-rain-water/)
 
 ```go
 func trap(height []int) int { return trappedLayers(height) }
 ```
 
-### 85
+### [85](https://leetcode.com/problems/maximal-rectangle/)
 
 ```go
 func maximalRectangle(matrix [][]byte) int {
@@ -715,13 +715,13 @@ func maximalRectangle(matrix [][]byte) int {
 }
 ```
 
-### 316
+### [316](https://leetcode.com/problems/remove-duplicate-letters/)
 
 ```go
 func removeDuplicateLetters(s string) string { return distinctSubsequence(s) }
 ```
 
-### 321
+### [321](https://leetcode.com/problems/create-maximum-number/)
 
 ```go
 func maxNumber(nums1 []int, nums2 []int, k int) []int {
@@ -741,7 +741,7 @@ func maxNumber(nums1 []int, nums2 []int, k int) []int {
 }
 ```
 
-### 402
+### [402](https://leetcode.com/problems/remove-k-digits/)
 
 ```go
 func removeKdigits(num string, k int) string {
@@ -757,13 +757,13 @@ func removeKdigits(num string, k int) string {
 }
 ```
 
-### 456
+### [456](https://leetcode.com/problems/132-pattern/)
 
 ```go
 func find132pattern(nums []int) bool { return has132(nums) }
 ```
 
-### 503
+### [503](https://leetcode.com/problems/next-greater-element-ii/)
 
 ```go
 func nextGreaterElements(nums []int) []int {
@@ -779,13 +779,13 @@ func nextGreaterElements(nums []int) []int {
 }
 ```
 
-### 768
+### [768](https://leetcode.com/problems/max-chunks-to-make-sorted-ii/)
 
 ```go
 func maxChunksToSorted(arr []int) int { return sortedChunks(arr) }
 ```
 
-### 853
+### [853](https://leetcode.com/problems/car-fleet/)
 
 ```go
 func carFleet(target int, position []int, speed []int) int {
@@ -793,7 +793,7 @@ func carFleet(target int, position []int, speed []int) int {
 }
 ```
 
-### 901
+### [901](https://leetcode.com/problems/online-stock-span/)
 
 ```go
 func Constructor() StockSpanner { return StockSpanner{} }
@@ -804,19 +804,19 @@ func (s *StockSpanner) Next(price int) int {
 }
 ```
 
-### 962
+### [962](https://leetcode.com/problems/maximum-width-ramp/)
 
 ```go
 func maxWidthRamp(nums []int) int { return widestRamp(nums) }
 ```
 
-### 1130
+### [1130](https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/)
 
 ```go
 func mctFromLeafValues(arr []int) int { return minimumLeafTreeCost(arr) }
 ```
 
-### 2104
+### [2104](https://leetcode.com/problems/sum-of-subarray-ranges/)
 
 ```go
 func subArrayRanges(nums []int) int64 {
@@ -832,7 +832,7 @@ func subArrayRanges(nums []int) int64 {
 }
 ```
 
-### 1856
+### [1856](https://leetcode.com/problems/maximum-subarray-min-product/)
 
 ```go
 func maxSumMinProduct(nums []int) int {
@@ -852,7 +852,7 @@ func maxSumMinProduct(nums []int) int {
 }
 ```
 
-### 2281
+### [2281](https://leetcode.com/problems/sum-of-total-strength-of-wizards/)
 
 ```go
 func totalStrength(strength []int) int {
@@ -881,4 +881,4 @@ func totalStrength(strength []int) int {
 }
 ```
 
-1856 依赖正数，边界内尽量扩展可最大化区间和，先比较 int64 真实乘积再取模。2281 使用同一最小值归属边界，再用前缀和的前缀和求左右端点选择的总区间和；减法结果要规范到非负模值，不与 907 的单纯区间个数贡献混淆。
+[1856](https://leetcode.com/problems/maximum-subarray-min-product/) 依赖正数，边界内尽量扩展可最大化区间和，先比较 int64 真实乘积再取模。[2281](https://leetcode.com/problems/sum-of-total-strength-of-wizards/) 使用同一最小值归属边界，再用前缀和的前缀和求左右端点选择的总区间和；减法结果要规范到非负模值，不与 [907](https://leetcode.com/problems/sum-of-subarray-minimums/) 的单纯区间个数贡献混淆。

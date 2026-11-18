@@ -6,14 +6,14 @@
 
 | 子模板 | 固定不变量 | 题目 |
 | --- | --- | --- |
-| Capacity(reuse=false) | 容量倒序，来源还没有使用当前物品；零重量每项也只更新一次 | 416、1049、494 |
-| Capacity(reuse=true) | 物品在外层、容量正序，允许反复使用当前物品 | 322 最少个数、518 组合数 |
-| TwoResources | 两个容量都倒序，每个输入字符串至多选一次 | 474 |
-| MemoWays | 下标不减或剩余金额变小，缓存完整子问题计数 | 518 递归变体 |
+| Capacity(reuse=false) | 容量倒序，来源还没有使用当前物品；零重量每项也只更新一次 | [416](https://leetcode.com/problems/partition-equal-subset-sum/)、[1049](https://leetcode.com/problems/last-stone-weight-ii/)、[494](https://leetcode.com/problems/target-sum/) |
+| Capacity(reuse=true) | 物品在外层、容量正序，允许反复使用当前物品 | [322](https://leetcode.com/problems/coin-change/) 最少个数、[518](https://leetcode.com/problems/coin-change-ii/) 组合数 |
+| TwoResources | 两个容量都倒序，每个输入字符串至多选一次 | [474](https://leetcode.com/problems/ones-and-zeroes/) |
+| MemoWays | 下标不减或剩余金额变小，缓存完整子问题计数 | [518](https://leetcode.com/problems/coin-change-ii/) 递归变体 |
 
-例如 494 中 `P-N=target`、`P+N=total`，所以选择正号元素的总和必须为 `(total+target)/2`。先检查范围与奇偶，再用 0/1 方案计数。零元素会把计数翻倍，不能直接忽略。
+例如 [494](https://leetcode.com/problems/target-sum/) 中 `P-N=target`、`P+N=total`，所以选择正号元素的总和必须为 `(total+target)/2`。先检查范围与奇偶，再用 0/1 方案计数。零元素会把计数翻倍，不能直接忽略。
 
-518 的外层是硬币，统计组合；若改为外层金额、内层枚举最后一个数字，就变成 377 的有序序列计数，需要独立模板，不能只改正序或倒序。322 用 amount+1 表示不可达，读取不可达时不继续加一。
+[518](https://leetcode.com/problems/coin-change-ii/) 的外层是硬币，统计组合；若改为外层金额、内层枚举最后一个数字，就变成 [377](https://leetcode.com/problems/combination-sum-iv/) 的有序序列计数，需要独立模板，不能只改正序或倒序。[322](https://leetcode.com/problems/coin-change/) 用 amount+1 表示不可达，读取不可达时不继续加一。
 
 ## 复制与运行约定
 
@@ -86,7 +86,7 @@ func MemoWays[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
 
 ## 逐题适配器
 
-### 416
+### [416](https://leetcode.com/problems/partition-equal-subset-sum/)
 
 [代码](l416/416.go) · [测试](l416/416_test.go)
 
@@ -113,7 +113,7 @@ func canPartition(nums []int) bool {
 }
 ```
 
-### 1049
+### [1049](https://leetcode.com/problems/last-stone-weight-ii/)
 
 [代码](l1049/1049.go) · [测试](l1049/1049_test.go)
 
@@ -142,7 +142,7 @@ func lastStoneWeightII(stones []int) int {
 }
 ```
 
-### 494
+### [494](https://leetcode.com/problems/target-sum/)
 
 [代码](l494/494.go) · [测试](l494/494_test.go)
 
@@ -170,7 +170,7 @@ func findTargetSumWays(nums []int, target int) int {
 }
 ```
 
-### 322
+### [322](https://leetcode.com/problems/coin-change/)
 
 [代码](l322/322.go) · [测试](l322/322_test.go)
 
@@ -201,7 +201,7 @@ func coinChange(coins []int, amount int) int {
 }
 ```
 
-### 518
+### [518](https://leetcode.com/problems/coin-change-ii/)
 
 [代码](l518/518.go) · [测试](l518/518_test.go)
 
@@ -221,7 +221,7 @@ func change(amount int, coins []int) int {
 }
 ```
 
-### 474
+### [474](https://leetcode.com/problems/ones-and-zeroes/)
 
 [代码](l474/474.go) · [测试](l474/474_test.go)
 
@@ -247,7 +247,7 @@ func findMaxForm(strs []string, m int, n int) int {
 }
 ```
 
-### 518 · 历史独立版本
+### [518](https://leetcode.com/problems/coin-change-ii/) · 历史独立版本
 
 [代码](l518/legacy/recursive/518.go)
 

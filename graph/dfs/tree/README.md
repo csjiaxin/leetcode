@@ -34,7 +34,7 @@ func subtreeSize(graph [][]int, root int) int {
 }
 ```
 
-1519 的标签频次数组适配（实际主文件已经内联同一 TreeFold）：
+[1519](https://leetcode.com/problems/number-of-nodes-in-the-sub-tree-with-the-same-label/) 的标签频次数组适配（实际主文件已经内联同一 TreeFold）：
 
 ```go
 // https://leetcode.com/problems/number-of-nodes-in-the-sub-tree-with-the-same-label/

@@ -6,13 +6,13 @@
 
 | 子模板 | 不变量与参数 | 题目 |
 | --- | --- | --- |
-| BoundedTrade | cash[t]/hold[t] 为最多 t 次买入时的收益；买入来自昨天 cash[t-1] | 121 的 1 次、123 的 2 次、188 的 k 次 |
-| UnlimitedTrade | cash/hold 是昨天的两种状态；手续费在卖出时扣一次 | 122、714 |
-| UnlimitedTrade(cooldown=true) | 买入必须读取前天 cash，避开昨天卖出后的冷冻日 | 309 |
+| BoundedTrade | cash[t]/hold[t] 为最多 t 次买入时的收益；买入来自昨天 cash[t-1] | [121](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/) 的 1 次、[123](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/) 的 2 次、[188](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/) 的 k 次 |
+| UnlimitedTrade | cash/hold 是昨天的两种状态；手续费在卖出时扣一次 | [122](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/)、[714](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/) |
+| UnlimitedTrade(cooldown=true) | 买入必须读取前天 cash，避开昨天卖出后的冷冻日 | [309](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/) |
 
-例如 714 一次交易只扣一次 fee，下面统一放到卖出动作。309 不能用同日更新的 cash，也不能直接读取昨天 cash。持股初值为足够小的负值；最终返回未持股的收益。
+例如 [714](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/) 一次交易只扣一次 fee，下面统一放到卖出动作。[309](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/) 不能用同日更新的 cash，也不能直接读取昨天 cash。持股初值为足够小的负值；最终返回未持股的收益。
 
-预算版按天分配新数组，避免 t 的遍历方向带来混淆，时间 O(nk)、辅助空间 O(k)。188 在 k>=n/2 时改用无限次模板，时间 O(n)。无限次模板 O(n) 时间、O(1) 空间。
+预算版按天分配新数组，避免 t 的遍历方向带来混淆，时间 O(nk)、辅助空间 O(k)。[188](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/) 在 k>=n/2 时改用无限次模板，时间 O(n)。无限次模板 O(n) 时间、O(1) 空间。
 
 ## 复制与运行约定
 
@@ -72,7 +72,7 @@ func UnlimitedTrade(prices []int, fee int, cooldown bool) int {
 
 ## 逐题适配器
 
-### 121
+### [121](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/)
 
 [代码](l121/121.go) · [测试](l121/121_test.go)
 
@@ -87,7 +87,7 @@ func UnlimitedTrade(prices []int, fee int, cooldown bool) int {
 func maxProfit(prices []int) int { return BoundedTrade(prices, 1) }
 ```
 
-### 123
+### [123](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/)
 
 [代码](l123/123.go) · [测试](l123/123_test.go)
 
@@ -102,7 +102,7 @@ func maxProfit(prices []int) int { return BoundedTrade(prices, 1) }
 func maxProfit(prices []int) int { return BoundedTrade(prices, 2) }
 ```
 
-### 188
+### [188](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/)
 
 [代码](l188/188.go) · [测试](l188/188_test.go)
 
@@ -122,7 +122,7 @@ func maxProfit(k int, prices []int) int {
 }
 ```
 
-### 122
+### [122](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/)
 
 [代码](l122/122.go) · [测试](l122/122_test.go)
 
@@ -137,7 +137,7 @@ func maxProfit(k int, prices []int) int {
 func maxProfit(prices []int) int { return UnlimitedTrade(prices, 0, false) }
 ```
 
-### 714
+### [714](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/)
 
 [代码](l714/714.go) · [测试](l714/714_test.go)
 
@@ -152,7 +152,7 @@ func maxProfit(prices []int) int { return UnlimitedTrade(prices, 0, false) }
 func maxProfit(prices []int, fee int) int { return UnlimitedTrade(prices, fee, false) }
 ```
 
-### 309
+### [309](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/)
 
 [代码](l309/309.go) · [测试](l309/309_test.go)
 

@@ -10,9 +10,9 @@
 |---|---|---|---|
 | 选择容器边界 | [11. 盛最多水的容器](https://leetcode.com/problems/container-with-most-water/) | 相向双指针 + 贪心 | 选两根柱子，不是计算所有积水 |
 | 一维静态积水 | [42. 接雨水](https://leetcode.com/problems/trapping-rain-water/) | 前后缀最大值 / 双指针 / 单调栈 | 核心基础题 |
-| 二维静态积水 | [407. 接雨水 II](https://leetcode.com/problems/trapping-rain-water-ii/) | 边界最小堆 + 多源扩张 | 42 的二维推广 |
+| 二维静态积水 | [407. 接雨水 II](https://leetcode.com/problems/trapping-rain-water-ii/) | 边界最小堆 + 多源扩张 | [42](https://leetcode.com/problems/trapping-rain-water/) 的二维推广 |
 | 有限水量流动 | [755. 倒水](https://leetcode.com/problems/pour-water/) | 模拟 + 左右扫描 | 逐滴改变当前高度 |
-| 水位与连通性 | [778. 水位上升的泳池中游泳](https://leetcode.com/problems/swim-in-rising-water/) | 瓶颈 Dijkstra / 并查集 / 二分 + 搜索 | 与 407 共享路径最高障碍思想 |
+| 水位与连通性 | [778. 水位上升的泳池中游泳](https://leetcode.com/problems/swim-in-rising-water/) | 瓶颈 Dijkstra / 并查集 / 二分 + 搜索 | 与 [407](https://leetcode.com/problems/trapping-rain-water-ii/) 共享路径最高障碍思想 |
 | 降雨与排水调度 | [1488. 避免洪水泛滥](https://leetcode.com/problems/avoid-flood-in-the-city/) | 贪心 + 有序集合 / 最小堆 | 不是地形问题，而是抽水时间调度 |
 
 扩展练习：
@@ -21,9 +21,9 @@
 |---|---|---|
 | [799. 香槟塔](https://leetcode.com/problems/champagne-tower/) | 超过容量后向下溢出 | 逐层 DP |
 | [365. 水壶问题](https://leetcode.com/problems/water-and-jug-problem/) | 倒水操作的可达性 | 数学 gcd / 状态搜索 |
-| [84. 柱状图中最大的矩形](https://leetcode.com/problems/largest-rectangle-in-histogram/) | 柱状图边界 | 单调栈，与 42 对照学习 |
+| [84. 柱状图中最大的矩形](https://leetcode.com/problems/largest-rectangle-in-histogram/) | 柱状图边界 | 单调栈，与 [42](https://leetcode.com/problems/trapping-rain-water/) 对照学习 |
 
-## 2. 11：选择两个边界，面积最大
+## 2. [11](https://leetcode.com/problems/container-with-most-water/)：选择两个边界，面积最大
 
 ```text
 area(l,r) = min(height[l],height[r]) × (r-l)
@@ -36,7 +36,7 @@ area(l,r) = min(height[l],height[r]) × (r-l)
 
 时间 O(n)，额外空间 O(1)。实现与测试：[11.go](../l11/11.go)、[11_test.go](../l11/11_test.go)。
 
-## 3. 42：一维接雨水，同一道题学习三种方法
+## 3. [42](https://leetcode.com/problems/trapping-rain-water/)：一维接雨水，同一道题学习三种方法
 
 位置 i 的积水量：
 
@@ -116,9 +116,9 @@ func trap(height []int) int { return trappedLayers(height) }
 | 双指针 | 每列水量，动态确定上限 | O(n) | O(1) |
 | 单调栈 | 每层凹槽水量 | O(n) | O(n) |
 
-与 84 对照：42 在左右较高柱子之间计算水层；84 为每根柱子寻找左右更矮边界，计算以它为高度的矩形。
+与 [84](https://leetcode.com/problems/largest-rectangle-in-histogram/) 对照：[42](https://leetcode.com/problems/trapping-rain-water/) 在左右较高柱子之间计算水层；[84](https://leetcode.com/problems/largest-rectangle-in-histogram/) 为每根柱子寻找左右更矮边界，计算以它为高度的矩形。
 
-## 4. 407：二维接雨水，边界最小堆
+## 4. [407](https://leetcode.com/problems/trapping-rain-water-ii/)：二维接雨水，边界最小堆
 
 二维不能简单求上下左右四个直线方向的最高墙，因为水可能拐弯，沿低通道逃到边界。
 
@@ -156,7 +156,7 @@ nextHeight := max(cell.height, heightMap[nr][nc])
 
 **双指针不能直接推广到二维，但“先处理较低有效边界”的思想可以推广。**
 
-## 5. 778：水位上升与瓶颈路径
+## 5. [778](https://leetcode.com/problems/swim-in-rising-water/)：水位上升与瓶颈路径
 
 问水位至少达到多少，才能从左上角走到右下角。对一条路径而言，所需最低水位就是路径上的最高地面高度：
 
@@ -173,31 +173,31 @@ nextHeight := max(cell.height, heightMap[nr][nc])
 778 瓶颈路径：candidate = max(dist, grid[nr][nc])
 ```
 
-778 起点标签为 `grid[0][0]`，不是 0。
+[778](https://leetcode.com/problems/swim-in-rising-water/) 起点标签为 `grid[0][0]`，不是 0。
 
 - 最小堆 Dijkstra：时间 O(n² log(n²))，额外空间 O(n²)。
 - 二分水位 + BFS/DFS：给定水位，判断仅经过不高于该水位的格子能否连通，判定具有单调性。
 - 并查集：按高度从低到高激活格子，与已激活邻格合并，直到起终点连通。
 
-### 与 407 的统一视角
+### 与 [407](https://leetcode.com/problems/trapping-rain-water-ii/) 的统一视角
 
 两题都关心“沿路径通过时，最高障碍有多高”：
 
-- **778**：从起点到终点，找瓶颈最小的路径。
-- **407**：从每个格子到任意外边界，找最低逃逸水位，再减去地面高度。
+- **[778](https://leetcode.com/problems/swim-in-rising-water/)**：从起点到终点，找瓶颈最小的路径。
+- **[407](https://leetcode.com/problems/trapping-rain-water-ii/)**：从每个格子到任意外边界，找最低逃逸水位，再减去地面高度。
 
-形式上，407 中格子 v 的水位是：
+形式上，[407](https://leetcode.com/problems/trapping-rain-water-ii/) 中格子 v 的水位是：
 
 ```text
 level(v) = min（v 到任意外边界的路径上的最大地面高度）
 water(v) = level(v) - height(v)
 ```
 
-因此 407 可视为多源、从外向内的瓶颈路径扩张。参考[单源最短路笔记](../../graph/single_source_shortest_path/README.md)。
+因此 [407](https://leetcode.com/problems/trapping-rain-water-ii/) 可视为多源、从外向内的瓶颈路径扩张。参考[单源最短路笔记](../../graph/single_source_shortest_path/README.md)。
 
-## 6. 755：有限水量，逐滴模拟
+## 6. [755](https://leetcode.com/problems/pour-water/)：有限水量，逐滴模拟
 
-42 / 407 假设水足够多，计算最终能留多少水；755 指定倒水位置 k 和有限水量 volume，每滴水落下都会改变当前高度。
+[42](https://leetcode.com/problems/trapping-rain-water/) / [407](https://leetcode.com/problems/trapping-rain-water-ii/) 假设水足够多，计算最终能留多少水；[755](https://leetcode.com/problems/pour-water/) 指定倒水位置 k 和有限水量 volume，每滴水落下都会改变当前高度。
 
 每滴水按规则：
 
@@ -207,9 +207,9 @@ water(v) = level(v) - height(v)
 
 扫描时可以经过等高平台继续找低处，但不能跨过上坡。实现时只在遇到严格更低高度时更新候选落点，遵守平台上的停留规则。
 
-通常逐滴模拟时间 O(volume × n)，额外空间 O(1)，不计返回数组。**不能套用 42 的最终水位公式，因为水不一定足够填满凹槽。**
+通常逐滴模拟时间 O(volume × n)，额外空间 O(1)，不计返回数组。**不能套用 [42](https://leetcode.com/problems/trapping-rain-water/) 的最终水位公式，因为水不一定足够填满凹槽。**
 
-## 7. 1488：降雨与抽水调度
+## 7. [1488](https://leetcode.com/problems/avoid-flood-in-the-city/)：降雨与抽水调度
 
 雨天让一个湖泊装满；晴天可以抽干一个湖泊。满湖再次降雨就会泛滥。
 
@@ -232,7 +232,7 @@ rains = [1,2,0,0,2,1]
 
 ## 8. 扩展题的迁移点
 
-### 799：香槟塔——溢出 DP
+### [799](https://leetcode.com/problems/champagne-tower/)：香槟塔——溢出 DP
 
 每个杯子容量为 1，超过部分等分流向下一层两个相邻杯子：
 
@@ -244,7 +244,7 @@ overflow = max(0, amount-1) / 2
 
 杯内流入量可以大于 1，最终查询答案才截断到 1。查询第 r 行时，逐层 DP 时间 O(r²)，滚动数组额外空间 O(r)。
 
-### 365：水壶问题——数学可达性
+### [365](https://leetcode.com/problems/water-and-jug-problem/)：水壶问题——数学可达性
 
 容量为 x、y，允许装满、倒空、相互倒水。标准题意下，目标水量 target 可实现的条件为：
 
@@ -259,13 +259,13 @@ target == 0，或
 
 ### 易错点
 
-- **11 和 42 混淆**：11 选一对边界，42 累计每个位置的水量。
-- **只看邻接柱子**：42 需要两侧最高柱，不是左右紧邻高度。
-- **二维只看四条直线**：407 的水能沿弯曲通道逃逸。
-- **407 按地面高度入堆**：应按 `max(当前有效边界,邻格地面)` 入堆。
-- **778 用高度相加**：瓶颈路径取 max，不求和；起点高度必须计入。
-- **755 当作无限降雨**：有限水量必须遵守逐滴流动与方向优先规则。
-- **1488 晴天随便抽**：必须保留未来可行性，按可用日期或下次降雨期限贪心。
+- **[11](https://leetcode.com/problems/container-with-most-water/) 和 [42](https://leetcode.com/problems/trapping-rain-water/) 混淆**：[11](https://leetcode.com/problems/container-with-most-water/) 选一对边界，[42](https://leetcode.com/problems/trapping-rain-water/) 累计每个位置的水量。
+- **只看邻接柱子**：[42](https://leetcode.com/problems/trapping-rain-water/) 需要两侧最高柱，不是左右紧邻高度。
+- **二维只看四条直线**：[407](https://leetcode.com/problems/trapping-rain-water-ii/) 的水能沿弯曲通道逃逸。
+- **[407](https://leetcode.com/problems/trapping-rain-water-ii/) 按地面高度入堆**：应按 `max(当前有效边界,邻格地面)` 入堆。
+- **[778](https://leetcode.com/problems/swim-in-rising-water/) 用高度相加**：瓶颈路径取 max，不求和；起点高度必须计入。
+- **[755](https://leetcode.com/problems/pour-water/) 当作无限降雨**：有限水量必须遵守逐滴流动与方向优先规则。
+- **[1488](https://leetcode.com/problems/avoid-flood-in-the-city/) 晴天随便抽**：必须保留未来可行性，按可用日期或下次降雨期限贪心。
 
 ### 推荐路线
 
@@ -288,5 +288,5 @@ target == 0，或
 365  水壶问题   → 状态可达性 / gcd
 ```
 
-优先掌握 **11、42、407、778**，尤其是 **42 → 407 → 778** 的思想迁移。
+优先掌握 **[11](https://leetcode.com/problems/container-with-most-water/)、[42](https://leetcode.com/problems/trapping-rain-water/)、[407](https://leetcode.com/problems/trapping-rain-water-ii/)、[778](https://leetcode.com/problems/swim-in-rising-water/)**，尤其是 **[42](https://leetcode.com/problems/trapping-rain-water/) → [407](https://leetcode.com/problems/trapping-rain-water-ii/) → [778](https://leetcode.com/problems/swim-in-rising-water/)** 的思想迁移。
 

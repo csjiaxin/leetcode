@@ -8,12 +8,12 @@
 
 | 子系列 | 固定骨架 / 不变量 | 代表题 |
 | --- | --- | --- |
-| 固定容量 Top K | 入堆；大小超过 k 则移除最差候选；堆中保留当前最优 k 个 | 215、703、347、973 |
-| 双堆中位数 | 小的一半用最大堆，大的一半用最小堆；维持大小差和有序边界 | 295、480 |
-| 多路归并 | 每条有序来源只放一个当前候选；弹出后推进其来源 | 23、373、378、632 |
-| 资源与调度 | 释放已完成资源，再按策略选择可用资源；同时间事件顺序明确 | 1834、1882、2402 |
-| 动态最优候选 | 先加入所有可选候选，再取当前最优并更新后继 | 1642、630、871、767 |
-| 图上的优先扩展 | 弹出候选后检查是否过期，按题目路径代价松弛 | 743、1514、1631、407 |
+| 固定容量 Top K | 入堆；大小超过 k 则移除最差候选；堆中保留当前最优 k 个 | [215](https://leetcode.com/problems/kth-largest-element-in-an-array/)、[703](https://leetcode.com/problems/kth-largest-element-in-a-stream/)、[347](https://leetcode.com/problems/top-k-frequent-elements/)、[973](https://leetcode.com/problems/k-closest-points-to-origin/) |
+| 双堆中位数 | 小的一半用最大堆，大的一半用最小堆；维持大小差和有序边界 | [295](https://leetcode.com/problems/find-median-from-data-stream/)、[480](https://leetcode.com/problems/sliding-window-median/) |
+| 多路归并 | 每条有序来源只放一个当前候选；弹出后推进其来源 | [23](https://leetcode.com/problems/merge-k-sorted-lists/)、[373](https://leetcode.com/problems/find-k-pairs-with-smallest-sums/)、[378](https://leetcode.com/problems/kth-smallest-element-in-a-sorted-matrix/)、[632](https://leetcode.com/problems/smallest-range-covering-elements-from-k-lists/) |
+| 资源与调度 | 释放已完成资源，再按策略选择可用资源；同时间事件顺序明确 | [1834](https://leetcode.com/problems/single-threaded-cpu/)、[1882](https://leetcode.com/problems/process-tasks-using-servers/)、[2402](https://leetcode.com/problems/meeting-rooms-iii/) |
+| 动态最优候选 | 先加入所有可选候选，再取当前最优并更新后继 | [1642](https://leetcode.com/problems/furthest-building-you-can-reach/)、[630](https://leetcode.com/problems/course-schedule-iii/)、[871](https://leetcode.com/problems/minimum-number-of-refueling-stops/)、[767](https://leetcode.com/problems/reorganize-string/) |
+| 图上的优先扩展 | 弹出候选后检查是否过期，按题目路径代价松弛 | [743](https://leetcode.com/problems/network-delay-time/)、[1514](https://leetcode.com/problems/path-with-maximum-probability/)、[1631](https://leetcode.com/problems/path-with-minimum-effort/)、[407](https://leetcode.com/problems/trapping-rain-water-ii/) |
 
 共同的是候选集的优先取出操作。Top K、调度、最短路径的合法性和更新顺序各有规则，下面的各节分别给出可直接迁移的模板。图状态的推导另见 [图算法](../../graph/README.md)。
 
@@ -43,7 +43,7 @@
 加入新候选 → 大小超过K则弹出最差 → 剩余候选始终是已见最好的K个
 ```
 
-重复值按出现次数计排名；堆内切片不是有序结果。295需要两个堆平衡，不能直接套固定K；放在本篇用于对照。
+重复值按出现次数计排名；堆内切片不是有序结果。[295](https://leetcode.com/problems/find-median-from-data-stream/)需要两个堆平衡，不能直接套固定K；放在本篇用于对照。
 
 以下每题包含自己的container/heap辅助类型，代码块相互独立。Less决定堆方向，接口Pop只移除末尾，由heap.Pop负责堆顶交换。
 
@@ -94,7 +94,7 @@ func findKthLargest(nums []int, k int) int {
 
 **题意**：初始化已有流，每次Add后返回当前第k大；题设保证调用返回时元素足够。
 
-**变化**：将215中的堆作为持久状态，构造时依次Add初始数据；不足k时内部堆顶只是现有最小值，构造不使用这个返回值。
+**变化**：将[215](https://leetcode.com/problems/kth-largest-element-in-an-array/)中的堆作为持久状态，构造时依次Add初始数据；不足k时内部堆顶只是现有最小值，构造不使用这个返回值。
 
 ```go
 package template
@@ -301,10 +301,10 @@ func (m *MedianFinder) FindMedian() float64 {
 
 | 题目 | 排名键 | 堆方向 | 保留数量 |
 | --- | --- | --- | --- |
-| 215 / 703 | 值 | 最小堆淘汰小值 | K |
-| 347 | 频次 | 最小堆淘汰低频 | K，另有频率map |
-| 973 | 距离平方 | 最大堆淘汰远点 | K |
-| 295 | 值 | 较小半最大堆＋较大半最小堆 | 全部 |
+| [215](https://leetcode.com/problems/kth-largest-element-in-an-array/) / [703](https://leetcode.com/problems/kth-largest-element-in-a-stream/) | 值 | 最小堆淘汰小值 | K |
+| [347](https://leetcode.com/problems/top-k-frequent-elements/) | 频次 | 最小堆淘汰低频 | K，另有频率map |
+| [973](https://leetcode.com/problems/k-closest-points-to-origin/) | 距离平方 | 最大堆淘汰远点 | K |
+| [295](https://leetcode.com/problems/find-median-from-data-stream/) | 值 | 较小半最大堆＋较大半最小堆 | 全部 |
 
 - 空堆天然满足堆性质；若用非空切片直接初始化，需要heap.Init。
 - 自定义Pop只取切片末尾，不要在其中再次执行删除堆顶。
@@ -335,7 +335,7 @@ func (m *MedianFinder) FindMedian() float64 {
 | [1753. 移除石子的最大得分](https://leetcode.com/problems/maximum-score-from-removing-stones/) | 中等 | 最大堆模拟取两堆，也可推导数学解法；本目录已有 `1753` |
 | [912. 排序数组](https://leetcode.com/problems/sort-an-array/) | 中等 | 练习建堆与堆排序；本目录已有 `912` |
 
-注意：1046 固定取最大的两块；1049 可以自由选择，目标通常转为背包 DP，不能直接套用相同贪心。
+注意：[1046](https://leetcode.com/problems/last-stone-weight/) 固定取最大的两块；[1049](https://leetcode.com/problems/last-stone-weight-ii/) 可以自由选择，目标通常转为背包 DP，不能直接套用相同贪心。
 
 ### 2. Top K：固定大小的候选集合
 
@@ -371,7 +371,7 @@ func (m *MedianFinder) FindMedian() float64 {
 | [2530. 执行 K 次操作后的最大分数](https://leetcode.com/problems/maximal-score-after-applying-k-operations/) | 中等 | 最大堆取分，更新为向上取整的三分之一后放回 |
 | [857. 雇佣 K 名工人的最低成本](https://leetcode.com/problems/minimum-cost-to-hire-k-workers/) | 困难 | 按工资质量比排序，最大堆维护 k 个工人的最小质量总和 |
 
-堆只是高效选择工具，**贪心正确性需要额外证明**。例如 871 只能选择已到达的站点，而不能直接选择全局油量最多的站点。
+堆只是高效选择工具，**贪心正确性需要额外证明**。例如 [871](https://leetcode.com/problems/minimum-number-of-refueling-stops/) 只能选择已到达的站点，而不能直接选择全局油量最多的站点。
 
 ### 5. 调度、资源分配与事件模拟
 
@@ -393,7 +393,7 @@ func (m *MedianFinder) FindMedian() float64 {
 | [480. 滑动窗口中位数](https://leetcode.com/problems/sliding-window-median/) | 困难 | 双堆 + 懒删除，并区分逻辑元素数与切片长度 |
 | [239. 滑动窗口最大值](https://leetcode.com/problems/sliding-window-maximum/) | 困难 | 最大堆存值和下标，弹出过期堆顶；单调队列可进一步优化到 O(n) |
 
-懒删除只在过期元素到达堆顶时删除。被埋在内部的过期元素仍占空间：例如 239 的简单懒删除堆最坏可能增长到 O(n)，不是自动维持 O(k)。
+懒删除只在过期元素到达堆顶时删除。被埋在内部的过期元素仍占空间：例如 [239](https://leetcode.com/problems/sliding-window-maximum/) 的简单懒删除堆最坏可能增长到 O(n)，不是自动维持 O(k)。
 
 ### 7. 图上的优先扩展
 
@@ -462,7 +462,7 @@ func (h *MinHeap) Pop() any {
 
 ## 本仓库实现与测试
 
-上述 32 道题的实现与测试位于对应的 `l<题号>/` 目录。题目包复用 [internal/pqueue/queue.go](../internal/pqueue/queue.go) 中基于 `container/heap` 的泛型优先级队列；912 使用原地堆排序。
+上述 32 道题的实现与测试位于对应的 `l<题号>/` 目录。题目包复用 [internal/pqueue/queue.go](../internal/pqueue/queue.go) 中基于 `container/heap` 的泛型优先级队列；[912](https://leetcode.com/problems/sort-an-array/) 使用原地堆排序。
 
 ```sh
 go test ./heap_priority_queue/internal/... ./heap_priority_queue/l... -count=1 -cover
@@ -498,6 +498,6 @@ go vet ./heap_priority_queue/internal/... ./heap_priority_queue/l...
 | [1985. 找出数组中的第K大整数](https://leetcode.com/problems/find-the-kth-largest-integer-in-the-array/) | 数字字符串按长度再字典序比较，保留最大k个 | 不可直接转机器整数；相等字符串重复计数 |
 | [2542. 最大子序列的分数](https://leetcode.com/problems/maximum-subsequence-score/) | 按nums2降序扫描，用最小堆维护k个nums1最大和 | 当前nums2为最小乘子，不能单独按乘积选k项 |
 | [1383. 最大的团队表现值](https://leetcode.com/problems/maximum-performance-of-a-team/) | 效率降序，堆维护最多k个速度最大和 | 最多k人不是恰好k；先取真实最大表现再模 |
-| [480. 滑动窗口中位数](https://leetcode.com/problems/sliding-window-median/) | 从295双堆扩展为支持删除过期值，需懒删除和逻辑大小 | 内部过期元素未必出堆，物理长度不能充当有效数量 |
+| [480. 滑动窗口中位数](https://leetcode.com/problems/sliding-window-median/) | 从[295](https://leetcode.com/problems/find-median-from-data-stream/)双堆扩展为支持删除过期值，需懒删除和逻辑大小 | 内部过期元素未必出堆，物理长度不能充当有效数量 |
 
 **复习方法**：先独立写出状态、合法性或松弛条件，再指出相较本篇基础题改变的那一行；若前提不满足，主动换算法，不为统一模板牺牲正确性。

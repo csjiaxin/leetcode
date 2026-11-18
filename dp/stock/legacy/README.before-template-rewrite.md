@@ -26,12 +26,12 @@ func UnlimitedProfit(prices []int) int {
 
 | 实现 | 修改处 |
 | --- | --- |
-| [121](../l121/121.go) | 只允许一次买入：hold 的买入来源始终是初始现金 0，即 -price |
-| [122](../l122/122.go) | 不限次数，可由昨天 cash 再次买入 |
-| [123](../l123/123.go) | 交易次数预算为 2 |
-| [188](../l188/188.go) | 增加交易次数预算 t，不能漏掉次数维度 |
-| [714](../l714/714.go) | 每笔交易扣一次手续费，可统一在卖出时扣除 |
-| [309](../l309/309.go) | 买入来自前天的 cash，或显式维护冷冻状态 |
+| [121](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/) · [代码](../l121/121.go) | 只允许一次买入：hold 的买入来源始终是初始现金 0，即 -price |
+| [122](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/) · [代码](../l122/122.go) | 不限次数，可由昨天 cash 再次买入 |
+| [123](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/) · [代码](../l123/123.go) | 交易次数预算为 2 |
+| [188](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/) · [代码](../l188/188.go) | 增加交易次数预算 t，不能漏掉次数维度 |
+| [714](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/) · [代码](../l714/714.go) | 每笔交易扣一次手续费，可统一在卖出时扣除 |
+| [309](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/) · [代码](../l309/309.go) | 买入来自前天的 cash，或显式维护冷冻状态 |
 
 ### 限定次数
 
@@ -44,7 +44,7 @@ nextHold[t] = max(hold[t], cash[t-1] - price), t>=1
 
 初始 cash 全为 0，hold 全为负无穷。这是“最多”次数，不是“恰好”次数的初始化。前一天与当天的数组要分清；若原地压缩，需要额外证明更新顺序。
 
-一般时间 O(nk)、空间 O(k)。无手续费、无冷冻等附加限制的 188 中，k>=n/2 时等价于无限次交易。
+一般时间 O(nk)、空间 O(k)。无手续费、无冷冻等附加限制的 [188](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/) 中，k>=n/2 时等价于无限次交易。
 
 ### 手续费与冷冻期
 
@@ -57,7 +57,7 @@ nextHold[t] = max(hold[t], cash[t-1] - price), t>=1
 
 ## 3. 学习顺序与历史记录
 
-建议 121 → 122 → 123 → 188 → 714 → 309。先固定状态含义，再增加一个限制；不是每次都从所有买入日、卖出日的二重循环开始。
+建议 [121](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/) → [122](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/) → [123](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/) → [188](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/) → [714](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/) → [309](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/)。先固定状态含义，再增加一个限制；不是每次都从所有买入日、卖出日的二重循环开始。
 
 现有每题代码和测试原样保留。[原股票笔记](../legacy/readme)继续保留；本文给出统一建模与变化点，不声称所有旧实现都使用相同存储形式。
 

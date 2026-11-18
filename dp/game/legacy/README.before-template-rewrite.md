@@ -34,9 +34,9 @@ win(state) = 存在一步合法选择，使对手进入必败状态
 
 对于无合法操作者输的规则，终态为 false；其他规则必须重新判断。
 
-- [1025](../l1025/1025.go)：剩余整数；可先推递归，再观察奇偶结论。
-- [1510](../l1510/1510.go)：剩余石子数，枚举平方数。
-- [464](../l464/464.go)：已使用数字的 mask。入口目标已满足时为 true；总和不足目标时为 false。递归中轮到对手、而上一手已达到目标的情况不能机械套入口判断。
+- [1025](https://leetcode.com/problems/divisor-game/) · [代码](../l1025/1025.go)：剩余整数；可先推递归，再观察奇偶结论。
+- [1510](https://leetcode.com/problems/stone-game-iv/) · [代码](../l1510/1510.go)：剩余石子数，枚举平方数。
+- [464](https://leetcode.com/problems/can-i-win/) · [代码](../l464/464.go)：已使用数字的 mask。入口目标已满足时为 true；总和不足目标时为 false。递归中轮到对手、而上一手已达到目标的情况不能机械套入口判断。
 
 ### 当前玩家的最终分差
 
@@ -48,19 +48,19 @@ difference(state) = max(本步获得的分数 - difference(nextState))
 
 | 题目 | 状态与实际本步得分 |
 | --- | --- |
-| [486](../l486/486.go) | 剩余区间；取走端点的数值，最终分差非负即先手不败 |
-| [1406](../l1406/1406.go) | 后缀起点；取前 1～3 个的总分，原数值允许负数 |
-| [1690](../l1690/1690.go) | 剩余区间；得分是移除后剩余石子的总和，不是移除值 |
-| [1140](../l1140/1140.go) | 后缀起点与 M，合法选择数受 2M 限制 |
+| [486](https://leetcode.com/problems/predict-the-winner/) · [代码](../l486/486.go) | 剩余区间；取走端点的数值，最终分差非负即先手不败 |
+| [1406](https://leetcode.com/problems/stone-game-iii/) · [代码](../l1406/1406.go) | 后缀起点；取前 1～3 个的总分，原数值允许负数 |
+| [1690](https://leetcode.com/problems/stone-game-vii/) · [代码](../l1690/1690.go) | 剩余区间；得分是移除后剩余石子的总和，不是移除值 |
+| [1140](https://leetcode.com/problems/stone-game-ii/) · [代码](../l1140/1140.go) | 后缀起点与 M，合法选择数受 2M 限制 |
 
-1140 若使用“当前玩家最多可得石子数 F”，转移为 suffixSum[i]-F(next)；若使用分差 D，则 Alice 的数量为 (total+D(start))/2。这两种状态含义不能混用。
+[1140](https://leetcode.com/problems/stone-game-ii/) 若使用“当前玩家最多可得石子数 F”，转移为 suffixSum[i]-F(next)；若使用分差 D，则 Alice 的数量为 (total+D(start))/2。这两种状态含义不能混用。
 
 ## 3. 变体与历史材料
 
-- [486 分别保存双方收益](../l486/variants/score_pair/486.go)：保留原 stone 实现及原测试。
-- [1690 区间迭代版](../l1690/variants/interval/1690.go)：保留原 Interval 实现及原测试。
-- [1690 原 stone 草稿](../l1690/legacy/from_stone/1690.go)：仍为 panic("not implemented")，其测试照常运行并失败，不会被隐藏。
-- [1140 历史记忆化版](../l1140/legacy/from_stone/1140.go)、[877 历史片段](../l877/877)均保留。
+- [486 分别保存双方收益](https://leetcode.com/problems/predict-the-winner/) · [代码](../l486/variants/score_pair/486.go)：保留原 stone 实现及原测试。
+- [1690 区间迭代版](https://leetcode.com/problems/stone-game-vii/) · [代码](../l1690/variants/interval/1690.go)：保留原 Interval 实现及原测试。
+- [1690 原 stone 草稿](https://leetcode.com/problems/stone-game-vii/) · [代码](../l1690/legacy/from_stone/1690.go)：仍为 panic("not implemented")，其测试照常运行并失败，不会被隐藏。
+- [1140 历史记忆化版](https://leetcode.com/problems/stone-game-ii/) · [代码](../l1140/legacy/from_stone/1140.go)、[877 历史片段](https://leetcode.com/problems/stone-game/) · [代码](../l877/877)均保留。
 - [原 game 完整学习笔记](../legacy/game.readme.md)与[原 stone 笔记](../legacy/stone.readme.md)继续可查。
 
 ## 套题检查

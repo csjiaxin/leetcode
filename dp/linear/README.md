@@ -6,13 +6,13 @@
 
 | 子模板 | 适用条件与不变量 | 题目 |
 | --- | --- | --- |
-| PrefixTable | dp[0] 为空状态；计算 i 时只读取下标小于 i 的状态 | 70 计数、300 结尾长度、343 拆分乘积 |
-| Independent | 更新右侧全部读取旧 skip/take；相邻项不能同时选 | 198；213 拆成两个线性区间 |
-| PrefixBest | 当前答案先查询严格更早的候选，再把新候选纳入历史最优 | 1014 拆值与下标；1031 两个不重叠定长窗口 |
+| PrefixTable | dp[0] 为空状态；计算 i 时只读取下标小于 i 的状态 | [70](https://leetcode.com/problems/climbing-stairs/) 计数、[300](https://leetcode.com/problems/longest-increasing-subsequence/) 结尾长度、[343](https://leetcode.com/problems/integer-break/) 拆分乘积 |
+| Independent | 更新右侧全部读取旧 skip/take；相邻项不能同时选 | [198](https://leetcode.com/problems/house-robber/)；[213](https://leetcode.com/problems/house-robber-ii/) 拆成两个线性区间 |
+| PrefixBest | 当前答案先查询严格更早的候选，再把新候选纳入历史最优 | [1014](https://leetcode.com/problems/best-sightseeing-pair/) 拆值与下标；[1031](https://leetcode.com/problems/maximum-sum-of-two-non-overlapping-subarrays/) 两个不重叠定长窗口 |
 
-例如 1014 的 `values[i]+values[j]+i-j` 拆为 `(values[i]+i)+(values[j]-j)`。扫描 j 时只需维护之前最大的 `values[i]+i`，查询后才能加入 j。1031 则把历史候选替换为已结束的左窗口，两个窗口的先后顺序各做一次。
+例如 [1014](https://leetcode.com/problems/best-sightseeing-pair/) 的 `values[i]+values[j]+i-j` 拆为 `(values[i]+i)+(values[j]-j)`。扫描 j 时只需维护之前最大的 `values[i]+i`，查询后才能加入 j。[1031](https://leetcode.com/problems/maximum-sum-of-two-non-overlapping-subarrays/) 则把历史候选替换为已结束的左窗口，两个窗口的先后顺序各做一次。
 
-PrefixTable 统一已完成状态的可见范围，不统一转移公式。300 要取所有结尾最大值；343 必须真正拆分，不能直接返回 n。下面的源文件均已嵌入对应模板，可独立复制到 LeetCode。
+PrefixTable 统一已完成状态的可见范围，不统一转移公式。[300](https://leetcode.com/problems/longest-increasing-subsequence/) 要取所有结尾最大值；[343](https://leetcode.com/problems/integer-break/) 必须真正拆分，不能直接返回 n。下面的源文件均已嵌入对应模板，可独立复制到 LeetCode。
 
 ## 复制与运行约定
 
@@ -65,7 +65,7 @@ func PrefixBest(n int, initial int, evaluate func(i, best int), candidate func(i
 
 ## 逐题适配器
 
-### 70
+### [70](https://leetcode.com/problems/climbing-stairs/)
 
 [代码](l70/70.go) · [测试](l70/70_test.go)
 
@@ -88,7 +88,7 @@ func climbStairs(n int) int {
 }
 ```
 
-### 198
+### [198](https://leetcode.com/problems/house-robber/)
 
 [代码](l198/198.go) · [测试](l198/198_test.go)
 
@@ -102,7 +102,7 @@ func climbStairs(n int) int {
 func rob(nums []int) int { return Independent(nums) }
 ```
 
-### 213
+### [213](https://leetcode.com/problems/house-robber-ii/)
 
 [代码](l213/213.go) · [测试](l213/213_test.go)
 
@@ -124,7 +124,7 @@ func rob(nums []int) int {
 }
 ```
 
-### 300
+### [300](https://leetcode.com/problems/longest-increasing-subsequence/)
 
 [代码](l300/300.go) · [测试](l300/300_test.go)
 
@@ -151,7 +151,7 @@ func lengthOfLIS(nums []int) int {
 }
 ```
 
-### 343
+### [343](https://leetcode.com/problems/integer-break/)
 
 [代码](l343/343.go) · [测试](l343/343_test.go)
 
@@ -174,7 +174,7 @@ func integerBreak(n int) int {
 }
 ```
 
-### 1014
+### [1014](https://leetcode.com/problems/best-sightseeing-pair/)
 
 [代码](l1014/1014.go) · [测试](l1014/1014_test.go)
 
@@ -199,7 +199,7 @@ func maxScoreSightseeingPair(values []int) int {
 }
 ```
 
-### 1031
+### [1031](https://leetcode.com/problems/maximum-sum-of-two-non-overlapping-subarrays/)
 
 [代码](l1031/1031.go) · [测试](l1031/1031_test.go)
 

@@ -29,9 +29,9 @@ func search(state int) {
 | [131. 分割回文串](https://leetcode.com/problems/palindrome-partitioning/) | [笔记](l131/131) | 下一个切分起点；枚举回文片段并 push/pop |
 | [95. 不同的二叉搜索树 II](https://leetcode.com/problems/unique-binary-search-trees-ii/) | [独立实现](l95/95.go) | 根值划分左右区间，返回所有子树，做笛卡尔积组合 |
 
-95 的主要模型是递归返回候选集合，不需要机械添加 used；它与“共享一个 path 然后撤销”是两种组织方式。组合中可能共享子树指针，后续如果要独立修改各棵结果树，需要额外复制。
+[95](https://leetcode.com/problems/unique-binary-search-trees-ii/) 的主要模型是递归返回候选集合，不需要机械添加 used；它与“共享一个 path 然后撤销”是两种组织方式。组合中可能共享子树指针，后续如果要独立修改各棵结果树，需要额外复制。
 
-## 95：按区间返回候选集合
+## [95](https://leetcode.com/problems/unique-binary-search-trees-ii/)：按区间返回候选集合
 
 这里使用无环区间状态的 MemoDFS，不把路径 used 状态机械加进分治构造。先声明公共类型和模板，再组合适配函数；实际 95.go 已包含它们，独立提交不需要仓库导入。
 

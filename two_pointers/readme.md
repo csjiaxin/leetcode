@@ -275,38 +275,38 @@ func joinSortedEnds(arr []int) int {
 
 | 题目 | 采用的局部模板 | 实际实现 |
 | --- | --- | --- |
-| 26 | `Compact` | [实际 Go 文件](l26/26.go) |
-| 80 | `Compact` | [实际 Go 文件](l80/80.go) |
-| 27 | `Compact` | [实际 Go 文件](l27/27.go) |
-| 283 | `Compact` | [实际 Go 文件](l283/283.go) |
-| 167 | `Opposite` | [实际 Go 文件](l167/167.go) |
-| 15 | `Opposite` | [实际 Go 文件](l15/15.go) |
-| 16 | `Opposite + Distance` | [实际 Go 文件](l16/16.go) |
-| 18 | `Opposite` | [实际 Go 文件](l18/18.go) |
-| 611 | `Opposite` | [实际 Go 文件](l611/611.go) |
-| 11 | `Opposite` | [实际 Go 文件](l11/11.go) |
-| 42 | `Opposite` | [实际 Go 文件](l42/42.go) |
-| 344 | `Opposite` | [实际 Go 文件](l344/344.go) |
-| 345 | `Opposite + Vowel` | [实际 Go 文件](l345/345.go) |
-| 125 | `Opposite + Alnum + Lower` | [实际 Go 文件](l125/125.go) |
-| 680 | `Opposite + PalindromeRange` | [实际 Go 文件](l680/680.go) |
-| 977 | `Opposite` | [实际 Go 文件](l977/977.go) |
-| 392 | `AdvanceTwo` | [实际 Go 文件](l392/392.go) |
-| 986 | `AdvanceTwo` | [实际 Go 文件](l986/986.go) |
-| 88 | `MergeBack` | [实际 Go 文件](l88/88.go) |
-| 844 | `PreviousVisible` | [实际 Go 文件](l844/844.go) |
-| 443 | `ForRuns` | [实际 Go 文件](l443/443.go) |
-| 905 | `Partition` | [实际 Go 文件](l905/905.go) |
-| 75 | `ThreeWayPartition` | [实际 Go 文件](l75/75.go) |
-| 942 | `ChooseEnds` | [实际 Go 文件](l942/942.go) |
-| 141 | `Floyd + NodeStep` | [实际 Go 文件](l141/141.go) |
-| 142 | `Floyd + CycleEntry + NodeStep` | [实际 Go 文件](l142/142.go) |
-| 202 | `Floyd` | [实际 Go 文件](l202/202.go) |
-| 287 | `Floyd + CycleEntry` | [实际 Go 文件](l287/287.go) |
-| 876 | `Middle` | [实际 Go 文件](l876/876.go) |
-| 234 | `Middle + ReverseList` | [实际 Go 文件](l234/234.go) |
-| 19 | `NthPredecessor` | [实际 Go 文件](l19/19.go) |
-| 1574：拼接有序前后缀 | `joinSortedEnds` | [实际 Go 文件](l1574/legacy/1574.go) |
+| [26](https://leetcode.com/problems/remove-duplicates-from-sorted-array/) | `Compact` | [实际 Go 文件](l26/26.go) |
+| [80](https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/) | `Compact` | [实际 Go 文件](l80/80.go) |
+| [27](https://leetcode.com/problems/remove-element/) | `Compact` | [实际 Go 文件](l27/27.go) |
+| [283](https://leetcode.com/problems/move-zeroes/) | `Compact` | [实际 Go 文件](l283/283.go) |
+| [167](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/) | `Opposite` | [实际 Go 文件](l167/167.go) |
+| [15](https://leetcode.com/problems/3sum/) | `Opposite` | [实际 Go 文件](l15/15.go) |
+| [16](https://leetcode.com/problems/3sum-closest/) | `Opposite + Distance` | [实际 Go 文件](l16/16.go) |
+| [18](https://leetcode.com/problems/4sum/) | `Opposite` | [实际 Go 文件](l18/18.go) |
+| [611](https://leetcode.com/problems/valid-triangle-number/) | `Opposite` | [实际 Go 文件](l611/611.go) |
+| [11](https://leetcode.com/problems/container-with-most-water/) | `Opposite` | [实际 Go 文件](l11/11.go) |
+| [42](https://leetcode.com/problems/trapping-rain-water/) | `Opposite` | [实际 Go 文件](l42/42.go) |
+| [344](https://leetcode.com/problems/reverse-string/) | `Opposite` | [实际 Go 文件](l344/344.go) |
+| [345](https://leetcode.com/problems/reverse-vowels-of-a-string/) | `Opposite + Vowel` | [实际 Go 文件](l345/345.go) |
+| [125](https://leetcode.com/problems/valid-palindrome/) | `Opposite + Alnum + Lower` | [实际 Go 文件](l125/125.go) |
+| [680](https://leetcode.com/problems/valid-palindrome-ii/) | `Opposite + PalindromeRange` | [实际 Go 文件](l680/680.go) |
+| [977](https://leetcode.com/problems/squares-of-a-sorted-array/) | `Opposite` | [实际 Go 文件](l977/977.go) |
+| [392](https://leetcode.com/problems/is-subsequence/) | `AdvanceTwo` | [实际 Go 文件](l392/392.go) |
+| [986](https://leetcode.com/problems/interval-list-intersections/) | `AdvanceTwo` | [实际 Go 文件](l986/986.go) |
+| [88](https://leetcode.com/problems/merge-sorted-array/) | `MergeBack` | [实际 Go 文件](l88/88.go) |
+| [844](https://leetcode.com/problems/backspace-string-compare/) | `PreviousVisible` | [实际 Go 文件](l844/844.go) |
+| [443](https://leetcode.com/problems/string-compression/) | `ForRuns` | [实际 Go 文件](l443/443.go) |
+| [905](https://leetcode.com/problems/sort-array-by-parity/) | `Partition` | [实际 Go 文件](l905/905.go) |
+| [75](https://leetcode.com/problems/sort-colors/) | `ThreeWayPartition` | [实际 Go 文件](l75/75.go) |
+| [942](https://leetcode.com/problems/di-string-match/) | `ChooseEnds` | [实际 Go 文件](l942/942.go) |
+| [141](https://leetcode.com/problems/linked-list-cycle/) | `Floyd + NodeStep` | [实际 Go 文件](l141/141.go) |
+| [142](https://leetcode.com/problems/linked-list-cycle-ii/) | `Floyd + CycleEntry + NodeStep` | [实际 Go 文件](l142/142.go) |
+| [202](https://leetcode.com/problems/happy-number/) | `Floyd` | [实际 Go 文件](l202/202.go) |
+| [287](https://leetcode.com/problems/find-the-duplicate-number/) | `Floyd + CycleEntry` | [实际 Go 文件](l287/287.go) |
+| [876](https://leetcode.com/problems/middle-of-the-linked-list/) | `Middle` | [实际 Go 文件](l876/876.go) |
+| [234](https://leetcode.com/problems/palindrome-linked-list/) | `Middle + ReverseList` | [实际 Go 文件](l234/234.go) |
+| [19](https://leetcode.com/problems/remove-nth-node-from-end-of-list/) | `NthPredecessor` | [实际 Go 文件](l19/19.go) |
+| [1574](https://leetcode.com/problems/shortest-subarray-to-be-removed-to-make-array-sorted/)：拼接有序前后缀 | `joinSortedEnds` | [实际 Go 文件](l1574/legacy/1574.go) |
 
 为使整页 Go 示例可合并编译，重名适配器在文档中加题号/DP/Greedy 后缀；实际 Go 文件仍保留官方函数签名。链表节点等支撑类型仅在 helper 区声明一次。
 
@@ -340,12 +340,12 @@ func joinSortedEnds(arr []int) int {
 
 | 模型 | 指针含义 | 常见信号 | 代表题 |
 |---|---|---|---|
-| 相向双指针 | 左右边界向中间移动 | 有序数对、回文、两端高度 | 167、15、11、42、125 |
-| 同向读写指针 | 一个扫描，一个维护有效结果 | 原地删除、去重、移动元素 | 26、27、80、283 |
-| 双序列指针 | 分别扫描两个序列 | 合并、比较、匹配 | 88、392、844、986 |
-| 快慢 / 间距指针 | 不同速度或固定距离 | 中点、环、倒数位置 | 876、141、142、19 |
-| 滑动窗口 | 连续区间的左右边界 | 子数组、子串、区间约束 | 3、209、713、76 |
-| 分区与多指针 | 各类别的边界 | 原地分类、重排 | 75、905 |
+| 相向双指针 | 左右边界向中间移动 | 有序数对、回文、两端高度 | [167](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/)、[15](https://leetcode.com/problems/3sum/)、[11](https://leetcode.com/problems/container-with-most-water/)、[42](https://leetcode.com/problems/trapping-rain-water/)、[125](https://leetcode.com/problems/valid-palindrome/) |
+| 同向读写指针 | 一个扫描，一个维护有效结果 | 原地删除、去重、移动元素 | [26](https://leetcode.com/problems/remove-duplicates-from-sorted-array/)、[27](https://leetcode.com/problems/remove-element/)、[80](https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/)、[283](https://leetcode.com/problems/move-zeroes/) |
+| 双序列指针 | 分别扫描两个序列 | 合并、比较、匹配 | [88](https://leetcode.com/problems/merge-sorted-array/)、[392](https://leetcode.com/problems/is-subsequence/)、[844](https://leetcode.com/problems/backspace-string-compare/)、[986](https://leetcode.com/problems/interval-list-intersections/) |
+| 快慢 / 间距指针 | 不同速度或固定距离 | 中点、环、倒数位置 | [876](https://leetcode.com/problems/middle-of-the-linked-list/)、[141](https://leetcode.com/problems/linked-list-cycle/)、[142](https://leetcode.com/problems/linked-list-cycle-ii/)、[19](https://leetcode.com/problems/remove-nth-node-from-end-of-list/) |
+| 滑动窗口 | 连续区间的左右边界 | 子数组、子串、区间约束 | [3](https://leetcode.com/problems/longest-substring-without-repeating-characters/)、[209](https://leetcode.com/problems/minimum-size-subarray-sum/)、[713](https://leetcode.com/problems/subarray-product-less-than-k/)、[76](https://leetcode.com/problems/minimum-window-substring/) |
+| 分区与多指针 | 各类别的边界 | 原地分类、重排 | [75](https://leetcode.com/problems/sort-colors/)、[905](https://leetcode.com/problems/sort-array-by-parity/) |
 
 分类可以重叠，重点是识别不变量。两个指针各自最多单向移动 n 次时，总移动次数是 O(n)，不是 O(n²)；排序、外层枚举等成本需要另外计算。
 
@@ -363,12 +363,12 @@ func joinSortedEnds(arr []int) int {
 | [18. 四数之和](https://leetcode.com/problems/4sum/) | 固定两个数，其余相向查找 | O(n³) |
 | [611. 有效三角形的个数](https://leetcode.com/problems/valid-triangle-number/) | 固定最大边，一次统计一段合法左端点 | O(n²) |
 
-167 的排除依据（数组升序）：
+[167](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/) 的排除依据（数组升序）：
 
 - `nums[l]+nums[r] < target`：当前 l 与任何不超过 r 的右端点搭配都不够大，排除 l。
 - `nums[l]+nums[r] > target`：当前 r 与任何不小于 l 的左端点搭配都太大，排除 r。
 
-611：排序后固定最大边 `nums[k]`，令 `l=0, r=k-1`。若 `nums[l]+nums[r]>nums[k]`，则 l 到 r-1 都可作为第一条边，一次贡献 `r-l`，然后 `r--`；否则 `l++`。
+[611](https://leetcode.com/problems/valid-triangle-number/)：排序后固定最大边 `nums[k]`，令 `l=0, r=k-1`。若 `nums[l]+nums[r]>nums[k]`，则 l 到 r-1 都可作为第一条边，一次贡献 `r-l`，然后 `r--`；否则 `l++`。
 
 ### 2.2 回文、反转与两端选择
 
@@ -380,7 +380,7 @@ func joinSortedEnds(arr []int) int {
 | [680. 验证回文串 II](https://leetcode.com/problems/valid-palindrome-ii/) | 首次失配时检查跳过左字符或右字符 |
 | [977. 有序数组的平方](https://leetcode.com/problems/squares-of-a-sorted-array/) | 比较两端绝对值，从结果末尾填入最大平方 |
 
-680 不能随便删除一边：需要验证 `[l+1,r]` 或 `[l,r-1]` 是否为回文。最多额外做两次线性检查，总时间仍为 O(n)。
+[680](https://leetcode.com/problems/valid-palindrome-ii/) 不能随便删除一边：需要验证 `[l+1,r]` 或 `[l,r-1]` 是否为回文。最多额外做两次线性检查，总时间仍为 O(n)。
 
 <a id="read-write"></a>
 
@@ -396,7 +396,7 @@ func joinSortedEnds(arr []int) int {
 | [283. 移动零](https://leetcode.com/problems/move-zeroes/) | 稳定写入非零元素，再把尾部补零 |
 | [443. 压缩字符串](https://leetcode.com/problems/string-compression/) | 读取连续字符组，写入字符与计数 |
 
-### 27：基本模板
+### [27](https://leetcode.com/problems/remove-element/)：基本模板
 
 ```go
 func removeElement(nums []int, val int) int {
@@ -406,7 +406,7 @@ func removeElement(nums []int, val int) int {
 
 返回有效长度，尾部内容不重要。时间 O(n)，额外空间 O(1)。
 
-### 26 / 80：统一为最多保留 k 次
+### [26](https://leetcode.com/problems/remove-duplicates-from-sorted-array/) / [80](https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/)：统一为最多保留 k 次
 
 ```go
 func keepAtMostK(nums []int, k int) int {
@@ -417,7 +417,7 @@ func keepAtMostK(nums []int, k int) int {
 }
 ```
 
-`k=1` 对应 26，`k=2` 对应 80。比较的是已保留结果中的 `nums[write-k]`，不是原数组中读指针之前第 k 个元素。写入位置不会超过当前读取位置，因此不会破坏尚未读取的数据。
+`k=1` 对应 [26](https://leetcode.com/problems/remove-duplicates-from-sorted-array/)，`k=2` 对应 [80](https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/)。比较的是已保留结果中的 `nums[write-k]`，不是原数组中读指针之前第 k 个元素。写入位置不会超过当前读取位置，因此不会破坏尚未读取的数据。
 
 <a id="merge"></a>
 
@@ -430,7 +430,7 @@ func keepAtMostK(nums []int, k int) int {
 | [844. 比较含退格的字符串](https://leetcode.com/problems/backspace-string-compare/) | 从后向前扫描，各自跳过被删除字符 | O(m+n) |
 | [986. 区间列表的交集](https://leetcode.com/problems/interval-list-intersections/) | 计算交集，推进结束更早的区间 | O(m+n) |
 
-986：当前两个闭区间的交集为 `[max(a.start,b.start), min(a.end,b.end)]`，左端点不大于右端点时存在交集。之后推进结束更早的区间，因为它不可能再与另一序列后面的区间相交。前提是每组区间各自有序且内部不相交。
+[986](https://leetcode.com/problems/interval-list-intersections/)：当前两个闭区间的交集为 `[max(a.start,b.start), min(a.end,b.end)]`，左端点不大于右端点时存在交集。之后推进结束更早的区间，因为它不可能再与另一序列后面的区间相交。前提是每组区间各自有序且内部不相交。
 
 <a id="fast-slow"></a>
 
@@ -462,7 +462,7 @@ func keepAtMostK(nums []int, k int) int {
 | 恰好 K 个不同值 | [992](https://leetcode.com/problems/subarrays-with-k-different-integers/) | `atMost(K)-atMost(K-1)` |
 | 定长窗口 | [438](https://leetcode.com/problems/find-all-anagrams-in-a-string/)、[567](https://leetcode.com/problems/permutation-in-string/) | 保持长度并维护频次 |
 
-209 的常规窗口依赖正数条件；允许负数后不能直接套用。713 的常规乘积窗口依赖正整数条件，并需处理 `k<=1`。详见[滑动窗口总结](../sliding_window/README.md)。
+[209](https://leetcode.com/problems/minimum-size-subarray-sum/) 的常规窗口依赖正数条件；允许负数后不能直接套用。[713](https://leetcode.com/problems/subarray-product-less-than-k/) 的常规乘积窗口依赖正整数条件，并需处理 `k<=1`。详见[滑动窗口总结](../sliding_window/README.md)。
 
 <a id="leetcode-15"></a>
 
@@ -668,7 +668,7 @@ func trap(height []int) int {
 
 第二轮开始，右侧已经发现高度 5 的柱子，因此左边高度上限为 4 的各位置都可以安全结算。
 
-### 与 11 的区别
+### 与 [11](https://leetcode.com/problems/container-with-most-water/) 的区别
 
 | 对比 | 11 盛最多水的容器 | 42 接雨水 |
 |---|---|---|
@@ -745,7 +745,7 @@ fast 距离   = 2*s
 
 ## 10. 分区指针、易错点与练习路线
 
-### 10.1 75：荷兰国旗分区
+### 10.1 [75](https://leetcode.com/problems/sort-colors/)：荷兰国旗分区
 
 [75. 颜色分类](https://leetcode.com/problems/sort-colors/) 用三个指针维护四个区间：
 
@@ -767,8 +767,8 @@ func sortColors(nums []int) { ThreeWayPartition(nums, 1) }
 1. **没有证明就移动指针**：移动应对应“排除不可能的候选”或“完成某个位置的处理”。
 2. **忽略排序影响**：排序会改变原始下标，并产生时间与栈空间成本；需要原下标时应额外保存信息。
 3. **混淆循环边界**：不同元素配对通常 `l<r`；逐点结算或处理未知区间时可能 `l<=r`，应由不变量决定。
-4. **去重不完整**：15 / 18 的固定值与匹配成功后的左右值都要考虑去重。
-5. **原地覆盖未读数据**：同向写入通常保证 write 不超过 read；88 则从后往前填。
+4. **去重不完整**：[15](https://leetcode.com/problems/3sum/) / [18](https://leetcode.com/problems/4sum/) 的固定值与匹配成功后的左右值都要考虑去重。
+5. **原地覆盖未读数据**：同向写入通常保证 write 不超过 read；[88](https://leetcode.com/problems/merge-sorted-array/) 则从后往前填。
 6. **Go 字符串字节与字符混淆**：`s[i]` 返回字节；ASCII 题可直接处理，按 Unicode 码点处理时考虑 `[]rune`。
 7. **看到连续区间就套窗口**：先检查约束是否支持单调收缩，尤其注意负数。
 8. **整数溢出**：先转为 int64 再求和 / 乘法，不是算完后再转换；仍需结合数值范围确认安全。
@@ -778,12 +778,12 @@ func sortColors(nums []int) { ThreeWayPartition(nums, 1) }
 
 | 阶段 | 题目 | 练习目标 |
 |---|---|---|
-| 基础移动 | 344 → 125 → 27 → 26 → 283 | 边界、扫描、有效前缀 |
-| 相向排除 | 167 → 15 → 16 → 18 → 611 | 单调性、去重、批量计数 |
-| 贪心证明 | 11 → 42 | 区分排除候选与确定水位 |
-| 双序列协作 | 88 → 392 → 844 → 986 | 选择移动哪一侧 |
-| 链表与函数图 | 876 → 141 → 142 → 19 → 234 → 287 | 速度差、固定间距、环入口 |
-| 综合应用 | 80 → 75 → 3 → 209 → 713 → 76 → 992 | 不变量与窗口条件 |
+| 基础移动 | [344](https://leetcode.com/problems/reverse-string/) → [125](https://leetcode.com/problems/valid-palindrome/) → [27](https://leetcode.com/problems/remove-element/) → [26](https://leetcode.com/problems/remove-duplicates-from-sorted-array/) → [283](https://leetcode.com/problems/move-zeroes/) | 边界、扫描、有效前缀 |
+| 相向排除 | [167](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/) → [15](https://leetcode.com/problems/3sum/) → [16](https://leetcode.com/problems/3sum-closest/) → [18](https://leetcode.com/problems/4sum/) → [611](https://leetcode.com/problems/valid-triangle-number/) | 单调性、去重、批量计数 |
+| 贪心证明 | [11](https://leetcode.com/problems/container-with-most-water/) → [42](https://leetcode.com/problems/trapping-rain-water/) | 区分排除候选与确定水位 |
+| 双序列协作 | [88](https://leetcode.com/problems/merge-sorted-array/) → [392](https://leetcode.com/problems/is-subsequence/) → [844](https://leetcode.com/problems/backspace-string-compare/) → [986](https://leetcode.com/problems/interval-list-intersections/) | 选择移动哪一侧 |
+| 链表与函数图 | [876](https://leetcode.com/problems/middle-of-the-linked-list/) → [141](https://leetcode.com/problems/linked-list-cycle/) → [142](https://leetcode.com/problems/linked-list-cycle-ii/) → [19](https://leetcode.com/problems/remove-nth-node-from-end-of-list/) → [234](https://leetcode.com/problems/palindrome-linked-list/) → [287](https://leetcode.com/problems/find-the-duplicate-number/) | 速度差、固定间距、环入口 |
+| 综合应用 | [80](https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/) → [75](https://leetcode.com/problems/sort-colors/) → [3](https://leetcode.com/problems/longest-substring-without-repeating-characters/) → [209](https://leetcode.com/problems/minimum-size-subarray-sum/) → [713](https://leetcode.com/problems/subarray-product-less-than-k/) → [76](https://leetcode.com/problems/minimum-window-substring/) → [992](https://leetcode.com/problems/subarrays-with-k-different-integers/) | 不变量与窗口条件 |
 
 **一句话记忆：相向指针排除候选，读写指针维护结果，归并指针推进序列，快慢指针利用距离，滑动窗口维护区间。**
 
@@ -808,14 +808,14 @@ RainWater：
 
 | 不变量 | 当前题目入口 | 指针如何移动 |
 | --- | --- | --- |
-| 有序区间中排除不可能的数对 | [167](l167)、[15](l15)、[16](l16)、[18](l18)、[611](l611) | 和偏小移左端、偏大移右端；外层枚举另计复杂度 |
-| 两端已经匹配或交换完成 | [125](l125)、[344](l344)、[345](l345)、[680](l680)、[977](l977) | 从两侧向中间推进，允许题目规定的跳过 |
-| `nums[:write]` 是正确的有效前缀 | [26](l26)、[27](l27)、[80](l80)、[283](l283)、[443](l443) | read 扫描，满足保留条件才推进 write |
-| 两个序列各自已扫描前缀不再需要 | [88](l88)、[392](l392)、[844](l844)、[986](l986) | 由排序、匹配或区间结束点决定移动方向 |
-| 速度差或固定间距不变 | [141](l141)、[142](l142)、[19](l19)、[234](l234)、[876](l876)、[202](l202)、[287](l287) | 不强行套入相向指针循环 |
-| 已处理端点的容器/水位可确定 | [11](l11)、[42](l42) | 11 排除短板；42 结算水位，证明不同 |
-| 未使用数始终位于 `[low, high]` | [942](l942) | I 取最小值、D 取最大值，构造任意合法排列 |
-| 连续窗口状态可增量更新 | [滑动窗口汇总](../sliding_window/README.md) | 3、76、209、424、438、567、713、992、1004 已实际迁入该目录 |
+| 有序区间中排除不可能的数对 | [167](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/) · [本地](l167)、[15](https://leetcode.com/problems/3sum/) · [本地](l15)、[16](https://leetcode.com/problems/3sum-closest/) · [本地](l16)、[18](https://leetcode.com/problems/4sum/) · [本地](l18)、[611](https://leetcode.com/problems/valid-triangle-number/) · [本地](l611) | 和偏小移左端、偏大移右端；外层枚举另计复杂度 |
+| 两端已经匹配或交换完成 | [125](https://leetcode.com/problems/valid-palindrome/) · [本地](l125)、[344](https://leetcode.com/problems/reverse-string/) · [本地](l344)、[345](https://leetcode.com/problems/reverse-vowels-of-a-string/) · [本地](l345)、[680](https://leetcode.com/problems/valid-palindrome-ii/) · [本地](l680)、[977](https://leetcode.com/problems/squares-of-a-sorted-array/) · [本地](l977) | 从两侧向中间推进，允许题目规定的跳过 |
+| `nums[:write]` 是正确的有效前缀 | [26](https://leetcode.com/problems/remove-duplicates-from-sorted-array/) · [本地](l26)、[27](https://leetcode.com/problems/remove-element/) · [本地](l27)、[80](https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/) · [本地](l80)、[283](https://leetcode.com/problems/move-zeroes/) · [本地](l283)、[443](https://leetcode.com/problems/string-compression/) · [本地](l443) | read 扫描，满足保留条件才推进 write |
+| 两个序列各自已扫描前缀不再需要 | [88](https://leetcode.com/problems/merge-sorted-array/) · [本地](l88)、[392](https://leetcode.com/problems/is-subsequence/) · [本地](l392)、[844](https://leetcode.com/problems/backspace-string-compare/) · [本地](l844)、[986](https://leetcode.com/problems/interval-list-intersections/) · [本地](l986) | 由排序、匹配或区间结束点决定移动方向 |
+| 速度差或固定间距不变 | [141](https://leetcode.com/problems/linked-list-cycle/) · [本地](l141)、[142](https://leetcode.com/problems/linked-list-cycle-ii/) · [本地](l142)、[19](https://leetcode.com/problems/remove-nth-node-from-end-of-list/) · [本地](l19)、[234](https://leetcode.com/problems/palindrome-linked-list/) · [本地](l234)、[876](https://leetcode.com/problems/middle-of-the-linked-list/) · [本地](l876)、[202](https://leetcode.com/problems/happy-number/) · [本地](l202)、[287](https://leetcode.com/problems/find-the-duplicate-number/) · [本地](l287) | 不强行套入相向指针循环 |
+| 已处理端点的容器/水位可确定 | [11](https://leetcode.com/problems/container-with-most-water/) · [本地](l11)、[42](https://leetcode.com/problems/trapping-rain-water/) · [本地](l42) | [11](https://leetcode.com/problems/container-with-most-water/) 排除短板；[42](https://leetcode.com/problems/trapping-rain-water/) 结算水位，证明不同 |
+| 未使用数始终位于 `[low, high]` | [942](https://leetcode.com/problems/di-string-match/) · [本地](l942) | I 取最小值、D 取最大值，构造任意合法排列 |
+| 连续窗口状态可增量更新 | [滑动窗口汇总](../sliding_window/README.md) | [3](https://leetcode.com/problems/longest-substring-without-repeating-characters/)、[76](https://leetcode.com/problems/minimum-window-substring/)、[209](https://leetcode.com/problems/minimum-size-subarray-sum/)、[424](https://leetcode.com/problems/longest-repeating-character-replacement/)、[438](https://leetcode.com/problems/find-all-anagrams-in-a-string/)、[567](https://leetcode.com/problems/permutation-in-string/)、[713](https://leetcode.com/problems/subarray-product-less-than-k/)、[992](https://leetcode.com/problems/subarrays-with-k-different-integers/)、[1004](https://leetcode.com/problems/max-consecutive-ones-iii/) 已实际迁入该目录 |
 
 读写模板的移动规则可以复用，但保留条件必须由题目决定：
 
@@ -832,7 +832,7 @@ for read, value := range nums {
 // 有效结果为 nums[:write]；keep 是题目提供的保留条件。
 ```
 
-`rainwater/l11` 已移至 [l11](l11)；原可运行的 42 演示完整保存在 [l42/variants/from_rainwater](l42/variants/from_rainwater)，主目录 [l42](l42) 的独立练习和原测试现也使用同一 Opposite 模板。接雨水的单调栈版本仍在 [monotonic_stack/l42](../monotonic_stack/l42)，因为它按凹槽层而非两侧水位结算，不合并成一个强制共用的循环。
+`rainwater/l11` 已移至 [l11](l11)；原可运行的 [42](https://leetcode.com/problems/trapping-rain-water/) 演示完整保存在 [l42/variants/from_rainwater](l42/variants/from_rainwater)，主目录 [l42](l42) 的独立练习和原测试现也使用同一 Opposite 模板。接雨水的单调栈版本仍在 [monotonic_stack/l42](../monotonic_stack/l42)，因为它按凹槽层而非两侧水位结算，不合并成一个强制共用的循环。
 
 历史重复练习放在目标题目的 `variants/from_two_pointers`，仍是独立 Go 包；各来源现均按相同子模板独立实现，并运行原测试，不通过隐藏练习文件制造通过。路径映射和已知未完成包见 [reorganization.json](reorganization.json)。
 
@@ -841,7 +841,7 @@ for read, value := range nums {
 
 以下代码调用本页已经声明的 helper；复制到对应题解时使用实际 Go 文件中的官方函数名。
 
-### 26
+### [26](https://leetcode.com/problems/remove-duplicates-from-sorted-array/)
 
 ```go
 func removeDuplicates26(nums []int) int {
@@ -849,7 +849,7 @@ func removeDuplicates26(nums []int) int {
 }
 ```
 
-### 80
+### [80](https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/)
 
 ```go
 func removeDuplicates80(nums []int) int {
@@ -857,7 +857,7 @@ func removeDuplicates80(nums []int) int {
 }
 ```
 
-### 283
+### [283](https://leetcode.com/problems/move-zeroes/)
 
 ```go
 func moveZeroes(nums []int) {
@@ -868,7 +868,7 @@ func moveZeroes(nums []int) {
 }
 ```
 
-### 167
+### [167](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/)
 
 ```go
 func twoSum(numbers []int, target int) []int {
@@ -888,7 +888,7 @@ func twoSum(numbers []int, target int) []int {
 }
 ```
 
-### 16
+### [16](https://leetcode.com/problems/3sum-closest/)
 
 ```go
 func threeSumClosest(nums []int, target int) int {
@@ -923,7 +923,7 @@ func threeSumClosest(nums []int, target int) int {
 }
 ```
 
-### 18
+### [18](https://leetcode.com/problems/4sum/)
 
 ```go
 func fourSum(nums []int, target int) [][]int {
@@ -962,7 +962,7 @@ func fourSum(nums []int, target int) [][]int {
 }
 ```
 
-### 611
+### [611](https://leetcode.com/problems/valid-triangle-number/)
 
 ```go
 func triangleNumber(nums []int) int {
@@ -981,7 +981,7 @@ func triangleNumber(nums []int) int {
 }
 ```
 
-### 344
+### [344](https://leetcode.com/problems/reverse-string/)
 
 ```go
 func reverseString(s []byte) {
@@ -989,7 +989,7 @@ func reverseString(s []byte) {
 }
 ```
 
-### 345
+### [345](https://leetcode.com/problems/reverse-vowels-of-a-string/)
 
 ```go
 func reverseVowels(s string) string {
@@ -1008,7 +1008,7 @@ func reverseVowels(s string) string {
 }
 ```
 
-### 125
+### [125](https://leetcode.com/problems/valid-palindrome/)
 
 ```go
 func isPalindrome125(s string) bool {
@@ -1030,7 +1030,7 @@ func isPalindrome125(s string) bool {
 }
 ```
 
-### 680
+### [680](https://leetcode.com/problems/valid-palindrome-ii/)
 
 ```go
 func validPalindrome(s string) bool {
@@ -1046,7 +1046,7 @@ func validPalindrome(s string) bool {
 }
 ```
 
-### 977
+### [977](https://leetcode.com/problems/squares-of-a-sorted-array/)
 
 ```go
 func sortedSquares(nums []int) []int {
@@ -1070,7 +1070,7 @@ func sortedSquares(nums []int) []int {
 }
 ```
 
-### 392
+### [392](https://leetcode.com/problems/is-subsequence/)
 
 ```go
 func isSubsequence(s string, t string) bool {
@@ -1084,7 +1084,7 @@ func isSubsequence(s string, t string) bool {
 }
 ```
 
-### 986
+### [986](https://leetcode.com/problems/interval-list-intersections/)
 
 ```go
 func intervalIntersection(firstList [][]int, secondList [][]int) [][]int {
@@ -1106,13 +1106,13 @@ func intervalIntersection(firstList [][]int, secondList [][]int) [][]int {
 }
 ```
 
-### 88
+### [88](https://leetcode.com/problems/merge-sorted-array/)
 
 ```go
 func merge(nums1 []int, m int, nums2 []int, n int) { MergeBack(nums1, m, nums2, n) }
 ```
 
-### 844
+### [844](https://leetcode.com/problems/backspace-string-compare/)
 
 ```go
 func backspaceCompare(s string, t string) bool {
@@ -1132,7 +1132,7 @@ func backspaceCompare(s string, t string) bool {
 }
 ```
 
-### 443
+### [443](https://leetcode.com/problems/string-compression/)
 
 ```go
 func compress(chars []byte) int {
@@ -1152,7 +1152,7 @@ func compress(chars []byte) int {
 }
 ```
 
-### 905
+### [905](https://leetcode.com/problems/sort-array-by-parity/)
 
 ```go
 func sortArrayByParity(nums []int) []int {
@@ -1161,7 +1161,7 @@ func sortArrayByParity(nums []int) []int {
 }
 ```
 
-### 942
+### [942](https://leetcode.com/problems/di-string-match/)
 
 ```go
 func diStringMatch(s string) []int {
@@ -1169,13 +1169,13 @@ func diStringMatch(s string) []int {
 }
 ```
 
-### 141
+### [141](https://leetcode.com/problems/linked-list-cycle/)
 
 ```go
 func hasCycle(head *ListNode) bool { _, found := Floyd(head, NodeStep); return found }
 ```
 
-### 202
+### [202](https://leetcode.com/problems/happy-number/)
 
 ```go
 func isHappy(n int) bool {
@@ -1193,7 +1193,7 @@ func isHappy(n int) bool {
 }
 ```
 
-### 287
+### [287](https://leetcode.com/problems/find-the-duplicate-number/)
 
 ```go
 func findDuplicate(nums []int) int {
@@ -1202,13 +1202,13 @@ func findDuplicate(nums []int) int {
 }
 ```
 
-### 876
+### [876](https://leetcode.com/problems/middle-of-the-linked-list/)
 
 ```go
 func middleNode(head *ListNode) *ListNode { return Middle(head) }
 ```
 
-### 234
+### [234](https://leetcode.com/problems/palindrome-linked-list/)
 
 ```go
 func isPalindrome234(head *ListNode) bool {
@@ -1228,7 +1228,7 @@ func isPalindrome234(head *ListNode) bool {
 }
 ```
 
-### 19
+### [19](https://leetcode.com/problems/remove-nth-node-from-end-of-list/)
 
 ```go
 func removeNthFromEnd(head *ListNode, n int) *ListNode {
@@ -1241,7 +1241,7 @@ func removeNthFromEnd(head *ListNode, n int) *ListNode {
 }
 ```
 
-### 1574：拼接有序前后缀
+### [1574](https://leetcode.com/problems/shortest-subarray-to-be-removed-to-make-array-sorted/)：拼接有序前后缀
 
 ```go
 func findLengthOfShortestSubarray(arr []int) int { return joinSortedEnds(arr) }
