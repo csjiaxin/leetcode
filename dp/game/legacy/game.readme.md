@@ -50,25 +50,25 @@ diff(state) = max(本次得分 - diff(nextState))
 七道题共用下面的 `MemoGame[S, V]`，需要 Go 1.18+。模板只负责缓存；终止条件、合法操作与当前行动者视角由回调负责。
 
 ```go
-// MemoGame 仅缓存无环状态的求值；每次调用创建独立缓存。
-func MemoGame[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
-    memo := make(map[S]V)
-    var solve func(S) V
-    solve = func(state S) V {
-        if value, ok := memo[state]; ok {
-            return value
-        }
-        value := evaluate(state, solve)
-        memo[state] = value
-        return value
-    }
-    return solve
+// MemoGame 为 evaluate 的结果添加缓存；每次调用创建独立缓存。
+// evaluate 如需递归，应调用外部声明的缓存函数；状态转移必须无环。
+func MemoGame[S comparable, V any](evaluate func(S) V) func(S) V {
+	memo := make(map[S]V)
+	return func(state S) V {
+		if value, ok := memo[state]; ok {
+			return value
+		}
+		value := evaluate(state)
+		memo[state] = value
+		return value
+	}
 }
 ```
 
 - `S` 是完整状态，可以是 int、mask 或只含可比较字段的结构体。
 - `V` 是返回值：胜负型用 bool，分差型用 int。
-- `evaluate(state, solve)` 通过传入的 `solve(next)` 递归，确保子状态也使用同一缓存。
+- 递归函数先在外部声明，例如 `var win func(int) bool`，再赋值为 `win = MemoGame(...)`；`diff` 同理，完成赋值后再调用入口。
+- `evaluate(state)` 通过闭包调用外部的 `win(next)` 或 `diff(next)`；递归必须经过带缓存的函数，不能直接调用原始 `evaluate`。
 - 使用 map 的 `ok` 判断是否计算过：false、0、负数都可能是合法答案，不能拿它们当“未计算”。
 - 每个题解函数内部创建新的求解器，输入数组、目标值等固定规则由闭包捕获，避免跨题目调用污染缓存。
 - 它不解决有环博弈，不提供和局环检测，也不是并发安全的缓存。若转移可能回到尚在求值的状态，仅靠这个模板会无限递归。
@@ -83,13 +83,14 @@ func MemoGame[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
 
 ```go
 func divisorGame(n int) bool {
-    win := MemoGame(func(remaining int, solve func(int) bool) bool {
+    var win func(int) bool
+    win = MemoGame(func(remaining int) bool {
         for x := 1; x < remaining; x++ {
-            if remaining%x == 0 && !solve(remaining-x) {
+            if remaining%x == 0 && !win(remaining-x) {
                 return true
             }
         }
-        return false
+        return false // 没有能让对手输的合法动作，当前玩家必败。
     })
     return win(n)
 }
@@ -101,9 +102,10 @@ func divisorGame(n int) bool {
 
 ```go
 func winnerSquareGame(n int) bool {
-    win := MemoGame(func(remaining int, solve func(int) bool) bool {
+    var win func(int) bool
+    win = MemoGame(func(remaining int) bool {
         for root := 1; root <= remaining/root; root++ {
-            if !solve(remaining-root*root) {
+            if !win(remaining-root*root) {
                 return true
             }
         }
@@ -135,10 +137,11 @@ func winnerSquareGame(n int) bool {
 ```go
 func predictTheWinner(nums []int) bool {
     type interval struct{ left, right int }
-    diff := MemoGame(func(s interval, solve func(interval) int) int {
+    var diff func(interval) int
+    diff = MemoGame(func(s interval) int {
         if s.left > s.right { return 0 }
-        left := nums[s.left] - solve(interval{s.left+1, s.right})
-        right := nums[s.right] - solve(interval{s.left, s.right-1})
+        left := nums[s.left] - diff(interval{s.left+1, s.right})
+        right := nums[s.right] - diff(interval{s.left, s.right-1})
         if left > right { return left }
         return right
     })
@@ -152,13 +155,14 @@ func predictTheWinner(nums []int) bool {
 
 ```go
 func stoneGameIII(stoneValue []int) string {
-    diff := MemoGame(func(start int, solve func(int) int) int {
+    var diff func(int) int
+    diff = MemoGame(func(start int) int {
         if start == len(stoneValue) { return 0 }
         taken := stoneValue[start]
-        best := taken - solve(start+1)
+        best := taken - diff(start+1)
         for count := 2; count <= 3 && start+count <= len(stoneValue); count++ {
             taken += stoneValue[start+count-1]
-            candidate := taken - solve(start+count)
+            candidate := taken - diff(start+count)
             if candidate > best { best = candidate }
         }
         return best

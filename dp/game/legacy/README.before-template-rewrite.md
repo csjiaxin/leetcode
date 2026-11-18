@@ -5,24 +5,24 @@
 ## 1. 无环状态的记忆化骨架
 
 ~~~go
-func MemoGame[S comparable, V any](../
-    evaluate func(S, func(S) V) V,
-) func(S) V {
-    memo := make(map[S]V)
-    var solve func(S) V
-    solve = func(state S) V {
-        if value, ok := memo[state]; ok {
-            return value
-        }
-        value := evaluate(state, solve)
-        memo[state] = value
-        return value
-    }
-    return solve
+// MemoGame 为 evaluate 的结果添加缓存；每次调用创建独立缓存。
+// evaluate 如需递归，应调用外部声明的缓存函数；状态转移必须无环。
+func MemoGame[S comparable, V any](evaluate func(S) V) func(S) V {
+	memo := make(map[S]V)
+	return func(state S) V {
+		if value, ok := memo[state]; ok {
+			return value
+		}
+		value := evaluate(state)
+		memo[state] = value
+		return value
+	}
 }
 ~~~
 
 缓存存在性用 map 的 ok 判断，不能把 false 或 0 当成未计算。这个骨架要求递归状态有严格推进依据；不能用它自动求解有环博弈或平局状态。
+
+递归函数先在外部声明，例如 `var win func(int) bool`，再赋值为 `win = MemoGame(...)`；`diff` 同理。`evaluate` 通过闭包调用这个带缓存的函数，不能直接递归调用原始 `evaluate`；完成赋值后再调用入口。
 
 ## 2. 胜负与分差是两种状态
 

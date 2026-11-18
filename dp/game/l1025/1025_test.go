@@ -15,12 +15,13 @@ func TestDivisorGame(t *testing.T) {
 
 func TestMemoGameCachesZeroValues(t *testing.T) {
 	calls := map[int]int{}
-	solve := MemoGame(func(n int, recur func(int) bool) bool {
+	var solve func(int) bool
+	solve = MemoGame(func(n int) bool {
 		calls[n]++
 		if n == 0 {
 			return false
 		}
-		left, right := recur(n-1), recur(n-1)
+		left, right := solve(n-1), solve(n-1)
 		return !left && !right
 	})
 	for i := 0; i < 2; i++ {
@@ -33,12 +34,12 @@ func TestMemoGameCachesZeroValues(t *testing.T) {
 			t.Fatalf("state %d evaluated %d times", n, calls[n])
 		}
 	}
-	other := MemoGame(func(int, func(int) bool) bool { return true })
+	other := MemoGame(func(int) bool { return true })
 	if !other(10) || solve(10) {
 		t.Fatal("caches not independent")
 	}
 	zeroCalls := 0
-	zero := MemoGame(func(int, func(int) int) int {
+	zero := MemoGame(func(int) int {
 		zeroCalls++
 		return 0
 	})

@@ -1,18 +1,19 @@
 package l1140
 
-// MemoGame 仅缓存无环状态的求值；每次调用创建独立缓存。
-func MemoGame[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
+import "math"
+
+// MemoGame 为 evaluate 的结果添加缓存；每次调用创建独立缓存。
+// evaluate 如需递归，应调用外部声明的缓存函数；状态转移必须无环。
+func MemoGame[S comparable, V any](evaluate func(S) V) func(S) V {
 	memo := make(map[S]V)
-	var solve func(S) V
-	solve = func(state S) V {
+	return func(state S) V {
 		if value, ok := memo[state]; ok {
 			return value
 		}
-		value := evaluate(state, solve)
+		value := evaluate(state)
 		memo[state] = value
 		return value
 	}
-	return solve
 }
 
 // https://leetcode.com/problems/stone-game-ii/
@@ -24,25 +25,19 @@ func stoneGameII(piles []int) int {
 		suffix[i] = suffix[i+1] + piles[i]
 	}
 	type state struct{ start, m int }
-	diff := MemoGame(func(s state, solve func(state) int) int {
-		if s.start == n {
+	var diff func(state) int
+	diff = MemoGame(func(s state) int {
+		if s.start >= n {
 			return 0
 		}
-		// 原题全为正数，能全拿时直接结束。
-		if 2*s.m >= n-s.start {
-			return suffix[s.start]
-		}
-		best, initialized := 0, false
-		for x := 1; x <= 2*s.m && s.start+x <= n; x++ {
-			nextM := s.m
-			if x > nextM {
-				nextM = x
-			}
-			taken := suffix[s.start] - suffix[s.start+x]
-			candidate := taken - solve(state{s.start + x, nextM})
-			if !initialized || candidate > best {
-				best, initialized = candidate, true
-			}
+		best := math.MinInt
+		for X := 1; X <= 2*s.m && s.start+X-1 < n; X++ {
+			end := s.start + X - 1
+			score := suffix[s.start] - suffix[end+1] - diff(state{
+				start: end + 1,
+				m:     max(s.m, X),
+			})
+			best = max(best, score)
 		}
 		return best
 	})

@@ -26,21 +26,22 @@
 
 <!-- template: MemoGame -->
 ```go
-// MemoGame 仅缓存无环状态的求值；每次调用创建独立缓存。
-func MemoGame[S comparable, V any](evaluate func(S, func(S) V) V) func(S) V {
+// MemoGame 为 evaluate 的结果添加缓存；每次调用创建独立缓存。
+// evaluate 如需递归，应调用外部声明的缓存函数；状态转移必须无环。
+func MemoGame[S comparable, V any](evaluate func(S) V) func(S) V {
 	memo := make(map[S]V)
-	var solve func(S) V
-	solve = func(state S) V {
+	return func(state S) V {
 		if value, ok := memo[state]; ok {
 			return value
 		}
-		value := evaluate(state, solve)
+		value := evaluate(state)
 		memo[state] = value
 		return value
 	}
-	return solve
 }
 ```
+
+递归函数先在外部声明，例如 `var win func(int) bool`，再赋值为 `win = MemoGame(...)`；分差函数 `diff` 同理。`evaluate` 通过闭包调用外部的 `win` 或 `diff`，递归必须经过这个带缓存的函数，不能直接调用原始 `evaluate`。完成赋值后再调用入口状态。
 
 ### IntervalTable
 
@@ -79,13 +80,14 @@ func IntervalTable[T any](n int, base func(i int) T, step func(l, r int, dp [][]
 // https://leetcode.com/problems/divisor-game/
 // 状态单调变小；下面的适配器完整定义终止条件、合法动作与当前行动者收益。
 func divisorGame(n int) bool {
-	win := MemoGame(func(remaining int, solve func(int) bool) bool {
+	var win func(int) bool
+	win = MemoGame(func(remaining int) bool {
 		for x := 1; x < remaining; x++ {
-			if remaining%x == 0 && !solve(remaining-x) {
+			if remaining%x == 0 && !win(remaining-x) {
 				return true
 			}
 		}
-		return false // 无法操作，当前玩家失败。
+		return false // 没有能让对手输的合法动作，当前玩家必败。
 	})
 	return win(n)
 }
@@ -104,9 +106,10 @@ func divisorGame(n int) bool {
 // https://leetcode.com/problems/stone-game-iv/
 // 状态单调变小；下面的适配器完整定义终止条件、合法动作与当前行动者收益。
 func winnerSquareGame(n int) bool {
-	win := MemoGame(func(remaining int, solve func(int) bool) bool {
+	var win func(int) bool
+	win = MemoGame(func(remaining int) bool {
 		for root := 1; root <= remaining/root; root++ {
-			if !solve(remaining - root*root) {
+			if !win(remaining - root*root) {
 				return true
 			}
 		}
@@ -138,7 +141,8 @@ func canIWin(maxChoosableInteger int, desiredTotal int) bool {
 	if maxChoosableInteger*(maxChoosableInteger+1)/2 < desiredTotal {
 		return false
 	}
-	win := MemoGame(func(mask int, solve func(int) bool) bool {
+	var win func(int) bool
+	win = MemoGame(func(mask int) bool {
 		// 已选数字之和由 mask 唯一决定，不必加入缓存键。
 		remaining := desiredTotal
 		for x := 1; x <= maxChoosableInteger; x++ {
@@ -148,7 +152,7 @@ func canIWin(maxChoosableInteger int, desiredTotal int) bool {
 		}
 		for x := maxChoosableInteger; x >= 1; x-- {
 			bit := 1 << (x - 1)
-			if mask&bit == 0 && (x >= remaining || !solve(mask|bit)) {
+			if mask&bit == 0 && (x >= remaining || !win(mask|bit)) {
 				return true
 			}
 		}
@@ -172,12 +176,13 @@ func canIWin(maxChoosableInteger int, desiredTotal int) bool {
 // 状态单调变小；下面的适配器完整定义终止条件、合法动作与当前行动者收益。
 func predictTheWinner(nums []int) bool {
 	type interval struct{ left, right int }
-	diff := MemoGame(func(s interval, solve func(interval) int) int {
+	var diff func(interval) int
+	diff = MemoGame(func(s interval) int {
 		if s.left > s.right {
 			return 0
 		}
-		left := nums[s.left] - solve(interval{s.left + 1, s.right})
-		right := nums[s.right] - solve(interval{s.left, s.right - 1})
+		left := nums[s.left] - diff(interval{s.left + 1, s.right})
+		right := nums[s.right] - diff(interval{s.left, s.right - 1})
 		if left > right {
 			return left
 		}
@@ -200,16 +205,17 @@ func predictTheWinner(nums []int) bool {
 // https://leetcode.com/problems/stone-game-iii/
 // 状态单调变小；下面的适配器完整定义终止条件、合法动作与当前行动者收益。
 func stoneGameIII(stoneValue []int) string {
-	diff := MemoGame(func(start int, solve func(int) int) int {
+	var diff func(int) int
+	diff = MemoGame(func(start int) int {
 		if start == len(stoneValue) {
 			return 0
 		}
 		// 不能用 0 初始化：必须取石子，即使所有选择都亏分。
 		taken := stoneValue[start]
-		best := taken - solve(start+1)
+		best := taken - diff(start+1)
 		for count := 2; count <= 3 && start+count <= len(stoneValue); count++ {
 			taken += stoneValue[start+count-1]
-			candidate := taken - solve(start+count)
+			candidate := taken - diff(start+count)
 			if candidate > best {
 				best = candidate
 			}
@@ -245,13 +251,14 @@ func stoneGameVII(stones []int) int {
 		prefix[i+1] = prefix[i] + value
 	}
 	type interval struct{ left, right int }
-	diff := MemoGame(func(s interval, solve func(interval) int) int {
+	var diff func(interval) int
+	diff = MemoGame(func(s interval) int {
 		if s.left >= s.right {
 			return 0
 		}
 		// 得到的是移除后剩余区间总和，而不是被移除石子的值。
-		left := prefix[s.right+1] - prefix[s.left+1] - solve(interval{s.left + 1, s.right})
-		right := prefix[s.right] - prefix[s.left] - solve(interval{s.left, s.right - 1})
+		left := prefix[s.right+1] - prefix[s.left+1] - diff(interval{s.left + 1, s.right})
+		right := prefix[s.right] - prefix[s.left] - diff(interval{s.left, s.right - 1})
 		if left > right {
 			return left
 		}
@@ -280,7 +287,8 @@ func stoneGameII(piles []int) int {
 		suffix[i] = suffix[i+1] + piles[i]
 	}
 	type state struct{ start, m int }
-	diff := MemoGame(func(s state, solve func(state) int) int {
+	var diff func(state) int
+	diff = MemoGame(func(s state) int {
 		if s.start == n {
 			return 0
 		}
@@ -295,7 +303,7 @@ func stoneGameII(piles []int) int {
 				nextM = x
 			}
 			taken := suffix[s.start] - suffix[s.start+x]
-			candidate := taken - solve(state{s.start + x, nextM})
+			candidate := taken - diff(state{s.start + x, nextM})
 			if !initialized || candidate > best {
 				best, initialized = candidate, true
 			}
@@ -325,13 +333,14 @@ func stoneGameVII(stones []int) int {
 		prefix[i+1] = prefix[i] + value
 	}
 	type interval struct{ left, right int }
-	diff := MemoGame(func(s interval, solve func(interval) int) int {
+	var diff func(interval) int
+	diff = MemoGame(func(s interval) int {
 		if s.left >= s.right {
 			return 0
 		}
 		// 得到的是移除后剩余区间总和，而不是被移除石子的值。
-		left := prefix[s.right+1] - prefix[s.left+1] - solve(interval{s.left + 1, s.right})
-		right := prefix[s.right] - prefix[s.left] - solve(interval{s.left, s.right - 1})
+		left := prefix[s.right+1] - prefix[s.left+1] - diff(interval{s.left + 1, s.right})
+		right := prefix[s.right] - prefix[s.left] - diff(interval{s.left, s.right - 1})
 		if left > right {
 			return left
 		}
@@ -359,7 +368,8 @@ func stoneGameII(piles []int) int {
 		suffix[i] = suffix[i+1] + piles[i]
 	}
 	type state struct{ start, m int }
-	diff := MemoGame(func(s state, solve func(state) int) int {
+	var diff func(state) int
+	diff = MemoGame(func(s state) int {
 		if s.start == n {
 			return 0
 		}
@@ -374,7 +384,7 @@ func stoneGameII(piles []int) int {
 				nextM = x
 			}
 			taken := suffix[s.start] - suffix[s.start+x]
-			candidate := taken - solve(state{s.start + x, nextM})
+			candidate := taken - diff(state{s.start + x, nextM})
 			if !initialized || candidate > best {
 				best, initialized = candidate, true
 			}

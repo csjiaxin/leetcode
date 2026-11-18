@@ -7,6 +7,7 @@ func TestCanIWin(t *testing.T) {
 		n, target int
 		want      bool
 	}{
+		{4, 6, true},
 		{10, 11, false}, {10, 0, true}, {10, 1, true}, {10, 10, true},
 		{5, 50, false}, {1, 1, true}, {1, 2, false}, {3, 6, true}, {4, 10, false},
 		{20, 210, false}, {20, 211, false},
