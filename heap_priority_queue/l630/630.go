@@ -2,24 +2,28 @@ package l630
 
 import (
 	"container/heap"
-	"sort"
+	"slices"
 )
 
 // scheduleCourse sorts deadlines; when over budget, discard the longest course.
 // O(n log n) time, O(n) space. The input is not reordered.
 func scheduleCourse(courses [][]int) int {
-	ordered := append([][]int(nil), courses...)
-	sort.Slice(ordered, func(i, j int) bool { return ordered[i][1] < ordered[j][1] })
-	q := NewQueue(func(a, b int) bool { return a > b })
-	var elapsed int64
-	for _, c := range ordered {
-		q.Push(c[0])
-		elapsed += int64(c[0])
-		if elapsed > int64(c[1]) {
-			elapsed -= int64(q.Pop())
+	slices.SortFunc(courses, func(a []int, b []int) int { return a[1] - b[1] })
+	total := 0
+	q := NewQueue(func(a, b []int) bool { return a[0] > b[0] })
+
+	drop := 0
+	for i := 0; i < len(courses); i++ {
+		c := courses[i]
+		q.Push(c)
+		total += c[0]
+		if total > c[1] {
+			removed := q.Pop()
+			total -= removed[0]
+			drop++
 		}
 	}
-	return q.Len()
+	return len(courses) - drop
 }
 
 // 以下泛型堆模板与题解放在同一个文件，便于直接提交。

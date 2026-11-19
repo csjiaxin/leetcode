@@ -1,5 +1,408 @@
 # 贪心算法（Greedy）
 
+## 分类学习指南：先证明决策，再选择模板
+
+**贪心不是一种固定的数据结构，也没有能覆盖所有题目的单一代码模板。** 排序、双指针、单调栈、堆、扫描都可能承载贪心；真正共通的是：证明某个选择不会损失最优解，随后舍弃不必要的其他选择。
+
+本指南新增的 Go helper 使用独立名称；`sort`、`container/heap` 及 `FuelHeap` 在后面的“本页可复用模板”中定义。代码按各题数据范围使用 `int`，更大范围需要改用 `int64` 并检查累加溢出。排序类模板通常会原地修改输入，需要保留原数组时先复制。
+
+### 导航与分类速查
+
+- [通用解题步骤与证明](#greedy-process)
+- [A. 字典序：31、556、1053 的贪心推导与模板](#greedy-lexicographic)
+- [B. 排序匹配与单位收益](#greedy-sorting)
+- [C. 区间选择、刺点与覆盖扩展](#greedy-intervals)
+- [D. 可达范围与分层跳跃](#greedy-reach)
+- [E. 余额扫描与失败区间排除](#greedy-balance)
+- [F. 堆：延迟选择与反悔](#greedy-heap)
+- [G. 单调栈：撤销较差前缀](#greedy-stack)
+- [H. 相邻约束：双向扫描](#greedy-two-pass)
+- [I. 贪心作为答案二分的判定](#greedy-check)
+- [学习路线与反例检查](#greedy-practice)
+
+| 类别 | 局部决策 | 证明抓手 | 代表题 |
+| --- | --- | --- | --- |
+| 字典序 | 最晚改变前缀，再最小化变化幅度 | 第一个不同位置决定大小 | 31、556、1053 |
+| 排序匹配 | 最小够用资源满足最小需求 | 交换后不减少匹配数 | 455、881 |
+| 单位收益 | 等容量单位优先取收益高的 | 一对一替换收益不减 | 1710 |
+| 区间选择 / 刺点 | 优先最早结束 / 在最早右端点刺点 | 为后续保留最多空间 | 435、452 |
+| 覆盖扩展 | 当前可接入区间中延伸最远 | 相同选择数，覆盖更远者支配更近者 | 1024、1326 |
+| 可达边界 | 扫描整层后跳到下一层最远边界 | BFS 层数下界与可达范围不变量 | 55、45 |
+| 失败排除 | 前缀首次失败，跳过整个候选区间 | 证明中间任一起点也会失败 | 134 |
+| 堆延迟选择 / 反悔 | 需要时取最大收益 / 超限时撤销最大代价 | 替换后状态不劣 | 871、1642、630 |
+| 单调栈 | 若允许且必要，撤销更差的前缀末尾 | 字典序优先＋可行性约束 | 402、316、1081、321 |
+| 双向扫描 | 分别满足左右约束，逐点取下界最大值 | 任意可行解都必须满足两个下界 | 135 |
+| 二分 check | 固定上限下，每组尽量装满 | 非负、顺序固定时，贪心分段数最少 | 1011、410 |
+
+<a id="greedy-process"></a>
+
+### 通用解题步骤：不能省略“为什么”
+
+1. **定义目标与约束**：最大数量、最小代价、字典序最小？能否重排、撤销、重复使用资源？
+2. **确定决策单位**：当前数位、一个区间、一层可达位置，还是某个候选任务？
+3. **提出选择规则**：写清主关键字和相等时的处理，而不是笼统地“排序后贪心”。
+4. **尝试反例**：重复值、端点相等、局部收益大但后续代价大，是否会击穿规则？
+5. **证明安全性**：交换论证、领先 / 支配关系、失败区间排除，或者必要下界与可行解一致。
+6. **维护状态并处理边界**：说明状态含义、何时更新、何时答案确定、无解如何返回。
+
+通用的只是推理框架，而不是可直接套题的统一函数：
+
+```text
+明确剩余问题与不变量
+while 还有决策：
+    找到当前合法候选
+    根据已经证明的规则选择、延迟选择或替换候选
+    更新状态，保持不变量
+检查完整可行性，返回结果
+```
+
+贪心并不意味着代码绝不撤销操作：堆反悔和单调栈都会替换暂定选择，但每次替换都由确定规则支配，不像回溯那样枚举所有分支。
+
+<a id="greedy-lexicographic"></a>
+
+### A. 字典序贪心：为什么能直接决定交换位置？
+
+**字典序只看第一个不同位置，后面的任何改动都无法弥补这个位置的大小差异。** 因此依次优化：保留最长前缀 → 优化首次变化的数值 → 优化剩余后缀。
+
+#### A1. 31 下一个排列：最小幅度地变大
+
+[31. 下一个排列](https://leetcode.com/problems/next-permutation/) 要求在所有严格更大的排列中取最小值：
+
+1. **最晚修改**：从右向左找第一个 `a[i] < a[i+1]`。右侧已非递增，是该后缀的最大排列；只重排右侧不可能变大，所以 i 是最右可增大的位置。改更左处会更大，不可能更优。
+2. **最小增幅**：在右侧找严格大于 `a[i]` 的最小值。后缀非递增，从右向左遇到的第一个更大值就是答案。
+3. **最小后缀**：交换后前缀已保证变大，将后缀调整为升序，令整体尽量小。交换后的后缀仍非递增，直接反转即可。
+
+```text
+1 3 | 5 4 2   后缀已最大，必须改变 3
+1 4 | 5 3 2   换成最小的更大值 4，而不是 5
+1 4 | 2 3 5   反转后缀为升序，得到下一个排列
+```
+
+找不到 i 表示已经是最大排列。31 要求重置为最小排列；下面的返回值同时告诉调用者是否存在严格更大的排列。[556. 下一个更大元素 III](https://leetcode.com/problems/next-greater-element-iii/) 对数位应用同一模板，无更大结果或超出 32 位有符号整数范围则返回 -1；可用 `int64` 累加检查。
+
+```go
+// 原地修改；有下一个排列返回 true，否则重置为最小排列并返回 false。
+func GreedyNextPermutation(a []int) bool {
+    i := len(a) - 2
+    for i >= 0 && a[i] >= a[i+1] { i-- }
+    advanced := i >= 0
+    if advanced {
+        j := len(a) - 1
+        for a[j] <= a[i] { j-- }
+        a[i], a[j] = a[j], a[i]
+    }
+    for l, r := i+1, len(a)-1; l < r; l, r = l+1, r-1 {
+        a[l], a[r] = a[r], a[l]
+    }
+    return advanced
+}
+```
+
+时间 O(n)，额外空间 O(1)，支持重复元素。[31 本地实现](../permutation/l31/31.go)、[556 本地实现](../permutation/l556/556.go)。
+
+#### A2. 1053：一次交换，最大限度地接近原排列但严格变小
+
+[1053. 交换一次的先前排列](https://leetcode.com/problems/previous-permutation-with-one-swap/) 的结果不一定是所有排列中的直接前驱，因为最多只能交换一次：
+
+1. **最晚修改**：从右向左找第一个 `a[i] > a[i+1]`。右侧非递减，内部交换不能使它变小，必须改 i 或更左处；选择 i 保留最长前缀。
+2. **最小降幅**：从右侧取严格小于 `a[i]` 的最大值。例如 `1 9 4 6 7 → 1 7 4 6 9`，换 7 比换 6 更接近原排列。
+3. **重复候选取最左位置**：`3 1 1` 与左边的 1 交换得 `1 3 1`，与右边的交换得 `1 1 3`。前者把原来的大值放得更靠左，后缀更大。
+
+```go
+func GreedyPreviousOneSwap(a []int) []int {
+    i := len(a) - 2
+    for i >= 0 && a[i] <= a[i+1] { i-- }
+    if i < 0 { return a }
+    j := len(a) - 1
+    for a[j] >= a[i] { j-- }
+    for j > i+1 && a[j] == a[j-1] { j-- }
+    a[i], a[j] = a[j], a[i]
+    return a
+}
+```
+
+时间 O(n)，额外空间 O(1)。**交换后不能再反转后缀**，否则违反一次交换限制。[1053 本地实现](../permutation/l1053/1053.go)。
+
+| 决策 | 31 / 556 | 1053 |
+| --- | --- | --- |
+| 目标 | 严格变大且尽量小 | 一次交换后严格变小且尽量大 |
+| 位置 | 最右可增大处 | 最右可减小处 |
+| 候选值 | 严格更大值中的最小值 | 严格更小值中的最大值 |
+| 后缀 | 反转为最小排列 | 不可再重排；重复候选取最左位置 |
+
+<a id="greedy-sorting"></a>
+
+### B. 排序匹配与单位收益：不要混成“排序就对了”
+
+**匹配模板**：两边升序，拿当前最小资源尝试满足最小需求；不够就丢弃资源，够用就同时推进。下方 `MatchSorted` 要求调用前已排序。
+
+```go
+func GreedyAssign(requirements, resources []int) int {
+    sort.Ints(requirements)
+    sort.Ints(resources)
+    return MatchSorted(requirements, resources)
+}
+```
+
+- [455. 分发饼干](https://leetcode.com/problems/assign-cookies/)：资源不够满足最小需求，就不可能满足更大需求；够用时匹配最小需求，可以通过交换论证保留最优匹配数。时间 O(n log n + m log m)，扫描 O(n+m)。
+- [881. 救生艇](https://leetcode.com/problems/boats-to-save-people/)：每次必须安排最重者；若能与最轻者配对就一起走，否则最重者只能独乘。**每船最多两人**是关键，不能推广到每船可坐任意多人。
+
+**单位收益模板**：下方 `TakeByValue` 按单箱收益降序，每次拿尽可能多的当前类型。适用于 [1710. 卡车上的最大单元数](https://leetcode.com/problems/maximum-units-on-a-truck/)，因为每个箱子都恰好占一个车位，替换一个低收益箱子不会增加容量消耗。时间 O(t log t)，t 为类型数。
+
+反例边界：一般 0/1 背包的物品重量不同，不能套单位收益贪心；容量 4，物品 `(重量,价值)` 为 `(3,5)、(2,3)、(2,3)`，按价值密度先选前者只能得 5，但后两者能得 6。
+
+<a id="greedy-intervals"></a>
+
+### C. 区间：选择、刺点、覆盖，是三个不同目标
+
+**C1. 最多保留不重叠区间**：[435. 无重叠区间](https://leetcode.com/problems/non-overlapping-intervals/)。按右端点升序，保留最早结束者；相同保留数下，结束更早不会减少未来选择。下方 `SelectByEnd(intervals, func(s,e int) bool { return s >= e })` 返回最多保留数，删除数为总数减保留数。
+
+**C2. 最少点刺穿全部闭区间**：[452. 用最少数量的箭引爆气球](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/)。把箭放在最早结束区间的右端点：任何解都必须有一箭命中它，将这一箭右移到该右端点，不会漏掉尚未处理且原来被该箭命中的区间。复用 `SelectByEnd`，新箭条件改为 `start > arrow`。
+
+两者排序时间均为 O(n log n)。**435 中端点相等可以接续，452 中端点相等可以共用箭**。
+
+**C3. 最少区间覆盖 `[0,target]`**：[1024. 视频拼接](https://leetcode.com/problems/video-stitching/)、[1326. 灌溉花园的最少水龙头数目](https://leetcode.com/problems/minimum-number-of-taps-to-open-to-water-a-garden/)。按左端点升序，在当前覆盖边界之前可接入的区间中，选右端点最远的；其他选择无法用相同的一步覆盖得更远。
+
+```go
+// intervals 中每项为合法闭区间 [left,right]；覆盖目标为 [0,target]。
+func GreedyCover(intervals [][]int, target int) int {
+    sort.Slice(intervals, func(i, j int) bool {
+        return intervals[i][0] < intervals[j][0]
+    })
+    end, i, count := 0, 0, 0
+    for end < target {
+        farthest := end
+        for i < len(intervals) && intervals[i][0] <= end {
+            if intervals[i][1] > farthest { farthest = intervals[i][1] }
+            i++
+        }
+        if farthest == end { return -1 }
+        end = farthest
+        count++
+    }
+    return count
+}
+```
+
+1326 先将第 i 个水龙头转为 `[max(0,i-ranges[i]), min(n,i+ranges[i])]`。时间 O(n log n)；不是“选择最早结束”，因为目标变成了**用最少区间延伸覆盖范围**。更多内容见 [区间贪心](interval_greedy/readme.md)。
+
+<a id="greedy-reach"></a>
+
+### D. 可达范围：边界支配与隐式 BFS
+
+适用前提：从 i 可以前进到 `i+1..i+nums[i]` 中任意位置，跳跃长度非负；可达位置形成连续前缀。任意图的可达集合不一定连续，不能仅用一个边界替代 BFS。
+
+- [55. 跳跃游戏](https://leetcode.com/problems/jump-game/)：只扫描可达位置，维护 `farthest = max(farthest, i+nums[i])`。若 `i > farthest`，后面都无法到达。
+- [45. 跳跃游戏 II](https://leetcode.com/problems/jump-game-ii/)：维护 `end`（当前跳数对应的最远边界）、`farthest`（下一层最远边界）；扫描到 end 才增加步数，见下方 `RangeJumps`。
+
+```text
+扫描当前层中的每个位置，合并其下一跳能到达的范围
+到达当前层终点时：
+    若无法扩展，则无解
+    steps++
+    end = farthest
+```
+
+每层穷尽当前跳数的所有可达选择，因此首次覆盖终点所需层数最少，等价于压缩状态后的 BFS。不是每次跳到最远下标：`[2,3,1,1,4]` 中先跳到下标 1 比先跳到下标 2 更好。时间 O(n)，额外空间 O(1)。
+
+<a id="greedy-balance"></a>
+
+### E. 余额扫描：一次失败排除整个区间
+
+[134. 加油站](https://leetcode.com/problems/gas-station/) 用 `delta[i] = gas[i]-cost[i]` 表示净收益，见下方 `CircuitStart`。
+
+```text
+total += delta[i]，tank += delta[i]
+若 tank < 0：start = i+1，tank = 0
+扫描结束：total < 0 则无解，否则返回 start
+```
+
+证明：若从 start 出发首次在 i 失败，则 start 到任意 `j-1` 的余额非负，所以从中间 j 出发到 i 的余额，只会比从 start 出发更小或相等，仍为负。由此整个 `[start,i]` 的起点一次性排除。总净收益非负，再配合这种起点选择，才能保证完整环路可行。
+
+时间 O(n)，额外空间 O(1)。余额等于 0 不失败；不能只检查总量后任意返回一个起点。见 [燃料与余额专题](gas_fuel/readme.md)。
+
+<a id="greedy-heap"></a>
+
+### F. 堆贪心：延迟选择和反悔不是同一种状态
+
+#### F1. 延迟选择最大收益
+
+[871. 最低加油次数](https://leetcode.com/problems/minimum-number-of-refueling-stops/)：站点按位置升序，先把所有已经可达但未使用的站点加入最大堆。只有需要扩展可达距离时，才弹出最大油量，见下方 `GreedyRefuel`。
+
+```text
+while reach < target：
+    所有 position <= reach 的未处理站点入最大堆
+    堆为空则无解
+    reach += 弹出的最大油量
+    stops++
+```
+
+相同增加一次加油，取已可达候选中的最大油量能到得最远，不会损失后续候选。这里依赖油箱容量无限等原题条件；只允许取已可达站点，不能提前借用未来站点。时间 O(n log n)，额外空间 O(n)。
+
+类似题：[1642. 可以到达的最远建筑](https://leetcode.com/problems/furthest-building-you-can-reach/)，可用最小堆把梯子保留给最大的几次正高度差，其余用砖块。局部决策相近，但状态和代码不能直接照搬加油模板。
+
+#### F2. 超限时撤销最大代价
+
+[630. 课程表 III](https://leetcode.com/problems/course-schedule-iii/)：按截止时间升序，暂时选入课程；若超时，删除已选课程中耗时最长的一门。
+
+```go
+func GreedySchedule(courses [][]int) int {
+    sort.Slice(courses, func(i, j int) bool {
+        return courses[i][1] < courses[j][1]
+    })
+    selected := &FuelHeap{} // 复用下方最大堆；这里存课程时长，不是油量。
+    heap.Init(selected)
+    elapsed := 0
+    for _, c := range courses {
+        elapsed += c[0]
+        heap.Push(selected, c[0])
+        if elapsed > c[1] {
+            elapsed -= heap.Pop(selected).(int)
+        }
+    }
+    return selected.Len()
+}
+```
+
+每门课为 `[正时长, 截止时间]`。按截止时间处理确保旧约束不会因为新截止时间而变紧；超限时减少数量不可避免，删最长者给后续留下最多时间。只需删一门：被删时长至少等于刚加入课程的时长，因此总时长不超过加入前的值，恢复可行。交换论证可维持前缀内最大可选数量，并在该数量下最小化总时长。
+
+时间 O(n log n)，额外空间 O(n)。这是允许替换暂定选择的贪心，不是“选了就永不后悔”。
+
+<a id="greedy-stack"></a>
+
+### G. 单调栈：让更优元素尽量靠前，但必须还能完成任务
+
+[402. 移掉 K 位数字](https://leetcode.com/problems/remove-k-digits/)：保留相对顺序，删除恰好 k 位，使结果最小。若栈顶比当前数字大且还有删除额度，删除栈顶能让首次不同位置变小，是更优的前缀；若数字非递减导致额度剩余，则从末尾删除。
+
+```go
+// num 为非空十进制数字串，0 <= k <= len(num)。
+func GreedyRemoveDigits(num string, k int) string {
+    stack := make([]byte, 0, len(num))
+    for i := 0; i < len(num); i++ {
+        digit := num[i]
+        for k > 0 && len(stack) > 0 && stack[len(stack)-1] > digit {
+            stack = stack[:len(stack)-1]
+            k--
+        }
+        stack = append(stack, digit)
+    }
+    stack = stack[:len(stack)-k]
+    first := 0
+    for first < len(stack) && stack[first] == '0' { first++ }
+    if first == len(stack) { return "0" }
+    return string(stack[first:])
+}
+```
+
+例如 `1432219, k=3`：读到 3 时移除 4，读到 2 时移除 3，读到 1 时移除前面的 2，最终为 `1219`。每个数字最多入栈、出栈一次，时间 O(n)，额外空间 O(n)。注意不是保证最终栈始终单调：删除额度耗尽后，不能再弹栈。
+
+**同族但弹栈可行条件不同**：
+
+- [316. 去除重复字母](https://leetcode.com/problems/remove-duplicate-letters/)、[1081. 不同字符的最小子序列](https://leetcode.com/problems/smallest-subsequence-of-distinct-characters/)：每个不同字符恰好一次；弹出较大字符前，还必须确认它后面会再次出现，并维护是否已在栈内。不能把 402 的删除额度判断原样搬过来。
+- [321. 拼接最大数](https://leetcode.com/problems/create-maximum-number/)：固定选取长度时用反向比较的单调栈求最大子序列，还要枚举两个数组各取多少个，并按**剩余后缀**字典序合并，不能只比较当前首字符。
+
+更一般的推理骨架是：
+
+```text
+for 当前元素 x：
+    while 栈顶导致目标更差，并且弹出后仍能完成任务：
+        弹出栈顶，更新剩余资源 / 状态
+    若 x 满足加入条件，则入栈
+处理剩余删除额度、长度约束及输出格式
+```
+
+相关实现见 [单调栈目录](../monotonic_stack/README.md)。
+
+<a id="greedy-two-pass"></a>
+
+### H. 双向扫描：合并两个方向的必要下界
+
+[135. 分发糖果](https://leetcode.com/problems/candy/)：每人至少 1 颗，评分高于相邻者时糖果也必须更多。
+
+- 从左到右，计算只满足左邻约束所需的最少糖果 `left[i]`。
+- 从右到左，计算只满足右邻约束所需的最少糖果 `right[i]`。
+- 每点取 `max(left[i], right[i])`。任意合法解至少达到这个下界，而该结果又同时满足左右约束，因此全局总和最小。
+
+```go
+func GreedyCandy(ratings []int) int {
+    left := make([]int, len(ratings))
+    for i := range ratings {
+        left[i] = 1
+        if i > 0 && ratings[i] > ratings[i-1] {
+            left[i] = left[i-1] + 1
+        }
+    }
+    total, right := 0, 1
+    for i := len(ratings)-1; i >= 0; i-- {
+        if i+1 < len(ratings) && ratings[i] > ratings[i+1] {
+            right++
+        } else {
+            right = 1
+        }
+        value := left[i]
+        if right > value { value = right }
+        total += value
+    }
+    return total
+}
+```
+
+时间 O(n)，额外空间 O(n)，空输入返回 0。相同评分没有“必须更多”的要求，连续递增的条件必须是严格大于。这个模板适用于可拆成左右单向下界、取最大值后仍可行的相邻约束，**不是所有双向约束都能直接取 max**。
+
+<a id="greedy-check"></a>
+
+### I. 贪心用于答案二分：固定上限后，计算最少分组数
+
+[1011. 在 D 天内送达包裹的能力](https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/)、[410. 分割数组的最大值](https://leetcode.com/problems/split-array-largest-sum/) 的共性：非负数组、保持原顺序、每组连续，组和不超过给定上限。
+
+```go
+// nums 非负，limit 非负；返回最少非空连续组数，以及是否存在单元素超限。
+func GreedyGroupsUnderLimit(nums []int, limit int) (int, bool) {
+    if len(nums) == 0 { return 0, true }
+    groups, sum := 1, 0
+    for _, x := range nums {
+        if x > limit { return 0, false }
+        if sum > limit-x { // 避免 sum+x 溢出。
+            groups++
+            sum = 0
+        }
+        sum += x
+    }
+    return groups, true
+}
+```
+
+**证明**：每组尽量向右延伸；任何可行分法的第一组都不能越过贪心第一组的终点。非负性保证对剩余部分同样成立，归纳得到贪心以相同组数覆盖的前缀不短于任何其他分法，因此组数最少。
+
+外层二分最小可行上限，`check(limit)` 为 `ok && groups <= k`。上限越大，所需组数不会增加，满足二分的单调性。通常搜索区间为 `[max(nums), sum(nums)]`，总和可能需要 `int64`。410 要求恰好 k 组：当 `1 <= k <= n` 时，非负数组可继续拆组且不增大组和，所以“至多 k 组”判定仍成立。1011 则允许少于 D 天完成。
+
+单次 check 时间 O(n)，额外空间 O(1)，外层总时间 O(n log S)，S 为整数搜索区间规模。若允许任意重排、出现负数或允许非连续分组，这个证明与模板可能失效。见 [二分答案目录](../binary_search/readme.md)。
+
+<a id="greedy-practice"></a>
+
+### 学习路线、反例与模板选型清单
+
+```text
+入门交换论证：455 → 1710 → 881
+区间目标区分：435 → 452 → 1024 → 1326
+边界与失败排除：55 → 45 → 134
+字典序：31 → 556 → 1053
+延迟选择与反悔：871 → 1642 → 630
+单调栈与前缀：402 → 316 / 1081 → 321
+约束下界：135
+二分答案＋贪心：1011 → 410
+```
+
+遇到新题，先问：
+
+- **排序依据是否有证明？** 不是所有区间都按右端点排序，也不是所有收益问题都按价值密度排序。
+- **相等时怎么办？** 端点能否共用、比较是否严格、重复候选选左还是右，都会改变结果。
+- **候选是否真的可行？** 不可达站点不能提前入候选堆；已超出可达范围的位置不能用于扩展边界。
+- **为什么不需要记录更多状态？** 找不到支配关系或交换证明时，考虑 DP、搜索、图算法，而不是强行贪心。
+- **能否用小规模暴力验证猜想？** 比较全部排列、全部区间子集、全部任务子集，可快速找到反例；实验能帮助排错，但不能替代证明。
+
+上述题单是代表性应用，不代表每题都已在 `greedy/` 下实现。跨目录实现保持原位置；本次只扩充学习文档，不移动代码。原有 helper 与逐题适配器保留如下。
+
 ## 本页可复用模板：贪心与可达范围
 
 先复制以下 helper，再复制任一题适配器。实际题解在每个文件内嵌同名 helper，可独立提交，不导入仓库本地算法包。不同移动/贪心依据使用不同命名模板，不把“用了两个变量”当作同一不变量。
@@ -256,7 +659,7 @@ func GreedyRefuel(target, startFuel int, stations [][]int) int {
 
 ## 6. 逐题说明与解释
 
-按目录顺序练习。每题提供空函数和测试；下文仅描述算法，不填充实现。
+按目录顺序练习。各题已有实现与测试；下文补充算法解释，代码可参考本页 helper、适配器及对应 Go 文件。
 
 <a id="lc455"></a>
 

@@ -3,21 +3,21 @@ package l1053
 // Standalone lexicographic/factorial subtemplate and problem adapter.
 // previousSingleSwap changes the rightmost reducible pivot by one swap only.
 func previousSingleSwap(arr []int) []int {
-	pivot := len(arr) - 2
-	for pivot >= 0 && arr[pivot] <= arr[pivot+1] {
-		pivot--
+	n := len(arr)
+
+	i := n - 2
+	for ; i >= 0 && arr[i] <= arr[i+1]; i-- {
 	}
-	if pivot < 0 {
+	if i < 0 {
 		return arr
 	}
-	successor := len(arr) - 1
-	for arr[successor] >= arr[pivot] {
-		successor--
+	j := n - 1
+	for ; j >= i && arr[j] >= arr[i]; j-- {
 	}
-	for successor > pivot+1 && arr[successor] == arr[successor-1] {
-		successor--
+	for ; arr[j-1] == arr[j]; j-- {
+
 	}
-	arr[pivot], arr[successor] = arr[successor], arr[pivot]
+	arr[i], arr[j] = arr[j], arr[i]
 	return arr
 }
 
