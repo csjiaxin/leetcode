@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestIsBipartite(t *testing.T) {
 	tests := []struct {
@@ -24,6 +27,20 @@ func TestIsBipartite(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			var before [][]int
+			if tt.graph != nil {
+				before = make([][]int, len(tt.graph))
+				for i, neighbors := range tt.graph {
+					if neighbors != nil {
+						before[i] = append([]int{}, neighbors...)
+					}
+				}
+			}
+			t.Cleanup(func() {
+				if !reflect.DeepEqual(tt.graph, before) {
+					t.Errorf("input changed: got %v, want %v", tt.graph, before)
+				}
+			})
 			if got := isBipartite(tt.graph); got != tt.want {
 				t.Errorf("isBipartite(%v) = %v, want %v", tt.graph, got, tt.want)
 			}
