@@ -59,6 +59,23 @@
 
 相似题可以交叉索引。例如 [1248](https://leetcode.com/problems/count-number-of-nice-subarrays/) 可以用前缀计数或 atMost，[871](https://leetcode.com/problems/minimum-number-of-refueling-stops/) 可以用按次数 DP 或最大堆，[329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) 可以用记忆化 DFS 或拓扑 DP。算法不变量不同的版本保留为独立解法，不互相替换测试。
 
+## 面试基础补齐：新增指南
+
+这些入口补充先前分散或尚未成体系的知识，包含分类思路、Go 参考模板和练习题单，不将推荐题单当成已完成的独立实现。
+
+| 系列 | 重点不变量 / 选型 | 入口 |
+| --- | --- | --- |
+| 哈希 | key 的等价性、查写时序、已处理状态 | [hash_table](../hash_table/README.md) |
+| 链表 | 保存后继、连接边界、节点身份 | [linked_list](../linked_list/README.md) |
+| 树基础 | 层内批处理、BST 中序、结构编码 | [tree/fundamentals](../tree/fundamentals/README.md) |
+| 结构组合 | 将 API 的顺序和复杂度要求拆给不同结构 | [data_structure_design](../data_structure_design/README.md) |
+| 排序与选择 | 合并有序区间、三路分区、目标排名 | [sorting](../sorting/README.md) |
+| 位运算 | 固定位宽、异或抵消、位集合 | [bit_manipulation](../bit_manipulation/README.md) |
+| 数学 | 余数递推、指数二进制分解、数位进位 | [math](../math/README.md) |
+| 矩阵 | 坐标映射、剩余边界、防更新污染 | [matrix](../matrix/README.md) |
+| 扫描线 | 同坐标事件语义、当前活跃候选 | [sweep_line](../sweep_line/README.md) |
+| 树状数组 | lowbit 覆盖块、动态前缀与离散化频次 | [tree/fenwick](../tree/fenwick/README.md) |
+
 ## 如何复习一个系列
 
 1. 写清适用条件和状态的准确含义。

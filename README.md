@@ -29,6 +29,25 @@ python3 tools/check_catalog.py
 
 最新源码改写、文档重组验证与单文件编译结果见 [模板实现记录](algorithm_templates/IMPLEMENTATION.md)；此前的目录移动记录单独保留。
 
+## 面试高频补齐专题
+
+以下为新增学习指南与参考 Go 模板，不表示题单已全部有独立题解；已有实现通过链接复用，不重复移动。
+
+| 优先级 | 专题 | 主要补齐内容 |
+| --- | --- | --- |
+| 优先 | [哈希表](hash_table/README.md) | 配对、分组 key、频次与状态映射 |
+| 优先 | [链表](linked_list/README.md) | 反转、合并、分组、重排、深拷贝 |
+| 优先 | [二叉树基础](tree/fundamentals/README.md) | 层序、BST、迭代中序、建树与序列化 |
+| 优先 | [结构设计](data_structure_design/README.md) | LRU、最小栈、随机集合、双栈队列 |
+| 优先 | [排序与选择](sorting/README.md) | 归并、三路快速选择、分治计数 |
+| 补充 | [位运算](bit_manipulation/README.md) | 异或、最低置位、集合与子集 |
+| 补充 | [矩阵与原地操作](matrix/README.md) | 坐标变换、螺旋边界、状态标记 |
+| 补充 | [数学](math/README.md) | GCD、快速幂、竖式运算与筛法 |
+| 进阶 | [扫描线](sweep_line/README.md) | 端点语义、并发计数、离线查询 |
+| 进阶 | [树状数组](tree/fenwick/README.md) | 单点增量、动态前缀和、离散化排名 |
+
+建议按“优先 → 补充 → 进阶”复习，先解释不变量，再手写模板与边界测试。各指南给出代表题和具体练习顺序。
+
 ## 原有参考资料
 
 leetcode support github.com/emirpasic/gods/stacks/arraystack

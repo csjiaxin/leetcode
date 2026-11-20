@@ -1,8 +1,31 @@
-# 差分＋前缀扫描：批量区间变化
+# 差分与扫描线：端点变化、前缀恢复与活跃状态
 
-[返回仓库目录](../readme.md)
+[返回前缀和目录](../readme.md) · [仓库总目录](../../README.md) · [扫描线入口](../../sweep_line/README.md) · [区间贪心](../../greedy/interval_greedy/readme.md)
 
-[扩展练习：迁移点与边界](#extended-practice)
+本文整合差分与扫描线指南：共同的端点、边界和累计原理只解释一次，差分基础题保留原有代码入口，扫描线进阶题附学习思路与原题链接。题单不表示全部已有独立实现。原扫描线目录保留为导航，不移动源码。新增扫描模板依赖标准库 `sort`；差分泛型模板需要 Go 1.18+。
+
+<a id="relationship"></a>
+
+## 先选方法：两者有什么关系，分别解决什么问题？
+
+**差分是一种记录相邻变化的表示方法；扫描线是一种按位置顺序处理事件、维护状态的算法框架。它们相关，但不等同。**
+
+- **差分数组**：把区间加法变成两个端点增减，前缀累计恢复每个位置的值，适合批量更新后统一汇总。
+- **排序端点扫描**：坐标巨大但端点少时，只保存变化位置，按坐标排序并累计。对于可加的总量，可看作稀疏差分。
+- **更一般的扫描线**：状态可能是有效建筑高度集合、最短区间候选堆，不能仅靠一个差分累计值解决。
+
+| 要解决的问题 | 维护的信息 / 选择 | 代表题 |
+| --- | --- | --- |
+| 多次区间加，返回所有位置的最终值 | 密集差分数组＋前缀恢复 | [1109. 航班预订统计](https://leetcode.com/problems/corporate-flight-bookings/)、[2381. 字母移位 II](https://leetcode.com/problems/shifting-letters-ii/) |
+| 判断任一路段是否超载 | 当前有效人数；坐标小用数组、大用排序事件 | [1094. 拼车](https://leetcode.com/problems/car-pooling/) |
+| 求最大覆盖及最早位置 | 当前覆盖数＋历史最优，严格更优才更新位置 | [1854. 人口最多的年份](https://leetcode.com/problems/maximum-population-year/) |
+| 求最少资源 / 最大重叠 | 活跃数量的最大值，注意端点语义 | [253. 会议室 II](https://leetcode.com/problems/meeting-rooms-ii/)（会员题）、[2406. 将区间分为最少组数](https://leetcode.com/problems/divide-intervals-into-minimum-number-of-groups/) |
+| 求区间并集长度 | 活跃数＋相邻事件的实际坐标距离 | 见[稀疏扫描](#sparse-sweep) |
+| 求建筑轮廓 | 动态维护有效建筑的最大高度 | [218. 天际线问题](https://leetcode.com/problems/the-skyline-problem/) |
+| 求每个查询点的最短覆盖区间 | 离线查询＋候选最小堆 | [1851. 包含每个查询的最小区间](https://leetcode.com/problems/minimum-interval-to-include-each-query/) |
+| 每次新增预订后求最大重叠 | 重扫已知事件，或动态结构维护 | [732. 我的日程安排表 III](https://leetcode.com/problems/my-calendar-iii/) |
+
+**选型**：先确认要维护的状态能否简单加减，再确认坐标是密集还是稀疏，最后确认是批量汇总还是每次操作后立即查询。普通差分不能直接解决区间赋值或动态最大高度。静态区间求和则优先考虑前缀和，而不是差分。区间贪心是在选择哪些区间，本文主要是在汇总区间的共同影响，目标也不同。
 
 ## 目录
 
@@ -16,6 +39,10 @@
 - [3. 1109：航班预订](#lc1109)
 - [4. 1854：人口最多年份](#lc1854)
 - [5. 对比与易错点](#pitfalls)
+- [6. 稀疏扫描、坐标压缩与覆盖长度](#sparse-sweep)
+- [7. 进阶扫描线：离线查询、天际线与在线预订](#advanced-sweep)
+- [8. 扩展题单](#extended-practice)
+- [9. 练习顺序](#practice-order)
 
 <a id="core"></a>
 
@@ -116,6 +143,30 @@ diff[0] + diff[1] + ... + diff[i]
 
 下标5不属于实际数组，只用来放取消事件。最后累计回0，表示这两项额外贡献都已经结束。
 
+#### “事件、状态、答案”分别是什么？
+
+- **事件**：在某个位置发生的变化。例如会议开始 +1、结束 -1；乘客上车 +p、下车 -p。事件可包含位置、增减量、对象编号或高度；查询本身也可作为读取状态的事件。
+- **状态**：处理到当前位置时持续维护的信息。例如当前会议数、当前乘客数、有效建筑高度集合或候选区间堆。
+- **答案**：由状态提取的结果。例如当前会议数 active 的历史最大值 best，或者每个查询点的最短合法区间长度。
+
+差分中 `diff[x]` 是 x 的净变化，不是 x 处的人数；前缀累计 `active += diff[x]` 才更新当前状态。一般扫描线则未必能只用一个整数状态：建筑结束后，还要知道其余建筑中谁最高。
+
+会议例子采用 `[1,4)、[2,5)、[4,6)`：
+
+| 时间 | 事件 | 净变化 | 处理后 active | 状态对应的路段 |
+| --- | --- | --- | --- | --- |
+| 1 | 第一场开始 | +1 | 1 | [1,2) |
+| 2 | 第二场开始 | +1 | 2 | [2,4) |
+| 4 | 第一场结束、第三场开始 | 0 | 2 | [4,5) |
+| 5 | 第二场结束 | -1 | 1 | [5,6) |
+| 6 | 第三场结束 | -1 | 0 | 6 之后 |
+
+最大 active 为 2，因此最少需要 2 间会议室。同坐标先合并净变化，不会把时间 4 错算成同时 3 场。这也说明只需处理事件位置，不必遍历两个事件之间的每个时刻。
+
+<a id="endpoint-rules"></a>
+
+#### 边界约定决定贡献在哪里取消
+
 | 区间含义 | 开始生效 | 停止生效 | 原因 |
 | --- | --- | --- | --- |
 | 整数闭区间 `[l,r]` | `diff[l] += delta` | `diff[r+1] -= delta` | r仍受影响，从下一个位置才取消 |
@@ -124,6 +175,11 @@ diff[0] + diff[1] + ... + diff[i]
 **扫描不变量**：处理完坐标 x 的全部净变化后，前缀累计值就是 x 处的有效总量。同坐标加减应先聚合，不凭输入事件顺序判断超载。
 
 这也解释了拼车题为什么在下车站直接减：乘客占用的是 `[from,to)`，到达 to 时这一份占用已经结束。
+
+- **半开区间**：同坐标净变化处理完再读取状态，等价于结束先于开始，不把同站上下车临时叠加。
+- **连续坐标上的闭区间**：端点本身也算覆盖，计算端点最大重叠时应先加入、统计、再结束；不能直接用净变化后统计。退化闭区间 `[x,x]` 也覆盖 x。
+- **整数闭区间**：可转为 `[l,r+1)`，但 r+1 需要检查溢出；实数区间不能机械加 1。
+- **覆盖长度**：统计相邻坐标间的距离，不是每个端点的数量；单点的连续长度为 0。
 
 <a id="initial-array"></a>
 ### 1.4 从零数组到非零数组
@@ -434,9 +490,96 @@ func maximumPopulation(logs [][]int) int {
 - 实数闭区间不能机械r+1，必须明确同坐标事件顺序。
 - 差分不是通用在线查询结构；动态区间更新和查询可看 [线段树](../../tree/segment)。
 
+<a id="sparse-sweep"></a>
+
+## 6. 稀疏坐标：从差分数组到端点排序扫描
+
+如果坐标范围 U 很大，但只有 m 个区间，创建 O(U) 数组不划算。将同样的端点变化存成事件，排序后只扫描实际发生变化的位置，时间 O(m log(m+1))、空间 O(m)。负坐标也可直接处理。
+
+通用步骤：选择扫描轴 → 明确端点语义 → 建立事件 → 排序并分组同坐标 → 更新状态 → 提取答案。下面保持原扫描线文档的 `MaxOverlap` / `Compress` 名称；所有 Go 代码块合并时将 `import "sort"` 放在文件的 package 声明之后、其他声明之前。
+
+### 6.1 最大并发：半开区间模板
+
+```go
+import "sort"
+
+type event struct { coordinate, delta int }
+
+// intervals 为合法半开区间 [start,end)，空区间不占资源。
+func MaxOverlap(intervals [][2]int) int {
+    events := make([]event, 0, 2*len(intervals))
+    for _, interval := range intervals {
+        if interval[0] > interval[1] { panic("reversed interval") }
+        if interval[0] == interval[1] { continue }
+        events = append(events, event{interval[0],1}, event{interval[1],-1})
+    }
+    sort.Slice(events, func(i,j int) bool { return events[i].coordinate < events[j].coordinate })
+    active, best := 0, 0
+    for i := 0; i < len(events); {
+        coordinate, delta := events[i].coordinate, 0
+        for i < len(events) && events[i].coordinate == coordinate {
+            delta += events[i].delta
+            i++
+        }
+        active += delta
+        if active > best { best = active }
+    }
+    return best
+}
+```
+
+可用于 [253. 会议室 II](https://leetcode.com/problems/meeting-rooms-ii/)（会员题）。拼车则将 delta 从 ±1 改成 ±乘客数，并比较 active 与 capacity；人口题保存第一次达到严格更大 active 的坐标。若要每个数组元素的完整答案，输出规模本身就有 O(n)，不能靠只返回事件绕过。
+
+### 6.2 坐标压缩与覆盖长度
+
+```go
+// 返回升序唯一坐标，不修改输入。
+func Compress(coordinates []int) []int {
+    sorted := append([]int(nil), coordinates...)
+    sort.Ints(sorted)
+    unique := sorted[:0]
+    for _, x := range sorted {
+        if len(unique) == 0 || unique[len(unique)-1] != x { unique = append(unique,x) }
+    }
+    return unique
+}
+```
+
+时间 O(n log(n+1))、空间 O(n)。用 `sort.SearchInts(unique,x)` 获得排名；排序事件即可解题时不必额外压缩。压缩保留顺序，**不保留距离**：坐标 `[1,100,101]` 的两段实际长度是 99 和 1，不是都为 1。
+
+求并集长度时，在处理当前坐标 x 的事件**之前**，用上一个坐标后的 active 判断 `[previous,x)` 是否被覆盖；若 active>0，则累加 `int64(x)-int64(previous)`，之后再应用 x 的净变化。也可先更新状态，再统计到下一个坐标的距离，两种约定不要混用。这里假定坐标差与总长度均可由 int64 表示。
+
+<a id="advanced-sweep"></a>
+
+## 7. 进阶扫描线：状态不再只是一个累计值
+
+### 7.1 离线查询＋最小堆
+
+[1851. 包含每个查询的最小区间](https://leetcode.com/problems/minimum-interval-to-include-each-query/)：区间按左端点排序；查询按值排序并保存原下标。扫描 query 时，将 `left<=query` 的区间加入按长度排序的最小堆；弹出堆顶 `right<query` 的失效区间，剩余堆顶即最短合法区间。
+
+例如 `[1,4]、[2,3]`：query=2 时答案为长度 2；query=4 时 `[2,3]` 失效，答案为长度 4。这里是**整数闭区间**，长度为 `right-left+1`，不是会议的半开区间。
+
+状态包含已开始的候选，懒删除下堆内可能残留过期区间，但回答前堆顶必须合法；并不要求每次立即清理所有失效项。n 个区间、q 个查询，时间 O(n log(n+1)+q log(q+1)+(n+q)log(n+1))、空间 O(n+q)。
+
+**离线**指允许重排查询的处理顺序，再用原下标恢复答案；查询主要读取状态，不一定改变状态。未来更新不能提前计入当前答案。
+
+### 7.2 天际线：活跃集合的动态最大值
+
+[218. 天际线问题](https://leetcode.com/problems/the-skyline-problem/)：建筑开始加入、结束退出；同坐标事件分组处理后，查询有效建筑最大高度。最大高度改变才输出轮廓关键点。堆＋懒删除、计数有序集合等方式通常为 O(n log n) 时间、O(n) 空间。
+
+不能只保留一个最大高度：最高建筑结束后，还需要知道其余有效建筑中的次高者。差分只记录“总增减”会丢失决定最大值所需的信息；重复高度还要区分建筑身份或维护频次。
+
+### 7.3 在线预订：不要把一次扫描的复杂度当作全部操作的复杂度
+
+[732. 我的日程安排表 III](https://leetcode.com/problems/my-calendar-iii/)：每次 Book 新增 `[start,end)`，立即返回截至本次的最大重叠数。
+
+基线方案维护端点增量 map；每次加入 start:+1、end:-1，再排序当前已知端点并扫描。第 m 次最坏 O(m log(m+1))，m 次累计 O(m² log(m+1))，空间 O(m)。只重扫已收到的数据，仍然符合在线语义，但重复工作较多。
+
+规模更大可用动态线段树等结构维护区间加与全局最大值。动态并不代表一定要用高级结构，而是必须核算多次更新和查询的总成本。普通区间和 / 频次问题还可考虑[树状数组](../../tree/fenwick/README.md)，动态区间维护可看[线段树](../../tree/segment/readme.md)。
+
 <a id="extended-practice"></a>
 
-## 扩展练习：迁移点与边界
+## 8. 扩展练习：迁移点与边界
 
 新增题目只补充学习路线与解法总结，不自动生成未请求的实现或测试。
 
@@ -447,6 +590,18 @@ func maximumPopulation(logs [][]int) int {
 | [1893. 检查是否区域内所有整数都被覆盖](https://leetcode.com/problems/check-if-all-the-integers-in-a-range-are-covered/) | 整数闭区间差分，目标区间每点覆盖数至少1 | 取消点r+1，不要只比较总覆盖长度 |
 | [2406. 将区间分为最少组数](https://leetcode.com/problems/divide-intervals-into-minimum-number-of-groups/) | 整数闭区间最大并发覆盖即最少组数 | 端点相接算重叠；大坐标用稀疏事件或最小堆 |
 | [2536. 子矩阵元素加1](https://leetcode.com/problems/increment-submatrices-by-one/) | 二维矩形四角差分，再二维前缀恢复 | 额外哨兵行列；四角符号+ - - + |
-| [732. 我的日程安排表III](https://leetcode.com/problems/my-calendar-iii/) | 半开预订记录端点变化，每次返回最大重叠 | 这是在线更新；简单有序事件重扫可行但非最优，规模大考虑动态线段树 |
+| [253. 会议室 II](https://leetcode.com/problems/meeting-rooms-ii/)（会员题） | 半开区间端点扫描，取最大活跃数量 | 同时结束和开始可以复用房间 |
+| [1851. 包含每个查询的最小区间](https://leetcode.com/problems/minimum-interval-to-include-each-query/) | 离线查询＋按长度排序的候选堆 | 查询前清理失效堆顶；保存原查询下标 |
+| [218. 天际线问题](https://leetcode.com/problems/the-skyline-problem/) | 扫描建筑端点＋动态最高有效建筑 | 不能只用加法累计高度，重复高度要区分身份或计数 |
+| [732. 我的日程安排表 III](https://leetcode.com/problems/my-calendar-iii/) | 半开预订记录端点变化，每次返回最大重叠 | 在线更新与复杂度见第 7 节，不提前使用未来预订 |
 
-**复习方法**：先独立写出状态、合法性或松弛条件，再指出相较本篇基础题改变的那一行；若前提不满足，主动换算法，不为统一模板牺牲正确性。
+<a id="practice-order"></a>
+
+## 9. 推荐练习顺序
+
+- **差分基础**：[1109. 航班预订统计](https://leetcode.com/problems/corporate-flight-bookings/) → [1094. 拼车](https://leetcode.com/problems/car-pooling/) → [1854. 人口最多的年份](https://leetcode.com/problems/maximum-population-year/)。
+- **条件迁移**：[1893. 整数覆盖](https://leetcode.com/problems/check-if-all-the-integers-in-a-range-are-covered/) → [2381. 字母移位 II](https://leetcode.com/problems/shifting-letters-ii/) → [3355. 零数组变换 I](https://leetcode.com/problems/zero-array-transformation-i/)。
+- **稀疏事件**：[253. 会议室 II](https://leetcode.com/problems/meeting-rooms-ii/)（会员题） → [2406. 将区间分为最少组数](https://leetcode.com/problems/divide-intervals-into-minimum-number-of-groups/)。
+- **进阶分支**：[2536. 子矩阵元素加 1](https://leetcode.com/problems/increment-submatrices-by-one/)（二维差分）；[1851. 最短覆盖区间](https://leetcode.com/problems/minimum-interval-to-include-each-query/) → [218. 天际线](https://leetcode.com/problems/the-skyline-problem/) → [732. 在线预订](https://leetcode.com/problems/my-calendar-iii/)（扫描线与动态结构）。
+
+**复习方法**：先写清“事件是什么、状态是什么、何时读取答案”，再确认端点语义、坐标规模和查询时序。能加减累计才考虑差分；不能只用累计和表达状态时，选择合适的候选结构，不为统一模板牺牲正确性。
